@@ -59,7 +59,8 @@ import {
   ChevronDown,
   ChevronUp,
   Home,
-  LayoutDashboardIcon, // Thêm Home Icon
+  LayoutDashboardIcon,
+  Layers, // Thêm Home Icon
 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -246,6 +247,20 @@ const MainNavigation = () => {
             label: 'Thống kê CSVC',
             href: '/dashboard/facilities',
             icon: LineChartIcon,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+          },
+          {
+            label: 'Quản lý Tòa Nhà',
+            href: '/units/buildings', // Hoặc /admin/buildings
+            icon: Building, // Icon Building đã có
+            activePaths: ['/units/buildings'], // Bao gồm cả trang con nếu có
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC], // CSVC có thể được xem
+          },
+          {
+            label: 'Quản lý Loại Tầng',
+            href: '/units/floor-types', // Hoặc /admin/floor-types
+            icon: Layers, // Icon Layers có vẻ hợp lý
+            activePaths: ['/units/floor-types'],
             allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
           },
         ],

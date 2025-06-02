@@ -88,6 +88,7 @@ import { Label } from '@/components/ui/label';
 import MaTrangThaiSK from '@/enums/maTrangThaiSK.enum';
 import MaVaiTro from '@/enums/maVaiTro.enum';
 import { useQueryClient } from '@tanstack/react-query';
+import InfoRowDialog from '@/components/dialog/InfoRowDialog';
 // --- Helper Functions (Có thể đã có ở EventsList.tsx hoặc utils) ---
 const formatDateRangeForDisplay = (start?: string, end?: string): string => {
   if (!start) return 'N/A';
@@ -698,28 +699,5 @@ const EventsApprove = () => {
     </DashboardLayout>
   );
 };
-
-// Helper component cho dialog chi tiết
-const InfoRowDialog = ({
-  label,
-  value,
-  className,
-}: {
-  label: React.ReactNode;
-  value: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    className={cn(
-      'grid grid-cols-1 sm:grid-cols-[150px_1fr] items-start gap-x-4 gap-y-1 py-2 border-b border-border/40 dark:border-slate-700/40 last:border-b-0',
-      className
-    )}
-  >
-    <div className="text-sm font-semibold text-muted-foreground sm:text-right">
-      {label}
-    </div>
-    <div className="text-sm">{value}</div>
-  </div>
-);
 
 export default EventsApprove;

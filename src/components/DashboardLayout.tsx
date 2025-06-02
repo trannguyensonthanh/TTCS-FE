@@ -34,6 +34,7 @@ import {
   ChevronUp,
   Home,
   Grip,
+  Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -263,6 +264,26 @@ const DashboardLayout = ({
 
       {
         isTitle: true,
+        label: 'Quản Trị Cơ Sở Hạ Tầng',
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+      {
+        label: 'Quản lý Tòa Nhà',
+        href: '/units/buildings',
+        icon: Building,
+        activePaths: ['/units/buildings'],
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+      {
+        label: 'Quản lý Loại Tầng',
+        href: '/units/floor-types',
+        icon: Layers,
+        activePaths: ['/units/floor-types'],
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+
+      {
+        isTitle: true,
         label: 'Quản Trị Hệ Thống',
         allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
       },
@@ -298,7 +319,7 @@ const DashboardLayout = ({
       },
     ],
     [user]
-  ); // Phụ thuộc vào user để re-render khi user thay đổi
+  );
 
   const getVisibleSidebarItems = useCallback(
     (items: NavItemStructure[]): NavItemStructure[] => {
@@ -350,7 +371,7 @@ const DashboardLayout = ({
                       isActive(item.href, item.activePaths, item.exactMatch) &&
                         'bg-primary/10 text-primary font-semibold dark:bg-ptit-red/15 dark:text-ptit-red'
                     )}
-                    onClick={() => setIsSidebarOpen(false)} // Explicitly close sheet on mobile
+                    onClick={() => setIsSidebarOpen(false)}
                   >
                     {item.icon && (
                       <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -528,10 +549,7 @@ const DashboardLayout = ({
   };
 
   return (
-    <div
-      className="flex min-h-screen w-full" // Removed md:grid layout
-    >
-      {/* Sidebar for Desktop (fixed) or Mobile (Sheet) */}
+    <div className="flex min-h-screen w-full">
       {isMobile ? (
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           {/* Trigger sẽ nằm ở Header */}
@@ -544,14 +562,11 @@ const DashboardLayout = ({
           </SheetContent>
         </Sheet>
       ) : (
-        // Desktop sidebar: fixed position, full height, set width
         <aside className="hidden md:block fixed top-0 left-0 h-screen w-[260px] z-40">
-          {/* SidebarNavContent handles its own background, border, and shadow */}
           <SidebarNavContent />
         </aside>
       )}
 
-      {/* Main content area: apply margin-left on desktop to account for fixed sidebar */}
       <div
         className={cn(
           'flex flex-col flex-1 overflow-hidden',
@@ -559,7 +574,6 @@ const DashboardLayout = ({
         )}
       >
         <header className="flex h-16 items-center gap-x-4 border-b bg-background px-4 md:px-6 sticky top-0 z-30 dark:border-slate-800 shadow-sm">
-          {/* Mobile Navigation Trigger */}
           {isMobile && (
             <SheetTrigger asChild>
               <Button

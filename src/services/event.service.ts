@@ -266,6 +266,7 @@ export interface GetSuKienForSelectParams {
   coTheTaoYeuCauPhongMoi?: boolean; // Thay cho chuaCoYeuCauPhong
 }
 
+// Đáng lẽ nên ở file danhMuc.service.ts
 const getSuKienListForSelection = async (
   params?: GetSuKienForSelectParams
 ): Promise<SuKienForSelectResponse[]> => {

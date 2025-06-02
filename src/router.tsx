@@ -22,7 +22,7 @@ import EventParticipants from './pages/Events/EventParticipants';
 
 // Import Facility Pages
 import RoomRequests from './pages/Facilities/RoomRequests';
-import Rooms from './pages/Facilities/Rooms';
+import Rooms from './pages/Facilities/RoomsPage';
 import RoomChangeRequests from './pages/Facilities/RoomChangeRequests';
 import Equipment from './pages/Facilities/Equipment';
 import RoomSchedule from './pages/Facilities/RoomSchedule';
@@ -48,7 +48,9 @@ import Clubs from './pages/Units/Clubs';
 import Union from './pages/Units/Union';
 import Majors from './pages/Units/Majors';
 import Classes from './pages/Units/Classes';
-
+import BuildingsPage from './pages/Units/BuildingsPage'; // Ví dụ đường dẫn
+import FloorTypesPage from './pages/Units/FloorTypesPage'; // Ví dụ đường dẫn
+import BuildingFloorsPage from './pages/Units/BuildingFloorsPage'; // Ví dụ đường dẫn
 // Import Protected Route Component
 import ProtectedRoute from './components/ProtectedRoute';
 import EventsPublic from '@/pages/EventsPublic';
@@ -178,6 +180,34 @@ const AppRouter = () => {
                 element={
                   <ProtectedRoute>
                     <Equipment />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Quản lý Tòa Nhà */}
+              <Route
+                path="/units/buildings"
+                element={
+                  <ProtectedRoute>
+                    <BuildingsPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Quản lý Loại Tầng */}
+              <Route
+                path="/units/floor-types"
+                element={
+                  <ProtectedRoute>
+                    <FloorTypesPage />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Quản lý Tầng của một Tòa Nhà cụ thể */}
+              <Route
+                path="/units/buildings/:toaNhaId/floors"
+                element={
+                  <ProtectedRoute>
+                    <BuildingFloorsPage />
                   </ProtectedRoute>
                 }
               />

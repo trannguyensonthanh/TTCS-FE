@@ -147,6 +147,7 @@ import {
   YeuCauMuonPhongDetailResponse,
   YeuCauMuonPhongListItemResponse,
 } from '@/services/roomRequest.service';
+import InfoRowDialog from '@/components/dialog/InfoRowDialog';
 // import { DateRange } from 'react-day-picker'; // Không thấy dùng DateRangePicker
 
 // --- Helper Functions ---
@@ -425,7 +426,7 @@ const RoomRequestsPage = () => {
       { enabled: isCreateModalOpen }
     );
   const { data: dsLoaiPhong, isLoading: isLoadingLoaiPhong } = useLoaiPhongList(
-    { limit: 100, isActive: true },
+    { limit: 100 },
     {
       enabled:
         isCreateModalOpen ||
@@ -1737,25 +1738,5 @@ const RoomRequestsPage = () => {
     </DashboardLayout>
   );
 };
-
-const InfoRowDialog: React.FC<{
-  label: React.ReactNode;
-  value: React.ReactNode;
-  className?: string;
-}> = ({ label, value, className }) => (
-  <div
-    className={cn(
-      'grid grid-cols-1 sm:grid-cols-[180px_1fr] items-start gap-x-4 gap-y-1 py-2.5 border-b border-border/40 dark:border-slate-700/40 last:border-b-0',
-      className
-    )}
-  >
-    <Label className="sm:text-right text-sm font-medium text-muted-foreground col-span-1 sm:col-auto pt-0.5">
-      {label}
-    </Label>
-    <div className="sm:col-span-2 text-sm text-foreground break-words">
-      {value}
-    </div>
-  </div>
-);
 
 export default RoomRequestsPage;

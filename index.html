@@ -1,26 +1,136 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo-ptit.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>campus-event-manager-pro</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
 
-    <meta property="og:title" content="campus-event-manager-pro" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <title>PTIT Events - Hệ Thống Quản Lý Sự Kiện & Cơ Sở Vật Chất</title>
+    <meta
+      name="description"
+      content="Hệ thống quản lý toàn diện cho việc tổ chức sự kiện, đăng ký và sử dụng cơ sở vật chất tại Học viện Công nghệ Bưu chính Viễn thông TP.HCM (PTITHCM)."
+    />
+    <meta
+      name="keywords"
+      content="PTIT, PTITHCM, sự kiện, quản lý sự kiện, mượn phòng, cơ sở vật chất, học viện, bưu chính viễn thông"
+    />
+    <meta name="author" content="Nhóm 7 - TTCS" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="[URL_DEPLOY]" />
+    <meta property="og:title" content="PTIT Events - Quản Lý Sự Kiện & CSVC" />
+    <meta
+      property="og:description"
+      content="Giải pháp hiệu quả cho việc tổ chức và quản lý sự kiện tại PTITHCM."
+    />
+    <meta property="og:image" content="/og-image-ptit-events.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="vi_VN" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="[URL_DEPLOY]" />
+    <meta
+      property="twitter:title"
+      content="PTIT Events - Quản Lý Sự Kiện & CSVC"
+    />
+    <meta
+      property="twitter:description"
+      content="Giải pháp hiệu quả cho việc tổ chức và quản lý sự kiện tại PTITHCM."
+    />
+    <meta property="twitter:image" content="/og-image-ptit-events.png" />
+
+    <!-- Theme Color (cho trình duyệt mobile) -->
+    <meta name="theme-color" content="#1E88E5" />
+
+    <!-- Preconnect to Google Fonts (nếu bạn dùng font từ Google) -->
+    <!-- Ví dụ:
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    -->
   </head>
-
   <body>
-    <div id="root"></div>
-    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <noscript>
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          font-family: sans-serif;
+          text-align: center;
+          padding: 20px;
+        "
+      >
+        <h1>JavaScript là bắt buộc để ứng dụng này hoạt động.</h1>
+        <p>
+          Vui lòng kích hoạt JavaScript trong trình duyệt của bạn và tải lại
+          trang.
+        </p>
+      </div>
+    </noscript>
+    <div id="root">
+      <!-- Fallback content trong trường hợp React chưa load kịp hoặc lỗi JS -->
+      <div
+        style="
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          font-family: Arial, sans-serif;
+          background-color: #f8f9fa;
+          color: #333;
+        "
+      >
+        <svg
+          width="80"
+          height="80"
+          viewBox="0 0 100 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style="margin-bottom: 20px"
+        >
+          <path
+            d="M50 0C22.4 0 0 22.4 0 50C0 77.6 22.4 100 50 100C77.6 100 100 77.6 100 50C100 22.4 77.6 0 50 0Z"
+            fill="#1E88E5"
+          />
+          <path
+            d="M65 25H35C32.2386 25 30 27.2386 30 30V70C30 72.7614 32.2386 75 35 75H65C67.7614 75 70 72.7614 70 70V30C70 27.2386 67.7614 25 65 25Z"
+            fill="white"
+          />
+          <path
+            d="M42 40H58V45H42V40ZM42 50H58V55H42V50ZM42 60H58V65H42V60Z"
+            fill="#D32F2F"
+          />
+        </svg>
+        <h2 style="font-size: 1.8em; margin-bottom: 10px">PTIT Events</h2>
+        <p style="font-size: 1.1em">Đang tải ứng dụng...</p>
+        <div
+          style="
+            margin-top: 20px;
+            width: 60px;
+            height: 60px;
+            border: 6px solid #e9e9e9;
+            border-top-color: #d32f2f;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+          "
+        ></div>
+      </div>
+      <style>
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Script của gptengineer.js nếu bạn vẫn dùng -->
+    <!-- <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script> -->
   </body>
 </html>

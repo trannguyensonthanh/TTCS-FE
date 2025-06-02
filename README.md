@@ -1,648 +1,653 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import {
-NavigationMenu,
-NavigationMenuContent,
-NavigationMenuItem,
-NavigationMenuLink,
-NavigationMenuList,
-NavigationMenuTrigger,
-navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
-import {
-DropdownMenu,
-DropdownMenuContent,
-DropdownMenuItem,
-DropdownMenuLabel,
-DropdownMenuSeparator,
-DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { ThemeSwitcher } from './ThemeSwitcher'; // Giả định đường dẫn đúng
-import { NotificationBell } from './NotificationBell'; // Giả định đường dẫn đúng
-import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext';
-import { useRole } from '@/context/RoleContext'; // Hook đã được điều chỉnh
-import { Logo } from '@/assets/logo'; // Giả định đường dẫn đúng
-import maVaiTro from '@/enums/maVaiTro.enum'; // Import hằng số maVaiTro
-import {
-LayoutDashboard,
-CalendarDays,
-Building2,
-Users,
-UserSquare2,
-Settings,
-LogOut,
-Menu,
-ChevronDown,
-ClipboardList,
-ListChecks,
-ShieldCheck,
-CalendarClock,
-History,
-GanttChartSquare,
-BookOpen, // Cho ngành học
-GraduationCap, // Cho lớp học
-Library, // Cho đơn vị chung
-Users2, // Cho CLB, Đoàn thể
-Briefcase,
-Calendar,
-LineChartIcon,
-Building,
-CalendarPlus,
-User, // Cho Phòng/Ban
-} from 'lucide-react';
-import { useMediaQuery } from '@/hooks/use-mobile';
+![image.png](attachment:2e419796-d9eb-45f4-ba60-0245af126816:image.png)
 
-interface NavItemStructure {
-label: string;
-href?: string; // Optional for top-level triggers
-icon: React.ElementType;
-activePaths?: string[]; // Các path con cũng được coi là active
-allowedRoles?: string[]; // Mảng các MaVaiTro được phép xem
-subItems?: NavItemStructure[]; // Cho sub-menu trong NavigationMenuContent hoặc Sheet
-}
+---
 
-const MainNavigation = () => {
-const { user, logout } = useAuth();
-const { hasRole, can } = useRole(); // Sử dụng can() để kiểm tra quyền chi tiết hơn nếu cần
-const location = useLocation();
-const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-const isMobile = useMediaQuery('(max-width: 768px)');
-const isActive = (mainPath?: string, activePaths?: string[]) => {
-if (!mainPath) return false;
-if (mainPath === '/' && location.pathname === '/') return true;
-if (mainPath !== '/' && location.pathname.startsWith(mainPath)) return true;
-if (activePaths?.some((path) => location.pathname.startsWith(path)))
-return true;
-return false;
-};
+**I. QUẢN LÝ NGƯỜI DÙNG, VAI TRÒ, TÀI KHOẢN, HỌC VỤ (Phiên bản cuối cùng)**
 
-const navigationStructure = useMemo((): NavItemStructure[] => [
-// 1. TỔNG QUAN CHUNG (Dành cho các vai trò quản lý/điều hành)
-{
-label: 'Tổng Quan Chung',
-href: '/dashboard',
-icon: LayoutDashboard,
-activePaths: ['/dashboard'], // Chỉ active khi đúng /dashboard
-allowedRoles: [
-maVaiTro.ADMIN_HE_THONG,
-maVaiTro.BGH_DUYET_SK_TRUONG,
-maVaiTro.QUAN_LY_CSVC,
-// CBTC có thể có dashboard riêng hoặc xem mục này
-],
-},
+**1. Bảng NguoiDung (Users - Thông tin cá nhân cốt lõi)**
 
-// 2. LỊCH SỰ KIỆN (Dành cho tất cả người dùng đã đăng nhập để xem)
-{
-label: 'Lịch Sự Kiện Trường',
-href: '/events-public', // Route cho trang hiển thị sự kiện công khai
-icon: CalendarDays,
-activePaths: ['/events-public'],
-allowedRoles: ['*'], // '\*' cho tất cả người dùng đã đăng nhập
-},
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| NguoiDungID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaDinhDanh | VARCHAR(50) | UNIQUE, NULL (Mã nhân sự/SV chung nếu có) |
+| HoTen | NVARCHAR(150) | NOT NULL |
+| Email | VARCHAR(150) | UNIQUE, NOT NULL |
+| SoDienThoai | VARCHAR(20) | UNIQUE, NULL |
+| AnhDaiDien | VARCHAR(500) | NULL (URL ảnh) |
+| NgayTao | DATETIME | DEFAULT GETDATE() |
+| IsActive | BIT | DEFAULT 1 (Tài khoản người dùng còn hoạt động) |
 
-// 3. QUẢN LÝ SỰ KIỆN (Dành cho các vai trò liên quan đến quy trình sự kiện)
-{
-label: 'Quản Lý Sự Kiện',
-icon: ClipboardList, // Icon chính cho nhóm
-activePaths: ['/events', '/events/new', '/events/approve', '/events/cancel-requests'],
-allowedRoles: [ // Ai có thể thấy nhóm menu "Quản Lý Sự Kiện"
-maVaiTro.ADMIN_HE_THONG,
-maVaiTro.CB_TO_CHUC_SU_KIEN,
-maVaiTro.BGH_DUYET_SK_TRUONG,
-// TK, TCLB, BTĐ có thể xem danh sách sự kiện liên quan đến đơn vị họ
-maVaiTro.TRUONG_KHOA,
-maVaiTro.TRUONG_CLB,
-maVaiTro.BI_THU_DOAN,
-],
-subItems: [
-{
-label: 'Danh sách Sự kiện', // Đây là trang /events (EventsList.tsx)
-href: '/events',
-icon: ClipboardList, // Icon lặp lại hoặc có thể chọn icon khác
-// Quyền xem danh sách này sẽ được lọc ở backend và FE dựa trên vai trò cụ thể
-allowedRoles: [
-maVaiTro.ADMIN_HE_THONG, maVaiTro.CB_TO_CHUC_SU_KIEN, maVaiTro.BGH_DUYET_SK_TRUONG,
-maVaiTro.QUAN_LY_CSVC, // CSVC có thể cần xem danh sách để nắm tình hình
-maVaiTro.TRUONG_KHOA, maVaiTro.TRUONG_CLB, maVaiTro.BI_THU_DOAN
-],
-},
-{
-label: 'Tạo Sự kiện Mới',
-href: '/events/new',
-icon: CalendarPlus,
-allowedRoles: [maVaiTro.CB_TO_CHUC_SU_KIEN, maVaiTro.ADMIN_HE_THONG],
-// Giai đoạn 2: có thể thêm vai trò tạo sự kiện cấp đơn vị cho TK, TCLB, BTĐ
-},
-{
-label: 'Duyệt Sự kiện (BGH)',
-href: '/events/approve', // Trang cho BGH duyệt
-icon: ShieldCheck,
-allowedRoles: [maVaiTro.BGH_DUYET_SK_TRUONG, maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Yêu cầu Hủy Sự kiện',
-href: '/events/cancel-requests', // Trang quản lý các yêu cầu hủy
-icon: CalendarClock,
-allowedRoles: [
-maVaiTro.CB_TO_CHUC_SU_KIEN, // Để xem yêu cầu của mình
-maVaiTro.BGH_DUYET_SK_TRUONG, // Để duyệt yêu cầu hủy
-maVaiTro.ADMIN_HE_THONG,
-],
-},
-],
-},
+**2. Bảng TaiKhoan (Accounts - Thông tin đăng nhập)**
 
-// 4. QUẢN LÝ CƠ SỞ VẬT CHẤT
-{
-label: 'Quản Lý CSVC',
-icon: Building, // Icon chính cho nhóm
-activePaths: ['/facilities', '/dashboard/facilities'],
-allowedRoles: [ // Ai có thể thấy nhóm menu "Quản Lý CSVC"
-maVaiTro.ADMIN_HE_THONG,
-maVaiTro.QUAN_LY_CSVC,
-// Các vai trò khác có thể chỉ xem Lịch sử dụng phòng
-],
-subItems: [
-{
-label: 'Quản lý Phòng',
-href: '/facilities/rooms',
-icon: Building2,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG, maVaiTro.QUAN_LY_CSVC],
-},
-{
-label: 'Quản lý Thiết bị',
-href: '/facilities/equipment',
-icon: Settings, // Có thể đổi icon này
-allowedRoles: [maVaiTro.ADMIN_HE_THONG, maVaiTro.QUAN_LY_CSVC],
-},
-{
-label: 'Lịch sử dụng Phòng',
-href: '/facilities/room-schedule',
-icon: Calendar,
-allowedRoles: ['*'], // Mọi người đều có thể xem lịch phòng
-},
-{
-label: 'Yêu cầu Mượn Phòng', // Trang CBTC tạo YC và CSVC duyệt
-href: '/facilities/room-requests',
-icon: ListChecks,
-allowedRoles: [
-maVaiTro.ADMIN_HE_THONG,
-maVaiTro.QUAN_LY_CSVC,
-maVaiTro.CB_TO_CHUC_SU_KIEN,
-],
-},
-{
-label: 'Yêu cầu Đổi Phòng',
-href: '/facilities/room-change-requests',
-icon: History,
-allowedRoles: [
-maVaiTro.ADMIN_HE_THONG,
-maVaiTro.QUAN_LY_CSVC,
-maVaiTro.CB_TO_CHUC_SU_KIEN,
-],
-},
-{
-label: 'Thống kê CSVC',
-href: '/dashboard/facilities',
-icon: LineChartIcon,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG, maVaiTro.QUAN_LY_CSVC],
-},
-],
-},
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| TaiKhoanID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| NguoiDungID | INT | NOT NULL, UNIQUE, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) ON DELETE CASCADE |
+| TenDangNhap | VARCHAR(100) | NOT NULL, UNIQUE |
+| MatKhauHash | VARCHAR(255) | NOT NULL |
+| Salt | VARCHAR(100) | NOT NULL |
+| LanDangNhapCuoi | DATETIME | NULL |
+| TrangThaiTk | VARCHAR(50) | NOT NULL, DEFAULT 'Active' (VD: 'Active', 'Locked', 'Disabled') |
+| NgayTaoTk | DATETIME | DEFAULT GETDATE() |
 
-// 5. CÁC DASHBOARD ĐƠN VỊ (Dành cho Trưởng Khoa, Trưởng CLB, Bí thư Đoàn)
-{
-label: 'Dashboard Đơn Vị',
-icon: Briefcase, // Icon chung
-activePaths: ['/dashboard/department', '/dashboard/clubs', '/dashboard/union'],
-// Mục cha này sẽ hiển thị nếu người dùng có ít nhất 1 trong các vai trò quản lý đơn vị
-allowedRoles: [maVaiTro.TRUONG_KHOA, maVaiTro.TRUONG_CLB, maVaiTro.BI_THU_DOAN, maVaiTro.ADMIN_HE_THONG],
-subItems: [
-{
-label: 'Dashboard Khoa',
-href: '/dashboard/department',
-icon: Briefcase, // Hoặc School
-allowedRoles: [maVaiTro.TRUONG_KHOA, maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Dashboard CLB',
-href: '/dashboard/clubs',
-icon: Users2,
-allowedRoles: [maVaiTro.TRUONG_CLB, maVaiTro.GV_CO_VAN_CLB, maVaiTro.ADMIN_HE_THONG], // GV Cố vấn cũng có thể xem
-},
-{
-label: 'Dashboard Đoàn',
-href: '/dashboard/union',
-icon: Users2,
-allowedRoles: [maVaiTro.BI_THU_DOAN, maVaiTro.ADMIN_HE_THONG],
-},
-]
-},
+**3. Bảng DonVi (Departments/Units - Khoa, Phòng, Ban, CLB, Bộ môn...)**
 
-// 6. QUẢN TRỊ HỆ THỐNG (Chỉ dành cho ADMIN_HE_THONG)
-{
-label: 'Quản Trị Hệ Thống',
-icon: Settings,
-activePaths: ['/users', '/units', '/admin-settings'],
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-subItems: [
-{
-label: 'Quản lý Người dùng',
-href: '/users', // Trang tổng hợp quản lý user (có thể có các tab SV, GV, NV)
-icon: Users,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Vai trò & Phân quyền',
-href: '/users/roles', // Trang quản lý VaiTroHeThong và NguoiDung_VaiTroChucNang
-icon: UserSquare2,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Quản lý Đơn vị',
-href: '/units', // Trang tổng hợp quản lý các loại đơn vị
-icon: Library,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Quản lý Ngành học',
-href: '/units/majors',
-icon: BookOpen,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-},
-{
-label: 'Quản lý Lớp học',
-href: '/units/classes',
-icon: GraduationCap,
-allowedRoles: [maVaiTro.ADMIN_HE_THONG],
-},
-// { label: "Cấu hình Hệ thống", href: "/admin-settings", icon: Settings, allowedRoles: [maVaiTro.ADMIN_HE_THONG] },
-],
-},
-], []); // Không cần dependencies vì không dùng trực tiếp các biến bên trong
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| DonViID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenDonVi | NVARCHAR(200) | NOT NULL, UNIQUE |
+| MaDonVi | VARCHAR(50) | UNIQUE, NULL |
+| LoaiDonVi | NVARCHAR(100) | NOT NULL (VD: 'KHOA', 'PHONG', 'BAN', 'TRUNG_TAM', 'BO_MON', 'CLB') |
+| DonViChaID | INT | NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| MoTaDv | NVARCHAR(500) | NULL |
 
-const getVisibleNavItems = (
-items: NavItemStructure[]
-): NavItemStructure[] => {
-return items
-.filter((item) => {
-if (!item.allowedRoles || item.allowedRoles.includes('_')) return true; // '_' means accessible to all logged-in users
-if (!user || !user.vaiTroChucNang) return false;
-return item.allowedRoles.some((roleCode) => hasRole(roleCode));
-})
-.map((item) => ({
-...item,
-subItems: item.subItems ? getVisibleNavItems(item.subItems) : undefined,
-}));
-};
+**4. Bảng NganhHoc (Academic Programs/Majors)**
 
-const visibleNavigation = useMemo(
-() => getVisibleNavItems(navigationStructure),
-[navigationStructure, user]
-);
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| NganhHocID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenNganhHoc | NVARCHAR(200) | NOT NULL, UNIQUE |
+| MaNganhHoc | VARCHAR(50) | UNIQUE, NULL |
+| KhoaQuanLyID | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| MoTaNH | NVARCHAR(MAX) | NULL |
+| CoChuyenNganh | BIT | NOT NULL, DEFAULT 0 |
 
-const renderDesktopSubMenu = (item: NavItemStructure) => (
-<NavigationMenuContent>
+**5. Bảng ChuyenNganh (Specializations)**
 
-<ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-{item.subItems?.map(
-(subItem) =>
-(subItem.allowedRoles?.some((role) => hasRole(role)) ||
-subItem.allowedRoles?.includes('_') ||
-hasRole(maVaiTro.ADMIN_HE_THONG)) && (
-<ListItem
-                key={subItem.label}
-                to={subItem.href!}
-                title={subItem.label}
-                icon={subItem.icon}
-              >
-{/_ Mô tả ngắn cho subItem nếu có \*/}
-</ListItem>
-)
-)}
-</ul>
-</NavigationMenuContent>
-);
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| ChuyenNganhID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenChuyenNganh | NVARCHAR(200) | NOT NULL |
+| MaChuyenNganh | VARCHAR(50) | UNIQUE, NULL |
+| NganhHocID | INT | NOT NULL, FOREIGN KEY REFERENCES NganhHoc(NganhHocID) |
+| MoTaCN | NVARCHAR(MAX) | NULL |
+|  |  | UNIQUE (NganhHocID, TenChuyenNganh) |
 
-const renderMobileSubMenu = (items?: NavItemStructure[]) => (
+**6. Bảng LopHoc (Classes)**
 
-<div className="pl-4 border-l border-muted ml-1">
-{items?.map(
-(subItem) =>
-(subItem.allowedRoles?.some((role) => hasRole(role)) ||
-subItem.allowedRoles?.includes('\*') ||
-hasRole(maVaiTro.ADMIN_HE_THONG)) && (
-<Link
-key={subItem.label}
-to={subItem.href!}
-className={cn(
-'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-isActive(subItem.href, subItem.activePaths) &&
-'bg-primary/10 text-primary font-medium'
-)}
-onClick={() => setIsMobileMenuOpen(false)} >
-{subItem.icon && <subItem.icon className="h-4 w-4" />}
-{subItem.label}
-</Link>
-)
-)}
-</div>
-);
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| LopID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenLop | NVARCHAR(100) | NOT NULL, UNIQUE |
+| MaLop | VARCHAR(50) | UNIQUE, NULL |
+| NganhHocID | INT | NOT NULL, FOREIGN KEY REFERENCES NganhHoc(NganhHocID) |
+| ChuyenNganhID | INT | NULL, FOREIGN KEY REFERENCES ChuyenNganh(ChuyenNganhID) |
+| NienKhoa | VARCHAR(50) | NULL |
 
-const renderNavItems = (items: NavItemStructure[], isMobile: boolean) => {
-return items.map((item) => (
-<NavigationMenuItem
-key={item.label}
-asChild={!isMobile && !item.subItems} >
-{item.subItems && !isMobile ? (
-<>
-<NavigationMenuTrigger
-className={cn(
-isActive(item.href, item.activePaths) &&
-'bg-accent text-accent-foreground'
-)} >
-<item.icon className="h-5 w-5 mr-2 md:hidden lg:inline-flex" />{' '}
-{item.label}
-</NavigationMenuTrigger>
-{renderDesktopSubMenu(item)}
-</>
-) : item.href ? (
+**7. Bảng ThongTinSinhVien (Student Profile Information)**
 
-<Link
-to={item.href}
-onClick={() => isMobile && setIsMobileMenuOpen(false)} >
-<NavigationMenuLink
-className={cn(
-navigationMenuTriggerStyle(),
-'flex items-center gap-3',
-isActive(item.href, item.activePaths) &&
-'bg-accent text-accent-foreground font-semibold'
-)} >
-<item.icon className="h-5 w-5" /> {item.label}
-</NavigationMenuLink>
-</Link>
-) : null}
-</NavigationMenuItem>
-));
-};
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| NguoiDungID | INT | PRIMARY KEY, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) ON DELETE CASCADE |
+| MaSinhVien | VARCHAR(50) | NOT NULL, UNIQUE |
+| LopID | INT | NOT NULL, FOREIGN KEY REFERENCES LopHoc(LopID) |
+| KhoaHoc | VARCHAR(50) | NULL (VD: 'K2020') |
+| HeDaoTao | NVARCHAR(100) | NULL (VD: 'Chính quy', 'Chất lượng cao') |
+| NgayNhapHoc | DATE | NULL |
+| TrangThaiHocTap | NVARCHAR(50) | NULL (VD: 'Đang học', 'Tốt nghiệp', 'Bảo lưu') |
 
-const SidebarContent = () => (
+**8. Bảng ThongTinGiangVien (Lecturer Profile Information)**
 
-<div className="flex h-full max-h-screen flex-col gap-2">
-<div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
-<Link
-to="/"
-className="flex items-center gap-2 font-semibold"
-onClick={() => setIsMobileMenuOpen(false)} >
-<Logo className="h-7 w-7" />
-<span className="text-lg">PTIT Events</span>
-</Link>
-</div>
-<div className="flex-1">
-<nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-1 py-4">
-{visibleNavigation.map((item) => (
-<React.Fragment key={item.label}>
-{item.href ? (
-<Link
-to={item.href}
-className={cn(
-'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
-isActive(item.href, item.activePaths) &&
-'bg-primary/10 text-primary font-medium'
-)}
-onClick={() => setIsMobileMenuOpen(false)} >
-{item.icon && <item.icon className="h-5 w-5" />}
-{item.label}
-</Link>
-) : (
-item.subItems && ( // For mobile dropdown-like structure
-<details
-className="group [&_summary::-webkit-details-marker]:hidden"
-open={isActive(undefined, item.activePaths)} >
-<summary
-className={cn(
-'flex items-center justify-between gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary cursor-pointer',
-isActive(undefined, item.activePaths) &&
-'text-primary font-medium'
-)} >
-<div className="flex items-center gap-3">
-{item.icon && <item.icon className="h-5 w-5" />}
-{item.label}
-</div>
-<ChevronDown className="h-4 w-4 shrink-0 transition duration-200 group-open:rotate-180" />
-</summary>
-{renderMobileSubMenu(item.subItems)}
-</details>
-)
-)}
-</React.Fragment>
-))}
-</nav>
-</div>
-<div className="mt-auto p-4 border-t">
-{user ? (
-<DropdownMenu>
-<DropdownMenuTrigger asChild>
-<Button
-                variant="ghost"
-                className="w-full justify-start gap-2 px-2"
-              >
-<Avatar className="h-8 w-8">
-<AvatarImage
-src={user.anhDaiDien || undefined}
-alt={user.hoTen}
-/>
-<AvatarFallback>
-{user.hoTen.charAt(0).toUpperCase()}
-</AvatarFallback>
-</Avatar>
-<div className="flex flex-col items-start">
-<span className="text-sm font-medium truncate max-w-[150px]">
-{user.hoTen}
-</span>
-<span className="text-xs text-muted-foreground truncate max-w-[150px]">
-{user.email}
-</span>
-</div>
-</Button>
-</DropdownMenuTrigger>
-<DropdownMenuContent className="w-56" align="end" forceMount>
-<DropdownMenuLabel className="font-normal">
-<div className="flex flex-col space-y-1">
-<p className="text-sm font-medium leading-none">
-{user.hoTen}
-</p>
-<p className="text-xs leading-none text-muted-foreground">
-{user.email}
-</p>
-</div>
-</DropdownMenuLabel>
-<DropdownMenuSeparator />
-<Link to="/profile">
-<DropdownMenuItem className="cursor-pointer">
-<User className="mr-2 h-4 w-4" /> Thông tin cá nhân
-</DropdownMenuItem>
-</Link>
-<DropdownMenuItem
-                onClick={logout}
-                className="cursor-pointer text-destructive focus:bg-destructive/10 focus:text-destructive"
-              >
-<LogOut className="mr-2 h-4 w-4" /> Đăng xuất
-</DropdownMenuItem>
-</DropdownMenuContent>
-</DropdownMenu>
-) : (
-<Link
-to="/login"
-className="w-full"
-onClick={() => setIsMobileMenuOpen(false)} >
-<Button className="w-full">Đăng nhập</Button>
-</Link>
-)}
-</div>
-</div>
-);
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| NguoiDungID | INT | PRIMARY KEY, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) ON DELETE CASCADE |
+| MaGiangVien | VARCHAR(50) | NOT NULL, UNIQUE |
+| DonViCongTacID | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) (Khoa/Bộ môn chính) |
+| HocVi | NVARCHAR(100) | NULL |
+| HocHam | NVARCHAR(100) | NULL (GS, PGS) |
+| ChucDanhGD | NVARCHAR(100) | NULL (Giảng viên, GVC) |
+| ChuyenMonChinh | NVARCHAR(255) | NULL |
 
-return (
+**9. Bảng VaiTroHeThong (System Functional Roles - Chỉ chứa các chức vụ/quyền hạn)**
 
-<header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-<div className="container flex h-16 items-center">
-{' '}
-{/_ Tăng chiều cao header một chút _/}
-{/_ Mobile Menu Trigger _/}
-<Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-<SheetTrigger asChild>
-<Button variant="ghost" size="icon" className="md:hidden mr-2">
-<Menu className="h-6 w-6" />
-<span className="sr-only">Mở menu</span>
-</Button>
-</SheetTrigger>
-<SheetContent side="left" className="w-[300px] p-0">
-{' '}
-{/_ Tăng chiều rộng SheetContent _/}
-<SidebarContent />
-</SheetContent>
-</Sheet>
-{/_ Logo and Desktop Navigation _/}
-<div className="mr-4 hidden md:flex items-center">
-<Link
-            to="/"
-            className="flex items-center gap-2 font-semibold text-lg"
-          >
-<Logo className="h-7 w-7" />
-<span>PTIT Events</span>
-</Link>
-</div>
-{!isMobile && (
-<NavigationMenu className="hidden md:flex flex-1">
-<NavigationMenuList>
-{renderNavItems(visibleNavigation, false)}
-</NavigationMenuList>
-</NavigationMenu>
-)}
-{/_ Right side actions _/}
-<div
-className={cn(
-'flex items-center gap-2 ml-auto',
-isMobile && 'flex-1 justify-end'
-)} >
-<NotificationBell />
-<ThemeSwitcher />
-{!isMobile &&
-user && ( // Chỉ hiển thị User Dropdown trên desktop nếu đã login
-<DropdownMenu>
-<DropdownMenuTrigger asChild>
-<Button
-                    variant="ghost"
-                    className="relative h-9 w-9 rounded-full"
-                  >
-<Avatar className="h-9 w-9">
-<AvatarImage
-src={user.anhDaiDien || undefined}
-alt={user.hoTen}
-/>
-<AvatarFallback>
-{user.hoTen.split(' ').pop()?.[0]?.toUpperCase() || 'U'}
-</AvatarFallback>
-</Avatar>
-</Button>
-</DropdownMenuTrigger>
-<DropdownMenuContent className="w-56" align="end" forceMount>
-<DropdownMenuLabel className="font-normal">
-<div className="flex flex-col space-y-1">
-<p className="text-sm font-medium leading-none">
-{user.hoTen}
-</p>
-<p className="text-xs leading-none text-muted-foreground">
-{user.email}
-</p>
-</div>
-</DropdownMenuLabel>
-<DropdownMenuSeparator />
-<Link to="/profile">
-<DropdownMenuItem className="cursor-pointer">
-<User className="mr-2 h-4 w-4" /> Thông tin cá nhân
-</DropdownMenuItem>
-</Link>
-<DropdownMenuItem
-                    onClick={logout}
-                    className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-                  >
-<LogOut className="mr-2 h-4 w-4" /> Đăng xuất
-</DropdownMenuItem>
-</DropdownMenuContent>
-</DropdownMenu>
-)}
-{!isMobile && !user && (
-<Link to="/login">
-<Button>Đăng nhập</Button>
-</Link>
-)}
-</div>
-</div>
-</header>
-);
-};
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| VaiTroID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaVaiTro | VARCHAR(50) | NOT NULL, UNIQUE (VD: 'TRUONG_KHOA', 'QUAN_LY_CSVC', 'BGH_DUYET_SK_TRUONG', 'CB_TO_CHUC_SU_KIEN', 'TRUONG_CLB', 'GV_CO_VAN_CLB', 'ADMIN_HE_THONG') |
+| TenVaiTro | NVARCHAR(150) | NOT NULL |
+| MoTaVT | NVARCHAR(500) | NULL |
 
-// ListItem component for NavigationMenuContent
-const ListItem = React.forwardRef<
-React.ElementRef<'a'>,
-React.ComponentPropsWithoutRef<typeof Link> & {
-title: string;
-icon?: React.ElementType;
-}
+**10. Bảng NguoiDung_VaiTro (User Functional Role Assignments)**
 
-> (({ className, title, children, icon: Icon, to, ...props }, ref) => {
-> return (
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| GanVaiTroID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| NguoiDungID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| VaiTroID | INT | NOT NULL, FOREIGN KEY REFERENCES VaiTroHeThong(VaiTroID) |
+| DonViID | INT | NULL, FOREIGN KEY REFERENCES DonVi(DonViID) (Đơn vị nơi vai trò được thực thi) |
+| NgayBatDau | DATE | NOT NULL, DEFAULT GETDATE() |
+| NgayKetThuc | DATE | NULL |
+| GhiChuGanVT | NVARCHAR(500) | NULL |
+|  |  | UNIQUE (NguoiDungID, VaiTroID, DonViID, NgayBatDau) |
 
-    <li>
-      <NavigationMenuLink asChild>
-        <Link
-          to={to}
-          ref={ref}
-          className={cn(
-            'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-            className
-          )}
-          {...props}
-        >
-          <div className="flex items-center gap-2 text-sm font-medium leading-none">
-            {Icon && <Icon className="h-4 w-4" />}
-            {title}
-          </div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
-        </Link>
-      </NavigationMenuLink>
-    </li>
+**II. QUẢN LÝ SỰ KIỆN**
 
-);
-});
-ListItem.displayName = 'ListItem';
+**11. Bảng TrangThaiSK**
 
-export default MainNavigation;
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TrangThaiSkID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaTrangThai | VARCHAR(50) | NOT NULL, UNIQUE |
+| TenTrangThai | NVARCHAR(150) | NOT NULL |
+| MoTa | NVARCHAR(500) | NULL |
+
+**12. Bảng SuKien**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| SuKienID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenSK | NVARCHAR(300) | NOT NULL |
+| TgBatDauDK | DATETIME | NOT NULL |
+| TgKetThucDK | DATETIME | NOT NULL |
+| NguoiChuTriID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| TenChuTriNgoai | NVARCHAR(150) | NULL |
+| DonViChuTriNgoai | NVARCHAR(200) | NULL |
+| DonViChuTriID | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| SlThamDuDK | INT | NULL |
+| MoTaChiTiet | NVARCHAR(MAX) | NULL |
+| TrangThaiSkID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiSK(TrangThaiSkID) |
+| NguoiTaoID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayTaoSK | DATETIME | DEFAULT GETDATE() |
+| NguoiDuyetBGHID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayDuyetBGH | DATETIME | NULL |
+| LyDoTuChoiBGH | NVARCHAR(MAX) | NULL |
+| LyDoHuyNguoiTao | NVARCHAR(MAX) | NULL |
+| IsCongKhaiNoiBo | BIT | DEFAULT 0 |
+| KhachMoiNgoaiGhiChu | NVARCHAR(MAX) | NULL |
+|  |  | CONSTRAINT CK_SK_CoChuTri CHECK ((NguoiChuTriID IS NOT NULL) OR (TenChuTriNgoai IS NOT NULL)) |
+| LoaiSuKienID |  |  |
+| TgBatDauThucTe  | DATETIME  | NULL |
+| TgKetThucThucTe  | DATETIME  | NULL
+CONSTRAINT CK_SuKien_ThoiGian CHECK (TgBatDauDK < TgKetThucDK),
+CONSTRAINT CK_SuKien_ThoiGianThucTe CHECK (TgBatDauThucTe IS NULL OR TgKetThucThucTe IS NULL OR TgBatDauThucTe < TgKetThucThucTe) |
+
+**Bảng LoaiSuKien**
+
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| LoaiSuKienID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaLoaiSK | VARCHAR(50) | NOT NULL, UNIQUE (VD: 'HOI_THAO_KH', 'VAN_NGHE') |
+| TenLoaiSK | NVARCHAR(150) | NOT NULL (VD: 'Hội thảo Khoa học', 'Văn nghệ') |
+| MoTaLoaiSK | NVARCHAR(500) | NULL |
+| IsActive | BIT | DEFAULT 1 (Loại sự kiện này có còn được sử dụng không) |
+
+**13. Bảng SK_DonViThamGia**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) ON DELETE CASCADE |
+| DonViID | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| VaiTroDonViSK | NVARCHAR(500) | NULL |
+|  |  | PRIMARY KEY (SuKienID, DonViID) |
+
+**14. Bảng SK_MoiThamGia**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| MoiThamGiaID | BIGINT | PRIMARY KEY, IDENTITY(1,1) |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) ON DELETE CASCADE |
+| NguoiDuocMoiID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| VaiTroDuKienSK | NVARCHAR(200) | NULL |
+| IsChapNhanMoi | BIT | NULL |
+| TgPhanHoiMoi | DATETIME | NULL |
+| GhiChuMoi | NVARCHAR(500) | NULL |
+
+---
+
+**III. QUẢN LÝ PHÒNG VÀ YÊU CẦU MƯỢN PHÒNG**
+
+**15. Bảng LoaiPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| LoaiPhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenLoaiPhong | NVARCHAR(100) | NOT NULL, UNIQUE |
+| MoTa | NVARCHAR(255) | NULL |
+
+**16. Bảng TrangThaiPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TrangThaiPhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenTrangThai | NVARCHAR(100) | NOT NULL, UNIQUE |
+| MoTa | NVARCHAR(255) | NULL |
+
+**Bảng ToaNha (Building)**
+
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| ToaNhaID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaToaNha | VARCHAR(20) | NOT NULL, UNIQUE |
+| TenToaNha | NVARCHAR(100) | NOT NULL |
+| CoSoID | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| MoTaToaNha | NVARCHAR(255) | NULL |
+
+**Bảng LoaiTang (Định nghĩa các loại/số tầng trừu tượng) - Tên cột cập nhật**
+
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| LoaiTangID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaLoaiTang | VARCHAR(20) | NOT NULL, UNIQUE (VD: 'TRET', 'L1', 'L2', 'HB1') |
+| TenLoaiTang | NVARCHAR(100) | NOT NULL (VD: 'Tầng Trệt', 'Tầng 1', 'Tầng 2', 'Hầm B1') |
+| SoThuTu | INT | NULL (Dùng để sắp xếp hoặc logic, VD: 0, 1, 2, -1) |
+| MoTa | NVARCHAR(255) | NULL (Đổi từ MoTaLoaiTang) |
+
+**Bảng ToaNha_Tang (Bảng trung gian N-N, đại diện tầng vật lý) - Tên cột cập nhật**
+
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| ToaNhaTangID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| ToaNhaID | INT | NOT NULL, FK REFERENCES dbo.ToaNha(ToaNhaID) |
+| LoaiTangID | INT | NOT NULL, FK REFERENCES dbo.LoaiTang(LoaiTangID) |
+| SoPhong | INT | NULL (Đổi từ SoPhongDuKien) |
+| MoTa | NVARCHAR(500) | NULL (Đổi từ MoTaChiTietTang) |
+|  |  | UNIQUE (ToaNhaID, LoaiTangID) |
+
+**17. Bảng Phong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| PhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenPhong | NVARCHAR(100) | NOT NULL |
+| MaPhong | VARCHAR(50) | UNIQUE, NULL |
+| LoaiPhongID | INT | NOT NULL, FOREIGN KEY REFERENCES LoaiPhong(LoaiPhongID) |
+| SucChua | INT | NULL |
+| TrangThaiPhongID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiPhong(TrangThaiPhongID) |
+| MoTaChiTietPhong | NVARCHAR(MAX) | NULL |
+| AnhMinhHoa | VARCHAR(500) | NULL |
+| ToaNhaTangID | INT | FK REFERENCES ToaNha_Tang(ToaNhaTangID) (Sẽ đặt là NOT NULL sau khi cập nhật data cũ) |
+| SoThuTuPhong | NVARCHAR(20) | NULL (Số phòng hoặc mã định danh trên tầng đó) |
+
+**18. Bảng TrangThietBi**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| ThietBiID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenThietBi | NVARCHAR(150) | NOT NULL, UNIQUE |
+| MoTa | NVARCHAR(500) | NULL |
+
+**19. Bảng Phong_ThietBi**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| PhongID | INT | NOT NULL, FOREIGN KEY REFERENCES Phong(PhongID) |
+| ThietBiID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThietBi(ThietBiID) |
+| SoLuong | INT | DEFAULT 1 |
+| TinhTrang | NVARCHAR(200) | NULL |
+|  |  | PRIMARY KEY (PhongID, ThietBiID) |
+
+**20. Bảng TrangThaiYeuCauPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TrangThaiYcpID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaTrangThai | VARCHAR(50) | NOT NULL, UNIQUE |
+| TenTrangThai | NVARCHAR(150) | NOT NULL |
+| LoaiApDung | VARCHAR(20) | NOT NULL ('CHUNG', 'CHI_TIET') |
+| MoTa | NVARCHAR(500) | NULL |
+
+**21. Bảng YeuCauMuonPhong (Header)**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| YcMuonPhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) |
+| NguoiYeuCauID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayYeuCau | DATETIME | DEFAULT GETDATE() |
+| TrangThaiChungID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiYeuCauPhong(TrangThaiYcpID) |
+| NguoiDuyetTongCSVCID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayDuyetTongCSVC | DATETIME | NULL |
+| GhiChuChungYc | NVARCHAR(MAX) | NULL |
+
+**22. Bảng YcMuonPhongChiTiet (Detail)**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| YcMuonPhongCtID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| YcMuonPhongID | INT | NOT NULL, FOREIGN KEY REFERENCES YeuCauMuonPhong(YcMuonPhongID) ON DELETE CASCADE |
+| MoTaNhomPhong | NVARCHAR(200) | NULL |
+| SlPhongNhomNay | INT | NOT NULL, DEFAULT 1 |
+| LoaiPhongYcID | INT | NULL, FOREIGN KEY REFERENCES LoaiPhong(LoaiPhongID) |
+| SucChuaYc | INT | NULL |
+| ThietBiThemYc | NVARCHAR(MAX) | NULL |
+| TgMuonDk | DATETIME | NOT NULL |
+| TgTraDk | DATETIME | NOT NULL |
+| TrangThaiCtID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiYeuCauPhong(TrangThaiYcpID) |
+| GhiChuCtCSVC | NVARCHAR(MAX) | NULL |
+
+**23. Bảng ChiTietDatPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| DatPhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| YcMuonPhongCtID | INT | NOT NULL, FOREIGN KEY REFERENCES YcMuonPhongChiTiet(YcMuonPhongCtID) |
+| PhongID | INT | NOT NULL, FOREIGN KEY REFERENCES Phong(PhongID) |
+| TgNhanPhongTT | DATETIME | NULL |
+| TgTraPhongTT | DATETIME | NULL |
+| GhiChuDatPhong | NVARCHAR(MAX) | NULL |
+|  |  | UNIQUE (YcMuonPhongCtID, PhongID) |
+
+---
+
+**IV. QUẢN LÝ CÁC YÊU CẦU HỦY/ĐỔI**
+
+**24. Bảng TrangThaiYeuCauHuySK**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TrangThaiYcHuySkID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaTrangThai | VARCHAR(50) | NOT NULL, UNIQUE |
+| TenTrangThai | NVARCHAR(150) | NOT NULL |
+| MoTa | NVARCHAR(500) | NULL |
+
+**25. Bảng YeuCauHuySK**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| YcHuySkID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) |
+| NguoiYeuCauID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayYeuCauHuy | DATETIME | DEFAULT GETDATE() |
+| LyDoHuy | NVARCHAR(MAX) | NOT NULL |
+| TrangThaiYcHuySkID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiYeuCauHuySK(TrangThaiYcHuySkID) |
+| NguoiDuyetHuyBGHID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayDuyetHuyBGH | DATETIME | NULL |
+| LyDoTuChoiHuyBGH | NVARCHAR(MAX) | NULL |
+
+**26. Bảng TrangThaiYeuCauDoiPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TrangThaiYcDoiPID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| MaTrangThai | VARCHAR(50) | NOT NULL, UNIQUE |
+| TenTrangThai | NVARCHAR(150) | NOT NULL |
+| MoTa | NVARCHAR(500) | NULL |
+
+**27. Bảng YeuCauDoiPhong**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| YcDoiPhongID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| YcMuonPhongCtID | INT | NOT NULL, FOREIGN KEY REFERENCES YcMuonPhongChiTiet(YcMuonPhongCtID) |
+| DatPhongID_Cu | INT | NOT NULL, FOREIGN KEY REFERENCES ChiTietDatPhong(DatPhongID) |
+| NguoiYeuCauID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayYeuCauDoi | DATETIME | DEFAULT GETDATE() |
+| LyDoDoiPhong | NVARCHAR(MAX) | NOT NULL |
+| YcPhongMoi_LoaiID | INT | NULL, FOREIGN KEY REFERENCES LoaiPhong(LoaiPhongID) |
+| YcPhongMoi_SucChua | INT | NULL |
+| YcPhongMoi_ThietBi | NVARCHAR(MAX) | NULL |
+| TrangThaiYcDoiPID | INT | NOT NULL, FOREIGN KEY REFERENCES TrangThaiYeuCauDoiPhong(TrangThaiYcDoiPID) |
+| NguoiDuyetDoiCSVCID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayDuyetDoiCSVC | DATETIME | NULL |
+| DatPhongID_Moi | INT | NULL, FOREIGN KEY REFERENCES ChiTietDatPhong(DatPhongID) |
+| LyDoTuChoiDoiCSVC | NVARCHAR(MAX) | NULL |
+
+---
+
+**V. TIỆN ÍCH VÀ HỖ TRỢ KHÁC**
+
+**28. Bảng LoaiTaiLieuSK**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| LoaiTaiLieuID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| TenLoaiTL | NVARCHAR(100) | NOT NULL, UNIQUE |
+
+**29. Bảng TaiLieuSK**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| TaiLieuSkID | BIGINT | PRIMARY KEY, IDENTITY(1,1) |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) ON DELETE CASCADE |
+| LoaiTaiLieuID | INT | NOT NULL, FOREIGN KEY REFERENCES LoaiTaiLieuSK(LoaiTaiLieuID) |
+| TenHienThiTL | NVARCHAR(255) | NOT NULL |
+| DuongDanFile | VARCHAR(500) | NOT NULL |
+| MoTaTL | NVARCHAR(MAX) | NULL |
+| NguoiTaiLenID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| NgayTaiLen | DATETIME | DEFAULT GETDATE() |
+| IsCongKhaiTL | BIT | DEFAULT 0 |
+
+**30. Bảng DanhGiaSK**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| DanhGiaSkID | BIGINT | PRIMARY KEY, IDENTITY(1,1) |
+| SuKienID | INT | NOT NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) |
+| NguoiDanhGiaID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| DiemNoiDung | TINYINT | NULL, CHECK (DiemNoiDung BETWEEN 1 AND 5) |
+| DiemToChuc | TINYINT | NULL, CHECK (DiemToChuc BETWEEN 1 AND 5) |
+| DiemDiaDiem | TINYINT | NULL, CHECK (DiemDiaDiem BETWEEN 1 AND 5) |
+| YKienDongGop | NVARCHAR(MAX) | NULL |
+| TgDanhGia | DATETIME | DEFAULT GETDATE() |
+|  |  | UNIQUE(SuKienID, NguoiDanhGiaID) |
+
+**31. Bảng ThongBao**
+
+| Tên cột | Kiểu dữ liệu | Ràng buộc/Ghi chú |
+| --- | --- | --- |
+| ThongBaoID | BIGINT | PRIMARY KEY, IDENTITY(1,1) |
+| NguoiNhanID | INT | NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| DonViNhanID | INT | NULL, FOREIGN KEY REFERENCES DonVi(DonViID) |
+| SkLienQuanID | INT | NULL, FOREIGN KEY REFERENCES SuKien(SuKienID) |
+| YcLienQuanID | INT | NULL |
+| LoaiYcLienQuan | VARCHAR(50) | NULL |
+| NoiDungTB | NVARCHAR(MAX) | NOT NULL |
+| DuongDanTB | VARCHAR(500) | NULL |
+| NgayTaoTB | DATETIME | DEFAULT GETDATE() |
+| DaDocTB | BIT | DEFAULT 0 |
+| NgayDocTB | DATETIME | NULL |
+| LoaiThongBao | VARCHAR(50) | NULL |
+1. **ThanhVienCLB (Club Membership)**
+
+| **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú** |
+| --- | --- | --- |
+| ThanhVienClbID | INT | PRIMARY KEY, IDENTITY(1,1) |
+| NguoiDungID | INT | NOT NULL, FOREIGN KEY REFERENCES NguoiDung(NguoiDungID) |
+| DonViID_CLB | INT | NOT NULL, FOREIGN KEY REFERENCES DonVi(DonViID) (Ràng buộc DonVi.LoaiDonVi phải là 'CLB') |
+| ChucVuTrongCLB | NVARCHAR(100) | NULL (VD: 'Thành viên', 'Phó Ban Kỹ thuật', 'Trưởng Ban Nội dung'. Nếu là Trưởng CLB, có thể vẫn lưu ở đây hoặc ưu tiên vai trò trong NguoiDung_VaiTro) |
+| NgayGiaNhap | DATE | DEFAULT GETDATE() |
+| NgayRoiCLB | DATE | NULL |
+| IsActiveInCLB | BIT | DEFAULT 1 (Còn là thành viên tích cực không) |
+|  |  | UNIQUE (NguoiDungID, DonViID_CLB) (Mỗi người chỉ là thành viên của một CLB một lần tại một thời điểm) |
+
+
+
+  const sidebarNavigationStructure = useMemo(
+    (): NavItemStructure[] => [
+      {
+        label: 'Bảng Điều Khiển',
+        href: '/dashboard',
+        icon: DashboardIcon,
+        exactMatch: true,
+        allowedRoles: ['*'],
+      },
+      {
+        isTitle: true,
+        label: 'Quản lý Sự kiện',
+        allowedRoles: [
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.TRUONG_KHOA,
+          MaVaiTro.TRUONG_CLB,
+          MaVaiTro.BI_THU_DOAN,
+          MaVaiTro.ADMIN_HE_THONG,
+          MaVaiTro.QUAN_LY_CSVC,
+        ],
+      },
+      {
+        label: 'Danh sách Sự kiện',
+        href: '/events',
+        icon: ClipboardList,
+        activePaths: [
+          '/events',
+          '/events/new',
+          '/events/edit',
+          '/events/participants',
+          '/events/approve',
+          '/events/cancel-requests',
+        ],
+        allowedRoles: ['*'],
+      },
+      // Các sub-items của "Quản Lý Sự Kiện" (Tạo, Duyệt, Yêu cầu hủy) sẽ được truy cập từ trang Danh sách sự kiện
+      // Hoặc có thể thêm các link trực tiếp ở đây nếu muốn, nhưng sẽ làm sidebar dài hơn.
+      // Ví dụ:
+      // { label: 'Tạo Sự kiện Mới', href: '/events/new', icon: CalendarPlus, allowedRoles: [MaVaiTro.CB_TO_CHUC_SU_KIEN, MaVaiTro.ADMIN_HE_THONG] },
+
+      {
+        isTitle: true,
+        label: 'Quản lý CSVC',
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.ADMIN_HE_THONG,
+        ],
+      },
+      {
+        label: 'Danh sách Phòng',
+        href: '/facilities/rooms',
+        icon: Building2,
+        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Danh sách Thiết bị',
+        href: '/facilities/equipment',
+        icon: Settings,
+        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Lịch sử dụng Phòng',
+        href: '/facilities/room-schedule',
+        icon: Calendar,
+        allowedRoles: ['*'],
+      },
+      {
+        label: 'Yêu cầu Mượn Phòng',
+        href: '/facilities/room-requests',
+        icon: ListChecks,
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.ADMIN_HE_THONG,
+        ],
+      },
+      {
+        label: 'Yêu cầu Đổi Phòng',
+        href: '/facilities/room-change-requests',
+        icon: History,
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.ADMIN_HE_THONG,
+        ],
+      },
+
+      {
+        isTitle: true,
+        label: 'Thống Kê Đơn Vị',
+        allowedRoles: [
+          MaVaiTro.TRUONG_KHOA,
+          MaVaiTro.TRUONG_CLB,
+          MaVaiTro.BI_THU_DOAN,
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.ADMIN_HE_THONG,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+        ],
+      },
+      {
+        label: 'Thống kê Sự kiện Chung',
+        href: '/dashboard/events',
+        icon: LineChartIcon,
+        allowedRoles: [
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.ADMIN_HE_THONG,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+        ],
+      },
+      {
+        label: 'Thống kê CSVC Chung',
+        href: '/dashboard/facilities',
+        icon: LineChartIcon,
+        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Dashboard Khoa',
+        href: '/dashboard/department',
+        icon: Briefcase,
+        allowedRoles: [MaVaiTro.TRUONG_KHOA, MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Dashboard CLB',
+        href: '/dashboard/clubs',
+        icon: UsersGroupIcon,
+        allowedRoles: [
+          MaVaiTro.TRUONG_CLB,
+          MaVaiTro.GV_CO_VAN_CLB,
+          MaVaiTro.ADMIN_HE_THONG,
+        ],
+      },
+      {
+        label: 'Dashboard Đoàn',
+        href: '/dashboard/union',
+        icon: UsersGroupIcon,
+        allowedRoles: [MaVaiTro.BI_THU_DOAN, MaVaiTro.ADMIN_HE_THONG],
+      },
+
+      {
+        isTitle: true,
+        label: 'Quản Trị Cơ Sở Hạ Tầng',
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+      {
+        label: 'Quản lý Tòa Nhà',
+        href: '/units/buildings',
+        icon: Building,
+        activePaths: ['/units/buildings'],
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+      {
+        label: 'Quản lý Loại Tầng',
+        href: '/units/floor-types',
+        icon: Layers,
+        activePaths: ['/units/floor-types'],
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+      },
+
+      {
+        isTitle: true,
+        label: 'Quản Trị Hệ Thống',
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Quản lý Người dùng',
+        href: '/users',
+        icon: UsersIconLucide,
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Vai trò & Phân quyền',
+        href: '/users/roles',
+        icon: UserSquare2,
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Quản lý Đơn vị',
+        href: '/units',
+        icon: Library,
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Quản lý Ngành học',
+        href: '/units/majors',
+        icon: BookOpen,
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+      {
+        label: 'Quản lý Lớp học',
+        href: '/units/classes',
+        icon: GraduationCap,
+        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+      },
+    ],
+    [user]
+  );

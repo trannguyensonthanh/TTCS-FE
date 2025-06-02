@@ -180,9 +180,9 @@ export const post = (
   const url = new URL(`${API_BASE_URL}${path}`);
   return fetchWithAuth(url, {
     method: 'POST',
-    headers: extraHeader as HeadersInit, // Cast nếu cần
+    headers: extraHeader as HeadersInit,
     body: JSON.stringify(options),
-    ...extra, // Thêm các tùy chọn khác nếu cần
+    ...extra,
   });
 };
 

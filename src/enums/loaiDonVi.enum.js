@@ -7,6 +7,7 @@ const LoaiDonVi = Object.freeze({
   BO_MON: 'BO_MON',
   CLB: 'CLB',
   DOAN_THE: 'DOAN_THE', // Cho Đoàn Thanh niên các cấp
+  CO_SO: 'CO_SO', // Cho các cơ sở giáo dục
 });
 
 export default LoaiDonVi;

@@ -289,7 +289,7 @@ const RoomChangeRequestsPage = () => {
     );
   const { data: dsLoaiPhongChange, isLoading: isLoadingLoaiPhongChange } =
     useLoaiPhongList(
-      { limit: 100, isActive: true },
+      { limit: 100 },
       {
         enabled:
           isCreateModalOpen ||
