@@ -20,7 +20,6 @@ export interface NguoiDungData {
   soDienThoai?: string | null; // Thêm vào nếu cần
   anhDaiDien?: string | null;
   isActive: boolean; // Thêm vào nếu cần
-  tenDangNhap: string; // Lấy từ TaiKhoan
   trangThaiTk: string; // Lấy từ TaiKhoan
 }
 

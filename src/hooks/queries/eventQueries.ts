@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/hooks/queries/eventQueries.ts
 import {
   useQuery,
@@ -23,6 +24,7 @@ import eventService, {
   DuyetHoacTuChoiSKResponse,
   DuyetSuKienPayload,
   GetSuKienForSelectParams,
+  UpdateSuKienPayload,
   // Import các type khác nếu cần cho create/update
 } from '@/services/event.service';
 import { APIError } from '@/services/apiHelper';
@@ -90,7 +92,7 @@ export const useManagedEventDetail = (
   suKienID: number | string | undefined,
   options?: Omit<
     UseQueryOptions<SuKienDetailResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<SuKienDetailResponse, APIError>({
@@ -102,7 +104,7 @@ export const useManagedEventDetail = (
       return eventService.getSuKienDetailForManagement(suKienID);
     },
     enabled: !!suKienID, // Chỉ fetch khi suKienID có giá trị
-    ...options,
+    ...(options || {}),
   });
 };
 
@@ -352,5 +354,40 @@ export const useSuKienListForSelection = (
     queryFn: () => eventService.getSuKienListForSelection(params),
     staleTime: 5 * 60 * 1000,
     ...options,
+  });
+};
+
+// Hook cho việc Cập Nhật Sự Kiện
+export const useUpdateEvent = (
+  options?: UseMutationOptions<
+    SuKienDetailResponse,
+    APIError,
+    { id: number | string; payload: UpdateSuKienPayload }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SuKienDetailResponse,
+    APIError,
+    { id: number | string; payload: UpdateSuKienPayload }
+  >({
+    mutationFn: ({ id, payload }) => eventService.updateSuKien(id, payload),
+    onSuccess: (data, variables) => {
+      toast.success(`Đã cập nhật sự kiện "${data.tenSK}" thành công.`);
+      // Invalidate cả danh sách và chi tiết để làm mới dữ liệu
+      queryClient.invalidateQueries({ queryKey: EVENT_QUERY_KEYS.lists() });
+      queryClient.setQueryData(EVENT_QUERY_KEYS.detail(variables.id), data); // Cập nhật cache chi tiết ngay
+      // Nếu sự kiện vừa được sửa đang ở trạng thái BGH_YEU_CAU_CHINH_SUA, có thể cần một hành động "Gửi lại duyệt"
+      if (options?.onSuccess) {
+        options.onSuccess(data, variables, undefined);
+      }
+    },
+    onError: (error: APIError) => {
+      toast.error(
+        error.body?.message || error.message || 'Lỗi khi cập nhật sự kiện.'
+      );
+      if (options?.onError) options.onError(error, {} as any, undefined);
+    },
+    // ...options,
   });
 };

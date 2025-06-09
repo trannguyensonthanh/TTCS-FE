@@ -105,11 +105,22 @@ import {
 import {
   useCreatePhong,
   useDeletePhong,
+  useGenerateMaPhong,
   usePhongDetail,
   usePhongList,
   useUpdatePhong,
 } from '@/hooks/queries/phongQueries';
-import { useToaNhaTangList } from '@/hooks/queries/toaNhaTangQueries';
+import {
+  useToaNhaTangDetail,
+  useToaNhaTangList,
+} from '@/hooks/queries/toaNhaTangQueries';
+import { useToaNhaDetail } from '@/hooks/queries/toaNhaQueries';
+import {
+  generateMaPhongGoiY,
+  getMaCoSoFromDonVi,
+  getMaLoaiTang,
+  getMaToaNha,
+} from '@/utils/maPhongGenerator';
 
 // --- Zod Schema for Phong Form ---
 const thietBiTrongPhongSchema = z.object({
@@ -235,20 +246,9 @@ const RoomsPage = () => {
   const { data: dsTrangThaiPhong, isLoading: isLoadingTrangThaiPhong } =
     useTrangThaiPhongList({ limit: 50 }, { enabled: true });
   const { data: dsToaNhaTang, isLoading: isLoadingToaNhaTang } =
-    useToaNhaTangListForSelect({ limit: 500 }, { enabled: true }); // Always enabled, avoid referencing dsToaNhaTang before declaration
+    useToaNhaTangListForSelect({ limit: 200 }, { enabled: true }); // Always enabled, avoid referencing dsToaNhaTang before declaration
   const { data: dsTrangThietBi, isLoading: isLoadingTrangThietBi } =
-    useTrangThietBiListForSelect({ limit: 500 }, { enabled: isFormModalOpen });
-
-  console.log(
-    'dsTrangThietBi',
-    dsTrangThietBi,
-    'dsToaNhaTang',
-    dsToaNhaTang,
-    'dsLoaiPhong',
-    dsLoaiPhong,
-    'dsTrangThaiPhong',
-    dsTrangThaiPhong
-  );
+    useTrangThietBiListForSelect({ limit: 199 }, { enabled: isFormModalOpen });
 
   const distinctToaNha = useMemo(() => {
     if (!dsToaNhaTang) return [];
@@ -305,6 +305,44 @@ const RoomsPage = () => {
     resolver: zodResolver(phongFormSchema),
     defaultValues: defaultFormValues,
   });
+
+  const watchedToaNhaTangID = form.watch('toaNhaTangID');
+  const watchedSoThuTuPhong = form.watch('soThuTuPhong');
+  const watchedLoaiPhongID = form.watch('loaiPhongID');
+
+  const debouncedSoThuTuPhong = useDebounce(watchedSoThuTuPhong, 500);
+
+  // --- Hook mới để lấy mã phòng gợi ý ---
+  const { data: maPhongSuggestion, isFetching: isGeneratingMaPhong } =
+    useGenerateMaPhong(
+      {
+        toaNhaTangID: watchedToaNhaTangID
+          ? parseInt(watchedToaNhaTangID)
+          : undefined,
+        loaiPhongID: watchedLoaiPhongID
+          ? parseInt(watchedLoaiPhongID)
+          : undefined,
+        soThuTuPhong: debouncedSoThuTuPhong || undefined,
+        phongID: editingPhongId, // Gửi ID phòng đang sửa để loại trừ
+      },
+      {
+        enabled: !!watchedToaNhaTangID && !!debouncedSoThuTuPhong, // Chỉ kích hoạt khi có đủ thông tin
+      }
+    );
+
+  useEffect(() => {
+    // Chỉ tự động điền khi tạo mới và mã gợi ý hợp lệ, duy nhất
+    if (
+      !editingPhongId &&
+      maPhongSuggestion?.maPhongGoiY &&
+      maPhongSuggestion.isUnique
+    ) {
+      form.setValue('maPhong', maPhongSuggestion.maPhongGoiY, {
+        shouldValidate: true,
+      });
+    }
+  }, [maPhongSuggestion, editingPhongId, form]);
+
   const {
     fields: thietBiFields,
     append: appendThietBi,
@@ -568,12 +606,36 @@ const RoomsPage = () => {
                 </Select>
               </div>
               {/* Optional: Filter theo Tòa nhà */}
-              {/* <div><Label htmlFor="filter-toanha" className="text-xs font-semibold text-muted-foreground">Tòa nhà</Label>
-                <Select value={filterToaNhaID} onValueChange={(value) => setFilterToaNhaID(value === 'all' ? undefined : value)} disabled={isLoadingToaNhaTang}>
-                  <SelectTrigger id="filter-toanha"><SelectValue placeholder="Tất cả tòa nhà" /></SelectTrigger>
-                  <SelectContent><SelectItem value="all">Tất cả tòa nhà</SelectItem>{distinctToaNha.map(tn => <SelectItem key={tn.toaNhaID} value={tn.toaNhaID.toString()}>{tn.tenToaNha}</SelectItem>)}</SelectContent>
+              <div>
+                <Label
+                  htmlFor="filter-toanha"
+                  className="text-xs font-semibold text-muted-foreground"
+                >
+                  Tòa nhà
+                </Label>
+                <Select
+                  value={filterToaNhaID}
+                  onValueChange={(value) =>
+                    setFilterToaNhaID(value === 'all' ? undefined : value)
+                  }
+                  disabled={isLoadingToaNhaTang}
+                >
+                  <SelectTrigger id="filter-toanha">
+                    <SelectValue placeholder="Tất cả tòa nhà" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả tòa nhà</SelectItem>
+                    {distinctToaNha.map((tn) => (
+                      <SelectItem
+                        key={tn.toaNhaID}
+                        value={tn.toaNhaID.toString()}
+                      >
+                        {tn.tenToaNha}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </div> */}
+              </div>
             </div>
 
             {(isLoading || isFetching) && !phongList.length ? (
@@ -752,7 +814,7 @@ const RoomsPage = () => {
                 id="phongForm"
                 className="flex-grow overflow-hidden flex flex-col"
               >
-                <ScrollArea className="flex-grow pr-5 -mr-1">
+                <ScrollArea className="flex-grow pr-5 -mr-1 overflow-y-auto">
                   <div className="space-y-5 p-1 pr-1">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
@@ -779,14 +841,35 @@ const RoomsPage = () => {
                         name="maPhong"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Mã Phòng</FormLabel>
+                            <FormLabel>Mã Phòng (Tự động/Tùy chỉnh)</FormLabel>
                             <FormControl>
-                              <Input
-                                placeholder="VD: A1.101"
-                                {...field}
-                                value={field.value ?? ''}
-                              />
+                              <div className="relative">
+                                <Input
+                                  placeholder="Mã sẽ được tạo tự động..."
+                                  {...field}
+                                  value={field.value ?? ''}
+                                />
+                                {isGeneratingMaPhong && (
+                                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                                )}
+                              </div>
                             </FormControl>
+                            {maPhongSuggestion?.maPhongGoiY && (
+                              <FormDescription
+                                className={cn(
+                                  'text-xs',
+                                  maPhongSuggestion.isUnique
+                                    ? 'text-green-600'
+                                    : 'text-destructive'
+                                )}
+                              >
+                                Gợi ý: {maPhongSuggestion.maPhongGoiY} (
+                                {maPhongSuggestion.isUnique
+                                  ? 'Hợp lệ'
+                                  : 'Đã tồn tại'}
+                                )
+                              </FormDescription>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}

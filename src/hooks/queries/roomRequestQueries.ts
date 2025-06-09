@@ -11,6 +11,7 @@ import roomRequestService, {
   CreateYeuCauMuonPhongPayload,
   GetYeuCauMuonPhongParams,
   PaginatedYeuCauMuonPhongResponse,
+  UpdateYeuCauMuonPhongPayload,
   XuLyYcChiTietPayload,
   YeuCauMuonPhongDetailResponse,
 } from '@/services/roomRequest.service';
@@ -49,7 +50,7 @@ export const useRoomRequestDetail = (
   id: number | string | undefined,
   options?: Omit<
     UseQueryOptions<YeuCauMuonPhongDetailResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<YeuCauMuonPhongDetailResponse, APIError>({
@@ -197,5 +198,45 @@ export const useCancelRoomRequestByUser = (
       if (options?.onError) options.onError(error, 0, undefined);
     },
     ...options,
+  });
+};
+
+export const useUpdateRoomRequestDetailByUser = (
+  options?: UseMutationOptions<
+    YeuCauMuonPhongDetailResponse,
+    APIError,
+    { id: number | string; payload: UpdateYeuCauMuonPhongPayload }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    YeuCauMuonPhongDetailResponse,
+    APIError,
+    { id: number | string; payload: UpdateYeuCauMuonPhongPayload }
+  >({
+    mutationFn: ({ id, payload }) =>
+      roomRequestService.updateRoomRequestDetailByUser(id, payload),
+    onSuccess: (data, variables) => {
+      toast.success(`Đã cập nhật chi tiết yêu cầu phòng.`);
+      // Invalidate chi tiết của YeuCauMuonPhong header để nó load lại các chi tiết con
+      // Giả sử `data` trả về có `ycMuonPhongID` (ID của header)
+      if (data.ycMuonPhongID) {
+        queryClient.invalidateQueries({
+          queryKey: ROOM_REQUEST_QUERY_KEYS.detail(data.ycMuonPhongID),
+        });
+      }
+      queryClient.invalidateQueries({
+        queryKey: ROOM_REQUEST_QUERY_KEYS.lists(),
+      }); // Làm mới danh sách YC Mượn Phòng
+      if (options?.onSuccess) options.onSuccess(data, variables, undefined);
+    },
+    onError: (error: APIError) => {
+      toast.error(
+        error.body?.message ||
+          error.message ||
+          'Lỗi khi cập nhật chi tiết yêu cầu phòng.'
+      );
+      if (options?.onError) options.onError(error, {} as any, undefined);
+    },
   });
 };

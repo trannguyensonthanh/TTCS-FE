@@ -277,9 +277,11 @@ const RoomChangeRequestsPage = () => {
     }
   }, [fetchedChangeDetailData]);
 
+  console.log('fetchedChangeDetailData', fetchedChangeDetailData);
+
   const { data: myBookedRooms, isLoading: isLoadingMyBookedRooms } =
     useMyActiveBookedRoomsForChangeEvent(
-      { /* nguoiYeuCauID lấy từ user khi gọi API hook */ limit: 100 }, // Giả sử hook tự lấy user ID
+      { limit: 100 }, // Giả sử hook tự lấy user ID
       {
         enabled:
           isCreateModalOpen &&
@@ -287,6 +289,7 @@ const RoomChangeRequestsPage = () => {
             hasRole(MaVaiTro.ADMIN_HE_THONG)),
       }
     );
+  console.log('myBookedRooms', myBookedRooms);
   const { data: dsLoaiPhongChange, isLoading: isLoadingLoaiPhongChange } =
     useLoaiPhongList(
       { limit: 100 },
@@ -695,7 +698,7 @@ const RoomChangeRequestsPage = () => {
       </>
     );
   }
-
+  console.log('requestsToDisplay', requestDetailDataForModal);
   // ----- RETURN JSX CHÍNH CỦA COMPONENT -----
   return (
     <DashboardLayout
@@ -831,11 +834,11 @@ const RoomChangeRequestsPage = () => {
               )}
               className="flex-grow overflow-hidden flex flex-col"
             >
-              <ScrollArea className="flex-grow pr-5 -mr-1">
+              <ScrollArea className="flex-grow pr-5 -mr-1 overflow-auto">
                 <div className="space-y-5 py-2 pr-1">
                   <div className="space-y-2">
                     <Label className="font-semibold">
-                      Phòng hiện tại cần đổi{' '}
+                      Phòng hiện tại cần đổi
                       <span className="text-destructive">*</span>
                     </Label>
                     <Select

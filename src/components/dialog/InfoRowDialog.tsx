@@ -1,4 +1,4 @@
-import { FormLabel } from '@/components/ui/form';
+import { Label } from '@/components/ui/label'; // Changed from FormLabel
 import { cn } from '@/lib/utils';
 
 const InfoRowDialog: React.FC<{
@@ -12,9 +12,10 @@ const InfoRowDialog: React.FC<{
       className
     )}
   >
-    <FormLabel className="sm:text-right text-sm font-medium text-muted-foreground col-span-1 sm:col-auto pt-0.5">
+    {/* Changed FormLabel to Label */}
+    <Label className=" text-sm font-medium text-muted-foreground col-span-1 sm:col-auto pt-0.5">
       {label}
-    </FormLabel>
+    </Label>
     <div className="sm:col-span-2 text-sm text-foreground break-words">
       {value}
     </div>

@@ -45,7 +45,7 @@ export const useToaNhaDetail = (
   id: number | string | undefined,
   options?: Omit<
     UseQueryOptions<ToaNhaResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<ToaNhaResponse, APIError>({

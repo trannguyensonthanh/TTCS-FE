@@ -130,6 +130,8 @@ const FloorTypesPage = () => {
     enabled: hasRole(MaVaiTro.ADMIN_HE_THONG) || hasRole(MaVaiTro.QUAN_LY_CSVC), // QUAN_LY_CSVC có thể được xem
   });
 
+  console.log('Paginated Loai Tang:', paginatedLoaiTang);
+
   // --- Mutations ---
   const createLoaiTangMutation = useCreateLoaiTang({
     onSuccess: () => {

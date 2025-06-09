@@ -11,7 +11,6 @@ import {
 } from 'date-fns';
 import { vi } from 'date-fns/locale';
 
-import MainNavigation from '@/components/MainNavigation';
 import {
   usePublicEventsList,
   usePublicEventDetail,
@@ -394,7 +393,6 @@ const EventsPublic = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
-      <MainNavigation />
       <main className="flex-1 container py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}

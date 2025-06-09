@@ -1,21 +1,23 @@
+// src/components/layout/DashboardLayout.tsx
 import React, {
   ReactNode,
   useState,
   useMemo,
   useCallback,
   Fragment,
+  useEffect, // Fragment không thấy dùng, có thể bỏ
 } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard as DashboardIcon,
-  CalendarDays,
+  CalendarDays, // Không thấy dùng trực tiếp
   Building,
   Settings,
   ClipboardList,
   CalendarPlus,
   ShieldCheck,
   CalendarClock,
-  LineChartIcon,
+  LineChartIcon as LineChartLucideIcon,
   Building2,
   Calendar,
   ListChecks,
@@ -32,9 +34,9 @@ import {
   Menu,
   ChevronDown,
   ChevronUp,
-  Home,
-  Grip,
-  Layers,
+  Home, // Không thấy dùng trực tiếp
+  Grip, // Không thấy dùng trực tiếp
+  Layers, // Dùng cho Quản lý Loại Tầng
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -45,14 +47,12 @@ import {
   SheetClose,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ThemeSwitcher } from './ThemeSwitcher'; // Điều chỉnh đường dẫn nếu cần
-import { NotificationBell } from './NotificationBell'; // Điều chỉnh đường dẫn nếu cần
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useRole } from '@/context/RoleContext';
-import { Logo } from '@/assets/logo'; // Điều chỉnh đường dẫn nếu cần
-import MaVaiTro from '@/enums/maVaiTro.enum'; // Điều chỉnh đường dẫn nếu cần
-import { useIsMobile } from '@/hooks/use-mobile'; // Điều chỉnh đường dẫn nếu cần
+import { Logo } from '@/assets/logo'; // Giả sử đường dẫn này đúng
+import MaVaiTro from '@/enums/MaVaiTro.enum'; // Đảm bảo đường dẫn đúng
+import { useIsMobile } from '@/hooks/use-mobile';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,17 +61,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import { NotificationBell } from '@/components/NotificationBell';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
-// --- Định nghĩa cấu trúc NavItem (có thể import từ MainNavigation nếu dùng chung) ---
+// --- Định nghĩa cấu trúc NavItem ---
 interface NavItemStructure {
   label: string;
-  href?: string;
-  icon?: React.ElementType;
-  activePaths?: string[];
+  href?: string; // Bắt buộc nếu không phải isTitle và không có subItems
+  icon?: React.ElementType; // Icon là optional để hỗ trợ isTitle
+  activePaths?: string[]; // Dùng để highlight group cha khi một trong các subItems active
   allowedRoles?: string[];
   subItems?: NavItemStructure[];
   exactMatch?: boolean;
-  isTitle?: boolean;
+  isTitle?: boolean; // Cho các tiêu đề nhóm lớn không click được
 }
 
 // --- Props cho DashboardLayout ---
@@ -89,38 +96,64 @@ const DashboardLayout = ({
   const { user, logout } = useAuth();
   const { hasRole } = useRole();
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // navigate không được dùng trực tiếp, có thể bỏ nếu Link là đủ
   const isMobile = useIsMobile();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State cho sheet trên mobile
-  const [openMobileSubmenus, setOpenMobileSubmenus] = useState<
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // State cho các Collapsible items trên desktop, key là label của parent item
+  const [openDesktopSubmenus, setOpenDesktopSubmenus] = useState<
     Record<string, boolean>
   >({});
 
-  const toggleMobileSubmenu = (label: string) => {
-    setOpenMobileSubmenus((prev) => ({ ...prev, [label]: !prev[label] }));
+  const toggleDesktopSubmenu = (label: string) => {
+    setOpenDesktopSubmenus((prev) => ({ ...prev, [label]: !prev[label] }));
   };
 
-  const isActive = (
-    mainPath?: string,
-    activePaths?: string[],
-    exactMatch?: boolean
-  ) => {
-    if (!mainPath) return false;
-    if (exactMatch) return location.pathname === mainPath;
-    // Cho phép /dashboard là trang chính, và các trang con /dashboard/* cũng active mục cha Dashboard
-    if (
-      mainPath === '/dashboard' &&
-      (location.pathname === '/dashboard' ||
-        location.pathname.startsWith('/dashboard/'))
-    )
-      return true;
-    if (mainPath !== '/' && location.pathname.startsWith(mainPath)) return true;
-    if (activePaths?.some((path) => location.pathname.startsWith(path)))
-      return true;
-    return false;
-  };
+  // Khởi tạo trạng thái mở cho các submenu dựa trên path hiện tại (chỉ cho desktop)
+  useEffect(() => {
+    if (!isMobile) {
+      const initialOpenState: Record<string, boolean> = {};
+      sidebarNavigationStructure.forEach((item) => {
+        if (
+          item.subItems &&
+          item.activePaths?.some((p) => location.pathname.startsWith(p))
+        ) {
+          initialOpenState[item.label] = true;
+        }
+      });
+      setOpenDesktopSubmenus(initialOpenState);
+    }
+  }, [location.pathname, isMobile]); // Không cần sidebarNavigationStructure vì nó được memoized
 
-  // Cấu trúc menu cho sidebar (Dựa trên cấu trúc MainNavigation đã thống nhất)
+  const isActive = useCallback(
+    (
+      mainPath?: string,
+      activePaths?: string[],
+      exactMatch?: boolean
+    ): boolean => {
+      if (!mainPath && (!activePaths || activePaths.length === 0)) return false;
+
+      if (mainPath) {
+        if (exactMatch) return location.pathname === mainPath;
+        // Cho phép /dashboard là trang chính, và các trang con /dashboard/* cũng active mục cha Dashboard
+        if (
+          mainPath === '/dashboard' &&
+          (location.pathname === '/dashboard' ||
+            location.pathname.startsWith('/dashboard/'))
+        )
+          return true;
+        // Các trường hợp khác, active nếu path hiện tại bắt đầu bằng mainPath
+        if (mainPath !== '/' && location.pathname.startsWith(mainPath))
+          return true;
+      }
+      if (activePaths?.some((path) => location.pathname.startsWith(path)))
+        return true;
+      return false;
+    },
+    [location.pathname]
+  );
+
+  // Sidebar navigation structure, only include routes that are part of the dashboard ("/dashboard" and admin/management pages)
   const sidebarNavigationStructure = useMemo(
     (): NavItemStructure[] => [
       {
@@ -129,223 +162,407 @@ const DashboardLayout = ({
         icon: DashboardIcon,
         exactMatch: true,
         allowedRoles: ['*'],
+        activePaths: ['/dashboard'],
       },
+      { isTitle: true, label: 'Nghiệp Vụ Chính', allowedRoles: ['*'] },
       {
-        isTitle: true,
-        label: 'Quản lý Sự kiện',
-        allowedRoles: [
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.TRUONG_KHOA,
-          MaVaiTro.TRUONG_CLB,
-          MaVaiTro.BI_THU_DOAN,
-          MaVaiTro.ADMIN_HE_THONG,
-          MaVaiTro.QUAN_LY_CSVC,
-        ],
-      },
-      {
-        label: 'Danh sách Sự kiện',
-        href: '/events',
+        label: 'Quản Lý Sự Kiện',
         icon: ClipboardList,
         activePaths: [
           '/events',
           '/events/new',
-          '/events/edit',
-          '/events/participants',
           '/events/approve',
           '/events/cancel-requests',
         ],
-        allowedRoles: ['*'],
-      },
-      // Các sub-items của "Quản Lý Sự Kiện" (Tạo, Duyệt, Yêu cầu hủy) sẽ được truy cập từ trang Danh sách sự kiện
-      // Hoặc có thể thêm các link trực tiếp ở đây nếu muốn, nhưng sẽ làm sidebar dài hơn.
-      // Ví dụ:
-      // { label: 'Tạo Sự kiện Mới', href: '/events/new', icon: CalendarPlus, allowedRoles: [MaVaiTro.CB_TO_CHUC_SU_KIEN, MaVaiTro.ADMIN_HE_THONG] },
-
-      {
-        isTitle: true,
-        label: 'Quản lý CSVC',
         allowedRoles: [
-          MaVaiTro.QUAN_LY_CSVC,
           MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.ADMIN_HE_THONG,
-        ],
-      },
-      {
-        label: 'Danh sách Phòng',
-        href: '/facilities/rooms',
-        icon: Building2,
-        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Danh sách Thiết bị',
-        href: '/facilities/equipment',
-        icon: Settings,
-        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Lịch sử dụng Phòng',
-        href: '/facilities/room-schedule',
-        icon: Calendar,
-        allowedRoles: ['*'],
-      },
-      {
-        label: 'Yêu cầu Mượn Phòng',
-        href: '/facilities/room-requests',
-        icon: ListChecks,
-        allowedRoles: [
-          MaVaiTro.QUAN_LY_CSVC,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.ADMIN_HE_THONG,
-        ],
-      },
-      {
-        label: 'Yêu cầu Đổi Phòng',
-        href: '/facilities/room-change-requests',
-        icon: History,
-        allowedRoles: [
-          MaVaiTro.QUAN_LY_CSVC,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.ADMIN_HE_THONG,
-        ],
-      },
-
-      {
-        isTitle: true,
-        label: 'Thống Kê Đơn Vị',
-        allowedRoles: [
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
           MaVaiTro.TRUONG_KHOA,
           MaVaiTro.TRUONG_CLB,
           MaVaiTro.BI_THU_DOAN,
+          MaVaiTro.ADMIN_HE_THONG,
+          MaVaiTro.QUAN_LY_CSVC,
+        ],
+        subItems: [
+          {
+            label: 'Danh sách Sự kiện',
+            href: '/events',
+            icon: ListChecks,
+            allowedRoles: ['*'],
+            activePaths: ['/events'],
+          },
+          {
+            label: 'Tạo Sự kiện Mới',
+            href: '/events/new',
+            icon: CalendarPlus,
+            allowedRoles: [
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/events/new'],
+          },
+          {
+            label: 'Duyệt Sự kiện (BGH)',
+            href: '/events/approve',
+            icon: ShieldCheck,
+            allowedRoles: [
+              MaVaiTro.BGH_DUYET_SK_TRUONG,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/events/approve'],
+          },
+          {
+            label: 'Yêu cầu Hủy Sự kiện',
+            href: '/events/cancel-requests',
+            icon: History,
+            allowedRoles: [
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/events/cancel-requests'],
+          },
+        ],
+      },
+      {
+        label: 'Quản Lý CSVC',
+        icon: Building,
+        activePaths: [
+          '/facilities/rooms',
+          '/facilities/equipment',
+          '/facilities/room-schedule',
+          '/facilities/room-requests',
+          '/facilities/room-change-requests',
+        ],
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.ADMIN_HE_THONG,
+        ],
+        subItems: [
+          {
+            label: 'Phòng Học & Hội Trường',
+            href: '/facilities/rooms',
+            icon: Building2,
+            allowedRoles: [
+              MaVaiTro.QUAN_LY_CSVC,
+              MaVaiTro.ADMIN_HE_THONG,
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+            ],
+            activePaths: ['/facilities/rooms'],
+          },
+          {
+            label: 'Trang Thiết Bị',
+            href: '/facilities/equipment',
+            icon: Settings,
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/facilities/equipment'],
+          },
+          {
+            label: 'Lịch Phòng',
+            href: '/facilities/room-schedule',
+            icon: Calendar,
+            allowedRoles: ['*'],
+            activePaths: ['/facilities/room-schedule'],
+          },
+          {
+            label: 'Tạo YC Phòng',
+            href: '/facilities/room-requests/new',
+            icon: CalendarClock,
+            allowedRoles: [
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/facilities/room-request'],
+          },
+          {
+            label: 'Danh Sách YC Phòng',
+            href: '/facilities/room-requests',
+            icon: ListChecks,
+            allowedRoles: [
+              MaVaiTro.QUAN_LY_CSVC,
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/facilities/room-requests'],
+          },
+          {
+            label: 'Danh Sách YC Đổi Phòng',
+            href: '/facilities/room-change-requests',
+            icon: History,
+            allowedRoles: [
+              MaVaiTro.QUAN_LY_CSVC,
+              MaVaiTro.CB_TO_CHUC_SU_KIEN,
+              MaVaiTro.ADMIN_HE_THONG,
+            ],
+            activePaths: ['/facilities/room-change-requests'],
+          },
+        ],
+      },
+      {
+        isTitle: true,
+        label: 'Thống Kê & Báo Cáo',
+        allowedRoles: [
           MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.TRUONG_KHOA,
+          MaVaiTro.TRUONG_CLB,
+          MaVaiTro.BI_THU_DOAN,
           MaVaiTro.QUAN_LY_CSVC,
           MaVaiTro.ADMIN_HE_THONG,
           MaVaiTro.CB_TO_CHUC_SU_KIEN,
         ],
       },
       {
-        label: 'Thống kê Sự kiện Chung',
+        label: 'Thống kê Sự kiện',
         href: '/dashboard/events',
-        icon: LineChartIcon,
+        icon: LineChartLucideIcon,
         allowedRoles: [
           MaVaiTro.BGH_DUYET_SK_TRUONG,
           MaVaiTro.ADMIN_HE_THONG,
           MaVaiTro.CB_TO_CHUC_SU_KIEN,
         ],
+        activePaths: ['/dashboard/events'],
       },
       {
-        label: 'Thống kê CSVC Chung',
+        label: 'Thống kê CSVC',
         href: '/dashboard/facilities',
-        icon: LineChartIcon,
+        icon: LineChartLucideIcon,
         allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+        activePaths: ['/dashboard/facilities'],
       },
-      {
-        label: 'Dashboard Khoa',
-        href: '/dashboard/department',
-        icon: Briefcase,
-        allowedRoles: [MaVaiTro.TRUONG_KHOA, MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Dashboard CLB',
-        href: '/dashboard/clubs',
-        icon: UsersGroupIcon,
-        allowedRoles: [
-          MaVaiTro.TRUONG_CLB,
-          MaVaiTro.GV_CO_VAN_CLB,
-          MaVaiTro.ADMIN_HE_THONG,
-        ],
-      },
-      {
-        label: 'Dashboard Đoàn',
-        href: '/dashboard/union',
-        icon: UsersGroupIcon,
-        allowedRoles: [MaVaiTro.BI_THU_DOAN, MaVaiTro.ADMIN_HE_THONG],
-      },
-
-      {
-        isTitle: true,
-        label: 'Quản Trị Cơ Sở Hạ Tầng',
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
-      },
-      {
-        label: 'Quản lý Tòa Nhà',
-        href: '/units/buildings',
-        icon: Building,
-        activePaths: ['/units/buildings'],
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
-      },
-      {
-        label: 'Quản lý Loại Tầng',
-        href: '/units/floor-types',
-        icon: Layers,
-        activePaths: ['/units/floor-types'],
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
-      },
-
       {
         isTitle: true,
         label: 'Quản Trị Hệ Thống',
         allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
       },
       {
-        label: 'Quản lý Người dùng',
-        href: '/users',
-        icon: UsersIconLucide,
+        label: 'Cấu Hình Hệ Thống',
+        icon: Settings,
+        activePaths: [
+          '/users',
+          '/users/roles',
+          '/units',
+          '/units/departments',
+          '/units/clubs',
+          '/units/union',
+          '/units/majors',
+          '/units/classes',
+          '/units/buildings',
+          '/units/floor-types',
+        ],
         allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Vai trò & Phân quyền',
-        href: '/users/roles',
-        icon: UserSquare2,
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Quản lý Đơn vị',
-        href: '/units',
-        icon: Library,
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Quản lý Ngành học',
-        href: '/units/majors',
-        icon: BookOpen,
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
-      },
-      {
-        label: 'Quản lý Lớp học',
-        href: '/units/classes',
-        icon: GraduationCap,
-        allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+        subItems: [
+          {
+            label: 'Người dùng',
+            href: '/users',
+            icon: UsersIconLucide,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/users'],
+          },
+
+          {
+            label: 'Vai trò & Quyền',
+            href: '/users/roles',
+            icon: UserSquare2,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/users/roles'],
+          },
+          {
+            label: 'Đơn vị',
+            href: '/units',
+            icon: Library,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/units'],
+          },
+          // {
+          //   label: 'Khoa/Bộ môn',
+          //   href: '/units/departments',
+          //   icon: Library,
+          //   allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+          //   activePaths: ['/units/departments'],
+          // },
+          // {
+          //   label: 'CLB',
+          //   href: '/units/clubs',
+          //   icon: Library,
+          //   allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+          //   activePaths: ['/units/clubs'],
+          // },
+          // {
+          //   label: 'Đoàn/Hội',
+          //   href: '/units/union',
+          //   icon: Library,
+          //   allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+          //   activePaths: ['/units/union'],
+          // },
+          {
+            label: 'Ngành học',
+            href: '/units/majors',
+            icon: BookOpen,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/units/majors'],
+          },
+          {
+            label: 'Lớp học',
+            href: '/units/classes',
+            icon: GraduationCap,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
+            activePaths: ['/units/classes'],
+          },
+          {
+            label: 'Tòa nhà',
+            href: '/units/buildings',
+            icon: Building,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+            activePaths: ['/units/buildings'],
+          },
+          {
+            label: 'Loại tầng',
+            href: '/units/floor-types',
+            icon: Layers,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+            activePaths: ['/units/floor-types'],
+          },
+        ],
       },
     ],
-    [user]
+    []
   );
 
   const getVisibleSidebarItems = useCallback(
     (items: NavItemStructure[]): NavItemStructure[] => {
-      return items.filter((item) => {
-        if (!item.allowedRoles || item.allowedRoles.includes('*')) return true;
-        if (!user || !user.vaiTroChucNang) return false;
-        return item.allowedRoles.some((roleCode) => hasRole(roleCode));
-      });
+      return items.reduce((acc: NavItemStructure[], item) => {
+        const isAllowed =
+          !item.allowedRoles ||
+          item.allowedRoles.includes('*') ||
+          (user && item.allowedRoles.some((roleCode) => hasRole(roleCode)));
+        if (isAllowed) {
+          if (item.subItems) {
+            const visibleSubItems = getVisibleSidebarItems(item.subItems);
+            if (visibleSubItems.length > 0) {
+              acc.push({ ...item, subItems: visibleSubItems });
+            } else if (item.href) {
+              // Nếu không có subItem nào được phép nhưng item cha có href, vẫn hiển thị item cha
+              acc.push({ ...item, subItems: undefined });
+            }
+          } else {
+            acc.push(item);
+          }
+        }
+        return acc;
+      }, []);
     },
     [user, hasRole]
-  );
+  ); // Thêm hasRole vào dependencies
 
   const visibleSidebarNavigation = useMemo(
     () => getVisibleSidebarItems(sidebarNavigationStructure),
     [sidebarNavigationStructure, getVisibleSidebarItems]
   );
 
+  const renderSidebarItem = (item: NavItemStructure, isSubItem = false) => {
+    const commonClasses = cn(
+      'flex items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-all duration-200 ease-in-out',
+      isSubItem
+        ? 'text-muted-foreground hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10'
+        : 'text-foreground/80 hover:text-primary hover:bg-primary/10 dark:text-slate-300 dark:hover:text-ptit-red dark:hover:bg-ptit-red/10',
+      isActive(item.href, item.activePaths, item.exactMatch) &&
+        (isSubItem
+          ? 'bg-primary/10 text-primary font-medium dark:bg-ptit-red/15 dark:text-ptit-red'
+          : 'bg-primary/15 text-primary font-semibold dark:bg-ptit-red/20 dark:text-ptit-red')
+    );
+
+    if (item.isTitle) {
+      return (
+        <h4
+          key={`title-${item.label}`}
+          className="px-3 pt-5 pb-1.5 text-xs font-semibold uppercase text-muted-foreground/70 tracking-wider"
+        >
+          {item.label}
+        </h4>
+      );
+    }
+
+    if (item.subItems && item.subItems.length > 0) {
+      return (
+        <Collapsible
+          key={item.label}
+          open={openDesktopSubmenus[item.label]}
+          onOpenChange={() => toggleDesktopSubmenu(item.label)}
+          className="w-full"
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className={cn(
+                'flex w-full items-center justify-between gap-3 rounded-md px-3 py-2.5 text-sm text-foreground/80 transition-all hover:text-primary hover:bg-primary/10 dark:text-slate-300 dark:hover:text-ptit-red dark:hover:bg-ptit-red/10',
+                // Highlight group cha nếu một trong các con active hoặc group cha có activePaths khớp
+                (isActive(undefined, item.activePaths) ||
+                  item.subItems.some((sub) =>
+                    isActive(sub.href, sub.activePaths, sub.exactMatch)
+                  )) &&
+                  'bg-primary/15 text-primary font-semibold dark:bg-ptit-red/20 dark:text-ptit-red'
+              )}
+            >
+              <div className="flex items-center gap-3">
+                {item.icon && <item.icon className="h-5 w-5 flex-shrink-0" />}
+                <span className="truncate">{item.label}</span>
+              </div>
+              {openDesktopSubmenus[item.label] ? (
+                <ChevronUp className="h-4 w-4 transition-transform duration-200" />
+              ) : (
+                <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="pl-4 ml-3 border-l border-muted/50 dark:border-slate-700/50 space-y-0.5 py-1 animate-accordion-down">
+            {item.subItems.map((subItem) => renderSidebarItem(subItem, true))}
+          </CollapsibleContent>
+        </Collapsible>
+      );
+    }
+
+    if (item.href) {
+      const linkContent = (
+        <>
+          {item.icon && (
+            <item.icon
+              className={cn('h-5 w-5 flex-shrink-0', isSubItem && 'h-4 w-4')}
+            />
+          )}
+          <span className="truncate">{item.label}</span>
+        </>
+      );
+
+      if (isMobile) {
+        return (
+          <SheetClose asChild key={item.href}>
+            <Link
+              to={item.href}
+              className={commonClasses}
+              onClick={() => setIsMobileSidebarOpen(false)}
+            >
+              {linkContent}
+            </Link>
+          </SheetClose>
+        );
+      } else {
+        return (
+          <Link key={item.href} to={item.href} className={commonClasses}>
+            {linkContent}
+          </Link>
+        );
+      }
+    }
+    return null;
+  };
+
   const SidebarNavContent = () => (
-    <div className="flex h-full max-h-screen flex-col border-r bg-sidebar dark:bg-slate-900 shadow-lg">
-      <div className="flex h-16 items-center border-b px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-sidebar z-10 dark:bg-slate-900 dark:border-slate-800">
+    <div className="flex h-full max-h-screen flex-col border-r bg-card dark:bg-slate-900 shadow-lg">
+      <div className="flex h-16 items-center border-b px-4 lg:h-[60px] lg:px-6 sticky top-0 bg-card z-10 dark:bg-slate-900 dark:border-slate-800">
         <Link
           to="/dashboard"
-          className="flex items-center gap-2.5 font-bold text-lg text-sidebar-foreground hover:text-primary dark:hover:text-ptit-red transition-colors"
-          onClick={() => {
-            if (isMobile) setIsSidebarOpen(false);
-          }}
+          className="flex items-center gap-2.5 font-bold text-lg text-foreground hover:text-primary dark:hover:text-ptit-red transition-colors"
+          onClick={() => isMobile && setIsMobileSidebarOpen(false)}
         >
           <Logo className="h-8 w-8 text-primary dark:text-ptit-red" />
           <span className="whitespace-nowrap">PTIT Events</span>
@@ -353,48 +570,7 @@ const DashboardLayout = ({
       </div>
       <ScrollArea className="flex-1 py-3">
         <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-0.5">
-          {visibleSidebarNavigation.map((item, index) =>
-            item.isTitle ? (
-              <h4
-                key={`title-${item.label}-${index}`}
-                className="px-3 pt-5 pb-1.5 text-xs font-semibold uppercase text-muted-foreground/70 tracking-wider"
-              >
-                {item.label}
-              </h4>
-            ) : item.href ? (
-              isMobile ? (
-                <SheetClose asChild key={item.href}>
-                  <Link
-                    to={item.href}
-                    className={cn(
-                      'flex items-center gap-3.5 rounded-md px-3 py-2.5 text-sidebar-foreground/90 transition-all duration-200 ease-in-out hover:text-primary hover:bg-primary/10 dark:text-slate-300 dark:hover:text-ptit-red dark:hover:bg-ptit-red/10',
-                      isActive(item.href, item.activePaths, item.exactMatch) &&
-                        'bg-primary/10 text-primary font-semibold dark:bg-ptit-red/15 dark:text-ptit-red'
-                    )}
-                    onClick={() => setIsSidebarOpen(false)}
-                  >
-                    {item.icon && (
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
-                    )}
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                </SheetClose>
-              ) : (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'flex items-center gap-3.5 rounded-md px-3 py-2.5 text-sidebar-foreground/90 transition-all duration-200 ease-in-out hover:text-primary hover:bg-primary/10 dark:text-slate-300 dark:hover:text-ptit-red dark:hover:bg-ptit-red/10',
-                    isActive(item.href, item.activePaths, item.exactMatch) &&
-                      'bg-primary/10 text-primary font-semibold dark:bg-ptit-red/15 dark:text-ptit-red'
-                  )}
-                >
-                  {item.icon && <item.icon className="h-5 w-5 flex-shrink-0" />}
-                  <span className="truncate">{item.label}</span>
-                </Link>
-              )
-            ) : null
-          )}
+          {visibleSidebarNavigation.map((item) => renderSidebarItem(item))}
         </nav>
       </ScrollArea>
       <div className="mt-auto p-3 border-t dark:border-slate-800">
@@ -415,7 +591,7 @@ const DashboardLayout = ({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-start text-left overflow-hidden">
-                  <span className="text-sm font-medium text-sidebar-foreground truncate max-w-[150px]">
+                  <span className="text-sm font-medium text-foreground truncate max-w-[150px]">
                     {user.hoTen}
                   </span>
                   <span className="text-xs text-muted-foreground truncate max-w-[150px]">
@@ -427,7 +603,7 @@ const DashboardLayout = ({
             <DropdownMenuContent
               className="w-60 mb-2"
               align="start"
-              sideOffset={isMobile ? 0 : 10}
+              sideOffset={10}
               side={isMobile ? 'top' : 'right'}
             >
               <DropdownMenuLabel className="font-normal p-3">
@@ -455,30 +631,22 @@ const DashboardLayout = ({
               {isMobile ? (
                 <SheetClose asChild>
                   <Link to="/">
-                    <DropdownMenuItem
-                      className="cursor-pointer h-9"
-                      onClick={() => setIsSidebarOpen(false)}
-                    >
-                      <DashboardIcon className="mr-2 h-4 w-4" /> Giao diện người
-                      dùng
+                    <DropdownMenuItem className="cursor-pointer h-9">
+                      <Home className="mr-2 h-4 w-4" /> Trang chủ người dùng
                     </DropdownMenuItem>
                   </Link>
                 </SheetClose>
               ) : (
                 <Link to="/">
                   <DropdownMenuItem className="cursor-pointer h-9">
-                    <DashboardIcon className="mr-2 h-4 w-4" /> Giao diện người
-                    dùng
+                    <Home className="mr-2 h-4 w-4" /> Trang chủ người dùng
                   </DropdownMenuItem>
                 </Link>
               )}
               {isMobile ? (
                 <SheetClose asChild>
                   <Link to="/profile">
-                    <DropdownMenuItem
-                      className="cursor-pointer h-9"
-                      onClick={() => setIsSidebarOpen(false)}
-                    >
+                    <DropdownMenuItem className="cursor-pointer h-9">
                       <UserIconLucide className="mr-2 h-4 w-4" /> Thông tin cá
                       nhân
                     </DropdownMenuItem>
@@ -496,7 +664,7 @@ const DashboardLayout = ({
               <DropdownMenuItem
                 onClick={() => {
                   logout();
-                  if (isMobile) setIsSidebarOpen(false);
+                  if (isMobile) setIsMobileSidebarOpen(false);
                 }}
                 className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 h-9"
               >
@@ -509,7 +677,7 @@ const DashboardLayout = ({
             <Link to="/login" className="w-full">
               <Button
                 className="w-full"
-                onClick={() => setIsSidebarOpen(false)}
+                onClick={() => setIsMobileSidebarOpen(false)}
               >
                 Đăng nhập
               </Button>
@@ -524,35 +692,61 @@ const DashboardLayout = ({
     </div>
   );
 
-  const getCurrentPageTitle = () => {
+  const getCurrentPageTitle = useCallback(() => {
     if (pageTitle) return pageTitle;
-
-    const findActiveItem = (
-      items: NavItemStructure[]
-    ): NavItemStructure | undefined => {
+    const findActiveItemLabel = (
+      items: NavItemStructure[],
+      currentPath: string
+    ): string | undefined => {
+      for (const item of items) {
+        if (
+          item.href &&
+          (item.exactMatch
+            ? currentPath === item.href
+            : currentPath.startsWith(item.href))
+        ) {
+          // Ưu tiên match chính xác hoặc match sâu nhất
+          if (item.subItems) {
+            const activeSub = findActiveItemLabel(item.subItems, currentPath);
+            if (activeSub) return activeSub; // Trả về label của subitem nếu nó active sâu hơn
+          }
+          return item.label;
+        }
+        if (item.subItems) {
+          const activeSub = findActiveItemLabel(item.subItems, currentPath);
+          if (activeSub) return activeSub;
+        }
+      }
+      return undefined;
+    };
+    // Sắp xếp lại sidebarNavigationStructure để tìm match chính xác nhất trước
+    // Hoặc đơn giản là dựa vào logic isActive đã có
+    let foundTitle: string | undefined = undefined;
+    const findTitleRecursive = (items: NavItemStructure[]): boolean => {
       for (const item of items) {
         if (
           item.href &&
           isActive(item.href, item.activePaths, item.exactMatch)
         ) {
-          return item;
+          foundTitle = item.label;
+          return true;
         }
-        if (item.subItems) {
-          const activeSubItem = findActiveItem(item.subItems);
-          if (activeSubItem) return activeSubItem;
+        if (item.subItems && findTitleRecursive(item.subItems)) {
+          // Nếu subitem active, title có thể vẫn là của parent group hoặc của subitem tùy thiết kế
+          // Hiện tại, nếu subitem active, label của nó sẽ được trả về bởi đệ quy
+          return true;
         }
       }
-      return undefined;
+      return false;
     };
-    const activeItem = findActiveItem(sidebarNavigationStructure);
-    return activeItem?.label || 'Trang Quản Lý';
-  };
+    findTitleRecursive(sidebarNavigationStructure);
+    return foundTitle || 'Trang Quản Trị';
+  }, [pageTitle, sidebarNavigationStructure, isActive]); // Removed location.pathname
 
   return (
-    <div className="flex min-h-screen w-full">
+    <div className="flex min-h-screen w-full bg-muted/30 dark:bg-background">
       {isMobile ? (
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          {/* Trigger sẽ nằm ở Header */}
+        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
           <SheetContent
             side="left"
             className="w-[300px] p-0 flex flex-col"
@@ -562,44 +756,48 @@ const DashboardLayout = ({
           </SheetContent>
         </Sheet>
       ) : (
-        <aside className="hidden md:block fixed top-0 left-0 h-screen w-[260px] z-40">
+        <aside className="hidden md:block fixed top-0 left-0 h-screen w-[270px] z-40">
+          {' '}
+          {/* Tăng chiều rộng sidebar desktop */}
           <SidebarNavContent />
         </aside>
       )}
 
       <div
         className={cn(
-          'flex flex-col flex-1 overflow-hidden',
-          !isMobile && 'md:ml-[260px]'
+          'flex flex-col flex-1 overflow-x-hidden',
+          !isMobile && 'md:ml-[270px]'
         )}
       >
+        {' '}
+        {/* overflow-x-hidden để tránh scrollbar ngang */}
         <header className="flex h-16 items-center gap-x-4 border-b bg-background px-4 md:px-6 sticky top-0 z-30 dark:border-slate-800 shadow-sm">
           {isMobile && (
             <SheetTrigger asChild>
               <Button
                 variant="outline"
                 size="icon"
-                className="shrink-0 md:hidden"
+                className="shrink-0 md:hidden h-9 w-9"
               >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle navigation menu</span>
+                <Menu className="h-5 w-5" />{' '}
+                <span className="sr-only">Mở menu</span>
               </Button>
             </SheetTrigger>
           )}
-          {/* Page Title */}
           <div className="flex-1 min-w-0">
-            <span className="block text-xl font-bold truncate text-foreground">
+            <h1 className="text-xl lg:text-2xl font-semibold truncate text-foreground">
               {getCurrentPageTitle()}
-            </span>
+            </h1>
           </div>
-          {/* Notification bell and custom header actions */}
-          <NotificationBell />
-          {headerActions}
-          <ThemeSwitcher />
-          {/* UserNav replaced with user avatar dropdown */}
-          {/* User avatar dropdown is already implemented in SidebarNavContent for both desktop and mobile */}
+          <div className="flex items-center gap-x-2 sm:gap-x-3 ml-auto">
+            {headerActions}
+            <NotificationBell />
+            <ThemeSwitcher />
+          </div>
         </header>
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 bg-muted/20 dark:bg-slate-950/60">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-muted/30 dark:bg-slate-950/50">
+          {' '}
+          {/* overflow-y-auto cho main content */}
           {children}
         </main>
       </div>

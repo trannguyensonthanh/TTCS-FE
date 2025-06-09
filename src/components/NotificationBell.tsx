@@ -132,7 +132,7 @@ export function NotificationBell() {
           <span className="sr-only">Mở thông báo</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80 md:w-96" align="end" sideOffset={8}>
+      <DropdownMenuContent className="w-80 md:w-96 " align="end" sideOffset={8}>
         <DropdownMenuLabel className="flex justify-between items-center px-3 py-2">
           <span className="font-semibold text-base">Thông Báo</span>
           {totalUnread > 0 && (
@@ -155,7 +155,7 @@ export function NotificationBell() {
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <ScrollArea className="max-h-[calc(100vh-200px)] md:max-h-[400px]">
+        <ScrollArea className="max-h-[calc(100vh-200px)] md:max-h-[400px] overflow-auto">
           {' '}
           {/* Giới hạn chiều cao */}
           <DropdownMenuGroup>

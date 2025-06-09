@@ -137,3 +137,32 @@ export const useDeletePhong = (
     ...options,
   });
 };
+
+// Hook để gọi API tạo mã phòng gợi ý
+export const useGenerateMaPhong = (
+  params: {
+    toaNhaTangID?: number;
+    loaiPhongID?: number;
+    soThuTuPhong?: string;
+    phongID?: number | null;
+  },
+  options?: { enabled?: boolean }
+) => {
+  return useQuery({
+    queryKey: ['generateMaPhong', params],
+    queryFn: () => {
+      // Chỉ gọi API khi các tham số bắt buộc có giá trị
+      if (!params.toaNhaTangID || !params.soThuTuPhong) {
+        return Promise.resolve({
+          maPhongGoiY: '',
+          isUnique: false,
+          message: 'Chưa đủ thông tin.',
+        });
+      }
+      return phongService.generateMaPhong(params);
+    },
+    enabled: options?.enabled ?? true,
+    staleTime: Infinity, // Không cần tự động refetch mã gợi ý
+    refetchOnWindowFocus: false,
+  });
+};

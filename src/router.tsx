@@ -10,7 +10,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import VerifyOTP from './pages/VerifyOTP';
 import ResetPassword from './pages/ResetPassword';
-import Profile from './pages/Profile';
+import Profile from './pages/ProfilePage';
 import NotFound from './pages/NotFound';
 
 // Import Event Pages
@@ -24,8 +24,8 @@ import EventParticipants from './pages/Events/EventParticipants';
 import RoomRequests from './pages/Facilities/RoomRequests';
 import Rooms from './pages/Facilities/RoomsPage';
 import RoomChangeRequests from './pages/Facilities/RoomChangeRequests';
-import Equipment from './pages/Facilities/Equipment';
-import RoomSchedule from './pages/Facilities/RoomSchedule';
+
+import RoomSchedule from './pages/Facilities/RoomSchedulePage';
 
 // Import Dashboard Pages
 import Dashboard from './pages/Dashboard/Dashboard';
@@ -36,24 +36,37 @@ import UnionDashboard from './pages/Dashboard/UnionDashboard';
 import FacilitiesDashboard from './pages/Dashboard/FacilitiesDashboard';
 
 // Import User Management Pages
-import Users from './pages/Users/Users';
-import Students from './pages/Users/Students';
-import Lecturers from './pages/Users/Lecturers';
-import Roles from './pages/Users/Roles';
+import Users from './pages/Users/UsersPage.tsx';
 
 // Import Unit Management Pages
-import Units from './pages/Units/Units';
+import Units from './pages/Units/OrganizationalUnitsPage.tsx';
 import Departments from './pages/Units/Departments';
 import Clubs from './pages/Units/Clubs';
 import Union from './pages/Units/Union';
-import Majors from './pages/Units/Majors';
-import Classes from './pages/Units/Classes';
+import Majors from './pages/Units/MajorsAndSpecializationsPage';
+import Classes from './pages/Units/ClassesPage';
 import BuildingsPage from './pages/Units/BuildingsPage'; // Ví dụ đường dẫn
 import FloorTypesPage from './pages/Units/FloorTypesPage'; // Ví dụ đường dẫn
 import BuildingFloorsPage from './pages/Units/BuildingFloorsPage'; // Ví dụ đường dẫn
 // Import Protected Route Component
 import ProtectedRoute from './components/ProtectedRoute';
 import EventsPublic from '@/pages/EventsPublic';
+import EquipmentPage from '@/pages/Facilities/EquipmentPage';
+import CreateRoomRequestPage from '@/pages/Facilities/CreateRoomRequestPage';
+import ClientLayout from '@/components/ClientLayout';
+import AboutPage from '@/pages/AboutPage';
+import { Contact } from 'lucide-react';
+import ContactPage from '@/pages/ContactPage';
+import SupportPage from '@/pages/SupportPage';
+import NotificationsPage from '@/pages/NotificationsPage';
+import EventsEditPage from '@/pages/Events/EventsEditPage';
+import RolesPage from '@/pages/Users/Roles/RolesPage.tsx';
+import RoomRequestsListPage from '@/pages/Facilities/RoomRequestsListPage.tsx';
+import ProcessRoomRequestPage from '@/pages/Facilities/ProcessRoomRequestPage.tsx';
+import RoomChangeRequestsListPage from '@/pages/Facilities/RoomChangeRequestsListPage.tsx';
+import CreateRoomChangeRequestPage from '@/pages/Facilities/CreateRoomChangeRequestPage.tsx';
+import ProcessRoomChangeRequestPage from '@/pages/Facilities/ProcessRoomChangeRequestPage.tsx';
+import EditRoomRequestPage from '@/pages/Facilities/EditRoomRequestPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -77,17 +90,81 @@ const AppRouter = () => {
         <RoleProvider>
           <PageTransition>
             <Routes>
-              <Route path="/" element={<Index />} />
+              <Route
+                path="/"
+                element={
+                  <ClientLayout>
+                    <Index />
+                  </ClientLayout>
+                }
+              />
               <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/verify-otp" element={<VerifyOTP />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route
+                path="/forgot-password"
+                element={
+                  <ClientLayout>
+                    <ForgotPassword />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/verify-otp"
+                element={
+                  <ClientLayout>
+                    <VerifyOTP />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  <ClientLayout>
+                    <ResetPassword />
+                  </ClientLayout>
+                }
+              />
               <Route
                 path="/profile"
                 element={
                   <ProtectedRoute>
-                    <Profile />
+                    <ClientLayout>
+                      <Profile />
+                    </ClientLayout>
                   </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/about"
+                element={
+                  <ClientLayout>
+                    <AboutPage />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/contact"
+                element={
+                  <ClientLayout>
+                    <ContactPage />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/support"
+                element={
+                  <ClientLayout>
+                    <SupportPage />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/notifications"
+                element={
+                  // <ClientLayout>
+                  <ProtectedRoute>
+                    <NotificationsPage />
+                  </ProtectedRoute>
+                  // </ClientLayout>
                 }
               />
 
@@ -95,7 +172,9 @@ const AppRouter = () => {
                 path="/events-public"
                 element={
                   <ProtectedRoute>
-                    <EventsPublic />
+                    <ClientLayout>
+                      <EventsPublic />
+                    </ClientLayout>
                   </ProtectedRoute>
                 }
               />
@@ -126,6 +205,14 @@ const AppRouter = () => {
                 }
               />
               <Route
+                path="/events/edit/:eventId"
+                element={
+                  <ProtectedRoute>
+                    <EventsEditPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/events/approve"
                 element={
                   <ProtectedRoute>
@@ -147,7 +234,32 @@ const AppRouter = () => {
                 path="/facilities/room-requests"
                 element={
                   <ProtectedRoute>
-                    <RoomRequests />
+                    {/* <RoomRequests /> */}
+                    <RoomRequestsListPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/facilities/room-requests/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateRoomRequestPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/facilities/room-requests/edit/:ycMuonPhongID"
+                element={
+                  <ProtectedRoute>
+                    <EditRoomRequestPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/facilities/room-requests/process/:ycMuonPhongID"
+                element={
+                  <ProtectedRoute>
+                    <ProcessRoomRequestPage />
                   </ProtectedRoute>
                 }
               />
@@ -171,7 +283,25 @@ const AppRouter = () => {
                 path="/facilities/room-change-requests"
                 element={
                   <ProtectedRoute>
-                    <RoomChangeRequests />
+                    {/* <RoomChangeRequests /> */}
+                    <RoomChangeRequestsListPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/facilities/room-change-requests/new"
+                element={
+                  <ProtectedRoute>
+                    <CreateRoomChangeRequestPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/facilities/room-change-requests/process/:ycDoiPhongID"
+                element={
+                  <ProtectedRoute>
+                    <ProcessRoomChangeRequestPage />
                   </ProtectedRoute>
                 }
               />
@@ -179,7 +309,7 @@ const AppRouter = () => {
                 path="/facilities/equipment"
                 element={
                   <ProtectedRoute>
-                    <Equipment />
+                    <EquipmentPage />
                   </ProtectedRoute>
                 }
               />
@@ -271,27 +401,12 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route
-                path="/users/students"
-                element={
-                  <ProtectedRoute>
-                    <Students />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/users/lecturers"
-                element={
-                  <ProtectedRoute>
-                    <Lecturers />
-                  </ProtectedRoute>
-                }
-              />
+
               <Route
                 path="/users/roles"
                 element={
                   <ProtectedRoute>
-                    <Roles />
+                    <RolesPage />
                   </ProtectedRoute>
                 }
               />

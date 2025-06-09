@@ -1,4 +1,4 @@
-// src/enums/maVaiTro.enum.js
+// src/components/enums/maVaiTro.enum.js
 const MaVaiTro = Object.freeze({
   ADMIN_HE_THONG: 'ADMIN_HE_THONG',
   CB_TO_CHUC_SU_KIEN: 'CB_TO_CHUC_SU_KIEN',

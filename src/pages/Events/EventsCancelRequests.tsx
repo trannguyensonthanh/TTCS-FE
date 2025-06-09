@@ -368,7 +368,7 @@ const EventsCancelRequests = () => {
                 {req.nguoiYeuCau.hoTen}
               </TableCell>
               <TableCell className="text-sm py-3 px-4 text-muted-foreground">
-                {req.donViYeuCau.tenDonVi}
+                {req?.donViYeuCau?.tenDonVi}
               </TableCell>
               <TableCell className="text-sm py-3 px-4 text-muted-foreground">
                 {format(parseISO(req.ngayYeuCauHuy), 'dd/MM/yyyy HH:mm', {
@@ -559,7 +559,7 @@ const EventsCancelRequests = () => {
               <div className="space-y-3 py-4 pr-4 text-sm">
                 <InfoRowDialog
                   label="Người yêu cầu hủy:"
-                  value={`${selectedRequestForDetail.nguoiYeuCau.hoTen} (${selectedRequestForDetail.donViYeuCau.tenDonVi})`}
+                  value={`${selectedRequestForDetail?.nguoiYeuCau?.hoTen} (${selectedRequestForDetail?.donViYeuCau?.tenDonVi})`}
                 />
                 <InfoRowDialog
                   label="Ngày yêu cầu hủy:"

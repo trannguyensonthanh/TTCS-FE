@@ -185,13 +185,15 @@ const EventsNew = () => {
 
   // --- Fetch data for Selects ---
   const { data: dsDonVi, isLoading: isLoadingDonVi } = useDonViList({
-    limit: 200,
+    limit: 100,
   }); // Lấy nhiều để chọn
+
+  console.log('dsDonVi', dsDonVi);
   const { data: dsLoaiSK, isLoading: isLoadingLoaiSK } = useLoaiSuKienList({
     isActive: true,
     limit: 100,
   });
-  console.log('dsDonVi', dsDonVi, isLoadingLoaiSK);
+
   // Tìm DonViID mặc định cho CB_TO_CHUC_SU_KIEN
   const getDefaultDonViChuTriID = (): string | undefined => {
     if (user && user.vaiTroChucNang) {
@@ -632,7 +634,7 @@ const EventsNew = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {dsDonVi?.map((dv) => (
+                          {dsDonVi?.items.map((dv) => (
                             <SelectItem
                               key={dv.donViID}
                               value={dv?.donViID?.toString()}
@@ -821,7 +823,7 @@ const EventsNew = () => {
                                 ? field.value
                                     .map(
                                       (id) =>
-                                        dsDonVi?.find(
+                                        dsDonVi?.items.find(
                                           (dv) => dv.donViID.toString() === id
                                         )?.tenDonVi
                                     )
@@ -847,7 +849,7 @@ const EventsNew = () => {
                                 {!isLoadingDonViThamGia && 'Không tìm thấy.'}
                               </CommandEmpty>
                               <CommandGroup>
-                                {(dsDonViThamGiaOptions || dsDonVi)?.map(
+                                {(dsDonViThamGiaOptions || dsDonVi)?.items.map(
                                   (
                                     dv // Ưu tiên dsDonViThamGiaOptions nếu có search term
                                   ) => (

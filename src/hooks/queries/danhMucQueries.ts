@@ -2,11 +2,15 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { APIError } from '@/services/apiHelper';
 import danhMucService, {
+  ChuyenNganhResponseMin,
+  GetChuyenNganhForSelectParams,
   GetLoaiPhongParams,
+  GetNganhHocForSelectParams,
   GetPhongForSelectParams,
   GetToaNhaTangForSelectParams,
   GetTrangThaiPhongParams,
   GetTrangThietBiForSelectParams,
+  NganhHocResponseMin,
   PhongForSelectResponse,
   ToaNhaTangForSelectResponse,
   TrangThietBiResponseMin,
@@ -26,9 +30,13 @@ export const DANH_MUC_QUERY_KEYS = {
     ['toaNhaTangForSelect', params || {}] as const,
   trangThietBiForSelect: (params?: GetTrangThietBiForSelectParams) =>
     ['trangThietBiForSelect', params || {}] as const,
+  nganhHocForSelect: (params?: GetNganhHocForSelectParams) =>
+    ['nganhHocForSelect', params || {}] as const,
+  chuyenNganhForSelectByNganh: (
+    nganhHocId?: number,
+    params?: GetChuyenNganhForSelectParams
+  ) => ['chuyenNganhForSelect', 'byNganh', nganhHocId, params || {}] as const,
 };
-
-// ... (useDonViList, useNguoiDungListForSelect, useLoaiSuKienList (có thể lấy từ eventQueries) đã có)
 
 // Hook lấy danh sách Loại Phòng
 export const useLoaiPhongList = (
@@ -110,6 +118,49 @@ export const useTrangThietBiListForSelect = (
     queryKey: DANH_MUC_QUERY_KEYS.trangThietBiForSelect(params),
     queryFn: () => danhMucService.getTrangThietBiListForSelect(params),
     staleTime: 30 * 60 * 1000, // 30 phút
+    ...options,
+  });
+};
+
+// Hook lấy danh sách Ngành Học để chọn
+export const useNganhHocListForSelect = (
+  params?: GetNganhHocForSelectParams,
+  options?: Omit<
+    UseQueryOptions<NganhHocResponseMin[], APIError>,
+    'queryKey' | 'queryFn'
+  >
+) => {
+  return useQuery<NganhHocResponseMin[], APIError>({
+    queryKey: DANH_MUC_QUERY_KEYS.nganhHocForSelect(params),
+    queryFn: () => danhMucService.getNganhHocListForSelect(params),
+    staleTime: 60 * 60 * 1000, // Cache 1 giờ, danh mục ngành ít thay đổi
+    ...options,
+  });
+};
+
+// Hook lấy danh sách Chuyên Ngành theo Ngành Học ID để chọn
+export const useChuyenNganhListForSelectByNganh = (
+  nganhHocId: number | undefined, // ID của ngành học cha
+  params?: GetChuyenNganhForSelectParams,
+  options?: Omit<
+    UseQueryOptions<ChuyenNganhResponseMin[], APIError>,
+    'queryKey' | 'queryFn'
+  >
+) => {
+  return useQuery<ChuyenNganhResponseMin[], APIError>({
+    queryKey: DANH_MUC_QUERY_KEYS.chuyenNganhForSelectByNganh(
+      nganhHocId,
+      params
+    ),
+    queryFn: () => {
+      if (!nganhHocId) return Promise.resolve([]); // Không fetch nếu không có nganhHocId
+      return danhMucService.getChuyenNganhListForSelectByNganh(
+        nganhHocId,
+        params
+      );
+    },
+    enabled: !!nganhHocId, // Chỉ fetch khi có nganhHocId
+    staleTime: 30 * 60 * 1000, // Cache 30 phút
     ...options,
   });
 };

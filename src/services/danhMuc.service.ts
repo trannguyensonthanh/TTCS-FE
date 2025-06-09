@@ -1,36 +1,28 @@
-// src/services/danhMuc.service.ts (Tạo file mới hoặc thêm vào service hiện có)
+// Danh mục service: Các hàm lấy danh sách loại phòng, phòng, trạng thái phòng, tòa nhà tầng, trang thiết bị (dạng select/minimal)
+
 import { LoaiPhongResponseMin } from '@/services/roomRequest.service';
 import apiHelper from './apiHelper';
 import { TrangThaiPhongResponse } from '@/services/phong.service';
 
-// === Type mới cho Trang Thiết Bị ===
 export interface TrangThietBiResponseMin {
-  thietBiID: number; // PK từ bảng TrangThietBi
-  tenThietBi: string; // TenThietBi từ bảng TrangThietBi
-  // moTa?: string | null;      // Nếu cần hiển thị mô tả ngắn
+  thietBiID: number;
+  tenThietBi: string;
 }
 
-// Type đầy đủ cho Trang Thiết Bị (khi quản lý danh mục TrangThietBi)
 export interface TrangThietBiFullResponse extends TrangThietBiResponseMin {
   moTa?: string | null;
-  // Các trường khác của bảng TrangThietBi nếu có
 }
 
-// Type cho payload khi tạo Trang Thiết Bị
 export interface CreateTrangThietBiPayload {
   tenThietBi: string;
-  // maThietBi?: string | null;
   moTa?: string | null;
 }
 
-// Type cho payload khi cập nhật Trang Thiết Bị
 export interface UpdateTrangThietBiPayload {
   tenThietBi?: string;
-  // maThietBi?: string | null;
   moTa?: string | null;
 }
 
-// Type cho params khi lấy danh sách Trang Thiết Bị
 export interface GetTrangThietBiParams {
   searchTerm?: string;
   page?: number;
@@ -40,7 +32,7 @@ export interface GetTrangThietBiParams {
 }
 
 export interface PaginatedTrangThietBiResponse {
-  items: TrangThietBiFullResponse[]; // Hoặc TrangThietBiResponseMin tùy mục đích
+  items: TrangThietBiFullResponse[];
   totalPages: number;
   currentPage: number;
   totalItems: number;
@@ -50,10 +42,9 @@ export interface PaginatedTrangThietBiResponse {
 export interface SuKienForSelectResponse {
   suKienID: number;
   tenSK: string;
-  tgBatDauDK: string; // ISO Date string
-  tgKetThucDK: string; // ISO Date string
+  tgBatDauDK: string;
+  tgKetThucDK: string;
   donViChuTri: {
-    // Chỉ cần tên đơn vị để hiển thị
     tenDonVi: string;
   };
 }
@@ -63,11 +54,9 @@ export interface PhongForSelectResponse {
   tenPhong: string;
   maPhong?: string | null;
   sucChua?: number | null;
-  tenLoaiPhong: string; // Join từ LoaiPhong
-  loaiPhongID?: number | null; // ID của LoaiPhong để lọc
-  // viTri?: string | null;
-  toaNhaTangID: string | number; // ID của Tòa nhà/Tầng
-  // isAvailableNow?: boolean; // Backend có thể tính toán sẵn
+  tenLoaiPhong: string;
+  loaiPhongID?: number | null;
+  toaNhaTangID: string | number;
 }
 
 export interface PhongResponseMin {
@@ -75,47 +64,57 @@ export interface PhongResponseMin {
   tenPhong: string;
   maPhong?: string | null;
   sucChua?: number | null;
-  loaiPhong?: LoaiPhongResponseMin | null; // Thông tin loại phòng (join từ LoaiPhong)
-  // viTri?: string | null; // Ví dụ: "Tòa A, Tầng 3"
+  loaiPhong?: LoaiPhongResponseMin | null;
   toaNhaTangID: string | number;
-  tgNhanPhongTT?: string; // ISO Date string, thời gian nhận phòng thực tế
-  tgTraPhongTT?: string; // ISO Date string, thời gian trả phòng thực tế
-  // Các thông tin cơ bản khác nếu cần hiển thị nhanh
+  tgNhanPhongTT?: string;
+  tgTraPhongTT?: string;
 }
 
-// --- Loại Phòng ---
+export interface NganhHocResponseMin {
+  nganhHocID: number;
+  tenNganhHoc: string;
+  maNganhHoc?: string | null;
+  coChuyenNganh?: boolean;
+}
+
+export interface ChuyenNganhResponseMin {
+  chuyenNganhID: number;
+  tenChuyenNganh: string;
+  maChuyenNganh?: string | null;
+}
+
 export interface GetLoaiPhongParams {
-  // isActive?: boolean;
   limit?: number;
 }
+
 export interface ToaNhaTangForSelectResponse {
   toaNhaTangID: number;
-  tenHienThi: string; // Ví dụ: "Tòa A - Tầng Trệt", "Tòa B - Lầu 1 (Khu văn phòng)"
+  tenHienThi: string;
   toaNhaID: number;
   tenToaNha: string;
   loaiTangID: number;
   tenLoaiTang: string;
-  moTaTang?: string | null; // Mô tả của ToaNha_Tang
+  moTaTang?: string | null;
 }
+
 const getLoaiPhongList = async (
   params?: GetLoaiPhongParams
 ): Promise<LoaiPhongResponseMin[]> => {
-  // Giả sử API không phân trang, trả về mảng trực tiếp
   return apiHelper.get('/danhmuc/loai-phong', params || {}) as Promise<
     LoaiPhongResponseMin[]
   >;
 };
 
-// --- Phòng (Cho việc chọn lựa) ---
 export interface GetPhongForSelectParams {
   searchTerm?: string;
   loaiPhongID?: number;
   sucChuaToiThieu?: number;
-  thoiGianMuon?: string; // ISO
-  thoiGianTra?: string; // ISO
+  thoiGianMuon?: string;
+  thoiGianTra?: string;
   trangThaiPhongMa?: string;
   limit?: number;
 }
+
 const getPhongListForSelect = async (
   params?: GetPhongForSelectParams
 ): Promise<PhongForSelectResponse[]> => {
@@ -124,11 +123,10 @@ const getPhongListForSelect = async (
   >;
 };
 
-// --- Trạng Thái Phòng ---
 export interface GetTrangThaiPhongParams {
-  // isActive?: boolean; // Nếu có
   limit?: number;
 }
+
 const getTrangThaiPhongList = async (
   params?: GetTrangThaiPhongParams
 ): Promise<TrangThaiPhongResponse[]> => {
@@ -137,12 +135,12 @@ const getTrangThaiPhongList = async (
   >;
 };
 
-// --- Tầng Vật Lý (ToaNha_Tang) cho Select ---
 export interface GetToaNhaTangForSelectParams {
   toaNhaID?: number;
   searchTerm?: string;
   limit?: number;
 }
+
 const getToaNhaTangListForSelect = async (
   params?: GetToaNhaTangForSelectParams
 ): Promise<ToaNhaTangForSelectResponse[]> => {
@@ -152,12 +150,14 @@ const getToaNhaTangListForSelect = async (
   ) as Promise<ToaNhaTangForSelectResponse[]>;
 };
 
-// --- Trang Thiết Bị cho Select ---
 export interface GetTrangThietBiForSelectParams {
   searchTerm?: string;
-  // isActive?: boolean;
+  page?: number;
   limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
+
 const getTrangThietBiListForSelect = async (
   params?: GetTrangThietBiForSelectParams
 ): Promise<TrangThietBiResponseMin[]> => {
@@ -167,12 +167,47 @@ const getTrangThietBiListForSelect = async (
   ) as Promise<TrangThietBiResponseMin[]>;
 };
 
+// --- Ngành Học cho Select ---
+export interface GetNganhHocForSelectParams {
+  searchTerm?: string;
+  khoaQuanLyID?: number;
+
+  limit?: number; // Mặc định lấy hết hoặc một số lượng lớn (vd: 200)
+}
+
+const getNganhHocListForSelect = async (
+  params?: GetNganhHocForSelectParams
+): Promise<NganhHocResponseMin[]> => {
+  return apiHelper.get(
+    '/danhmuc/nganh-hoc/select-options',
+    params || {}
+  ) as Promise<NganhHocResponseMin[]>;
+};
+
+// --- Chuyên Ngành cho Select (theo Ngành Học ID) ---
+export interface GetChuyenNganhForSelectParams {
+  searchTerm?: string;
+  limit?: number;
+}
+
+const getChuyenNganhListForSelectByNganh = async (
+  nganhHocId: number,
+  params?: GetChuyenNganhForSelectParams
+): Promise<ChuyenNganhResponseMin[]> => {
+  return apiHelper.get(
+    `/danhmuc/nganh-hoc/${nganhHocId}/chuyen-nganh/select-options`,
+    params || {}
+  ) as Promise<ChuyenNganhResponseMin[]>;
+};
+
 const danhMucService = {
   getLoaiPhongList,
   getPhongListForSelect,
   getTrangThaiPhongList,
   getToaNhaTangListForSelect,
   getTrangThietBiListForSelect,
+  getNganhHocListForSelect,
+  getChuyenNganhListForSelectByNganh,
 };
 
 export default danhMucService;

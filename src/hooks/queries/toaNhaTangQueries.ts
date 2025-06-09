@@ -55,7 +55,7 @@ export const useToaNhaTangDetail = (
   toaNhaTangId: number | string | undefined,
   options?: Omit<
     UseQueryOptions<ToaNhaTangResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<ToaNhaTangResponse, APIError>({

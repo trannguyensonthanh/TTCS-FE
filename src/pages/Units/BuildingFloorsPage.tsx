@@ -134,7 +134,7 @@ const BuildingFloorsPage = () => {
   });
 
   const { data: dsLoaiTang, isLoading: isLoadingLoaiTang } = useLoaiTangList(
-    { limit: 200, sortBy: 'SoThuTu', sortOrder: 'asc' }, // Lấy nhiều loại tầng
+    { limit: 100, sortBy: 'SoThuTu', sortOrder: 'asc' }, // Lấy nhiều loại tầng
     { enabled: isFormModalOpen }
   );
 

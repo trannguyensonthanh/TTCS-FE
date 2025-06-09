@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMediaQuery } from '@/hooks/use-mobile';
-import MainNavigation from '@/components/MainNavigation';
+
 import { useAuth } from '@/context/AuthContext';
 import {
   Card,
@@ -86,46 +86,206 @@ const mockEvents = [
 
 // Mock students data
 const mockStudents = [
-  { id: 'SV001', name: 'Nguyễn Văn An', code: 'B19DCCN001', email: 'anb19dccn001@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', className: 'D19CQCN01', major: 'Công nghệ thông tin' },
-  { id: 'SV002', name: 'Trần Thị Bình', code: 'B19DCCN002', email: 'binhb19dccn002@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', className: 'D19CQCN01', major: 'Công nghệ thông tin' },
-  { id: 'SV003', name: 'Lê Văn Chính', code: 'B19DCCN003', email: 'chinhb19dccn003@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', className: 'D19CQCN01', major: 'Công nghệ thông tin' },
-  { id: 'SV004', name: 'Phạm Thị Dung', code: 'B19DCCN004', email: 'dungb19dccn004@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', className: 'D19CQCN02', major: 'Công nghệ thông tin' },
-  { id: 'SV005', name: 'Hoàng Văn Em', code: 'B19DCCN005', email: 'emb19dccn005@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', className: 'D19CQCN02', major: 'Công nghệ thông tin' },
-  { id: 'SV006', name: 'Ngô Thị Phương', code: 'B19DCDT001', email: 'phuongb19dcdt001@ptit.edu.vn', unitId: '4', unitName: 'Khoa ĐTVT', className: 'D19CQDT01', major: 'Điện tử viễn thông' },
-  { id: 'SV007', name: 'Vũ Văn Quang', code: 'B19DCDT002', email: 'quangb19dcdt002@ptit.edu.vn', unitId: '4', unitName: 'Khoa ĐTVT', className: 'D19CQDT01', major: 'Điện tử viễn thông' },
-  { id: 'SV008', name: 'Mai Thị Liên', code: 'B20DCCN001', email: 'lienb20dccn001@ptit.edu.vn', unitId: '3', unitName: 'CLB IT', className: 'D20CQCN01', major: 'Công nghệ thông tin' },
-  { id: 'SV009', name: 'Trương Văn Nam', code: 'B20DCCN002', email: 'namb20dccn002@ptit.edu.vn', unitId: '3', unitName: 'CLB IT', className: 'D20CQCN01', major: 'Công nghệ thông tin' },
-  { id: 'SV010', name: 'Đỗ Thị Oanh', code: 'B20DCCN003', email: 'oanhb20dccn003@ptit.edu.vn', unitId: '3', unitName: 'CLB IT', className: 'D20CQCN01', major: 'Công nghệ thông tin' },
+  {
+    id: 'SV001',
+    name: 'Nguyễn Văn An',
+    code: 'B19DCCN001',
+    email: 'anb19dccn001@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    className: 'D19CQCN01',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV002',
+    name: 'Trần Thị Bình',
+    code: 'B19DCCN002',
+    email: 'binhb19dccn002@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    className: 'D19CQCN01',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV003',
+    name: 'Lê Văn Chính',
+    code: 'B19DCCN003',
+    email: 'chinhb19dccn003@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    className: 'D19CQCN01',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV004',
+    name: 'Phạm Thị Dung',
+    code: 'B19DCCN004',
+    email: 'dungb19dccn004@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    className: 'D19CQCN02',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV005',
+    name: 'Hoàng Văn Em',
+    code: 'B19DCCN005',
+    email: 'emb19dccn005@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    className: 'D19CQCN02',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV006',
+    name: 'Ngô Thị Phương',
+    code: 'B19DCDT001',
+    email: 'phuongb19dcdt001@ptit.edu.vn',
+    unitId: '4',
+    unitName: 'Khoa ĐTVT',
+    className: 'D19CQDT01',
+    major: 'Điện tử viễn thông',
+  },
+  {
+    id: 'SV007',
+    name: 'Vũ Văn Quang',
+    code: 'B19DCDT002',
+    email: 'quangb19dcdt002@ptit.edu.vn',
+    unitId: '4',
+    unitName: 'Khoa ĐTVT',
+    className: 'D19CQDT01',
+    major: 'Điện tử viễn thông',
+  },
+  {
+    id: 'SV008',
+    name: 'Mai Thị Liên',
+    code: 'B20DCCN001',
+    email: 'lienb20dccn001@ptit.edu.vn',
+    unitId: '3',
+    unitName: 'CLB IT',
+    className: 'D20CQCN01',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV009',
+    name: 'Trương Văn Nam',
+    code: 'B20DCCN002',
+    email: 'namb20dccn002@ptit.edu.vn',
+    unitId: '3',
+    unitName: 'CLB IT',
+    className: 'D20CQCN01',
+    major: 'Công nghệ thông tin',
+  },
+  {
+    id: 'SV010',
+    name: 'Đỗ Thị Oanh',
+    code: 'B20DCCN003',
+    email: 'oanhb20dccn003@ptit.edu.vn',
+    unitId: '3',
+    unitName: 'CLB IT',
+    className: 'D20CQCN01',
+    major: 'Công nghệ thông tin',
+  },
 ];
 
 // Mock lecturers data
 const mockLecturers = [
-  { id: 'GV001', name: 'PGS. TS. Nguyễn Văn X', code: 'NVXCNTT', email: 'xnv@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', position: 'Trưởng khoa' },
-  { id: 'GV002', name: 'TS. Trần Thị Y', code: 'TTY', email: 'ytt@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', position: 'Phó trưởng khoa' },
-  { id: 'GV003', name: 'ThS. Lê Văn Z', code: 'LVZ', email: 'zlv@ptit.edu.vn', unitId: '2', unitName: 'Khoa CNTT', position: 'Giảng viên' },
-  { id: 'GV004', name: 'TS. Phạm Văn A', code: 'PVA', email: 'apv@ptit.edu.vn', unitId: '4', unitName: 'Khoa ĐTVT', position: 'Trưởng khoa' },
-  { id: 'GV005', name: 'ThS. Hoàng Thị B', code: 'HTB', email: 'bht@ptit.edu.vn', unitId: '4', unitName: 'Khoa ĐTVT', position: 'Giảng viên' },
+  {
+    id: 'GV001',
+    name: 'PGS. TS. Nguyễn Văn X',
+    code: 'NVXCNTT',
+    email: 'xnv@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    position: 'Trưởng khoa',
+  },
+  {
+    id: 'GV002',
+    name: 'TS. Trần Thị Y',
+    code: 'TTY',
+    email: 'ytt@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    position: 'Phó trưởng khoa',
+  },
+  {
+    id: 'GV003',
+    name: 'ThS. Lê Văn Z',
+    code: 'LVZ',
+    email: 'zlv@ptit.edu.vn',
+    unitId: '2',
+    unitName: 'Khoa CNTT',
+    position: 'Giảng viên',
+  },
+  {
+    id: 'GV004',
+    name: 'TS. Phạm Văn A',
+    code: 'PVA',
+    email: 'apv@ptit.edu.vn',
+    unitId: '4',
+    unitName: 'Khoa ĐTVT',
+    position: 'Trưởng khoa',
+  },
+  {
+    id: 'GV005',
+    name: 'ThS. Hoàng Thị B',
+    code: 'HTB',
+    email: 'bht@ptit.edu.vn',
+    unitId: '4',
+    unitName: 'Khoa ĐTVT',
+    position: 'Giảng viên',
+  },
 ];
 
 // Mock invited data
 const mockInvited = [
-  { userId: 'SV001', eventId: '1', status: 'accepted', invitedAt: '2023-10-20T10:00:00' },
-  { userId: 'SV002', eventId: '1', status: 'pending', invitedAt: '2023-10-20T10:00:00' },
-  { userId: 'SV003', eventId: '1', status: 'rejected', invitedAt: '2023-10-20T10:00:00' },
-  { userId: 'GV001', eventId: '1', status: 'accepted', invitedAt: '2023-10-20T10:00:00' },
-  { userId: 'SV008', eventId: '3', status: 'accepted', invitedAt: '2023-10-20T10:00:00' },
-  { userId: 'SV009', eventId: '3', status: 'pending', invitedAt: '2023-10-20T10:00:00' },
+  {
+    userId: 'SV001',
+    eventId: '1',
+    status: 'accepted',
+    invitedAt: '2023-10-20T10:00:00',
+  },
+  {
+    userId: 'SV002',
+    eventId: '1',
+    status: 'pending',
+    invitedAt: '2023-10-20T10:00:00',
+  },
+  {
+    userId: 'SV003',
+    eventId: '1',
+    status: 'rejected',
+    invitedAt: '2023-10-20T10:00:00',
+  },
+  {
+    userId: 'GV001',
+    eventId: '1',
+    status: 'accepted',
+    invitedAt: '2023-10-20T10:00:00',
+  },
+  {
+    userId: 'SV008',
+    eventId: '3',
+    status: 'accepted',
+    invitedAt: '2023-10-20T10:00:00',
+  },
+  {
+    userId: 'SV009',
+    eventId: '3',
+    status: 'pending',
+    invitedAt: '2023-10-20T10:00:00',
+  },
 ];
 
 // Helper function to format date
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('vi-VN', { 
-    day: '2-digit', 
-    month: '2-digit', 
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
     year: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   }).format(date);
 };
 
@@ -137,22 +297,24 @@ const EventParticipants = () => {
   const [currentTab, setCurrentTab] = useState('students');
   const [selectedClass, setSelectedClass] = useState('all');
   const [selectedMajor, setSelectedMajor] = useState('all');
-  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([]);
-  
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>(
+    []
+  );
+
   // Find the current event
-  const event = mockEvents.find(e => e.id === eventId);
-  
+  const event = mockEvents.find((e) => e.id === eventId);
+
   // If event not found or user is not authorized
-  if (!event || !user || (user.donViId !== event.hostUnitId)) {
+  if (!event || !user || user.donViId !== event.hostUnitId) {
     return (
       <div className="flex min-h-screen flex-col">
-        <MainNavigation />
         <main className="flex-1 container py-12 flex items-center justify-center">
           <Card className="w-full max-w-md">
             <CardHeader>
               <CardTitle>Không có quyền truy cập</CardTitle>
               <CardDescription>
-                Bạn không có quyền truy cập vào trang này hoặc sự kiện không tồn tại.
+                Bạn không có quyền truy cập vào trang này hoặc sự kiện không tồn
+                tại.
               </CardDescription>
             </CardHeader>
             <CardFooter>
@@ -165,67 +327,76 @@ const EventParticipants = () => {
       </div>
     );
   }
-  
+
   // Get already invited participants
   const invitedParticipants = mockInvited
-    .filter(invite => invite.eventId === eventId)
-    .map(invite => invite.userId);
-  
+    .filter((invite) => invite.eventId === eventId)
+    .map((invite) => invite.userId);
+
   // Filter students based on search and filters
-  const filteredStudents = mockStudents
-    .filter(student => 
+  const filteredStudents = mockStudents.filter(
+    (student) =>
       // Filter by unit
       student.unitId === user.donViId &&
       // Filter by search term
       (student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       student.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
+        student.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        student.email.toLowerCase().includes(searchTerm.toLowerCase())) &&
       // Filter by class
       (selectedClass === 'all' || student.className === selectedClass) &&
       // Filter by major
       (selectedMajor === 'all' || student.major === selectedMajor)
-    );
-  
+  );
+
   // Filter lecturers based on search
-  const filteredLecturers = mockLecturers
-    .filter(lecturer => 
+  const filteredLecturers = mockLecturers.filter(
+    (lecturer) =>
       // Filter by unit
       lecturer.unitId === user.donViId &&
       // Filter by search term
       (lecturer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       lecturer.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-       lecturer.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
-  
+        lecturer.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lecturer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   // Get unique classes for filter
-  const classes = Array.from(new Set(mockStudents
-    .filter(student => student.unitId === user.donViId)
-    .map(student => student.className)
-  ));
-  
+  const classes = Array.from(
+    new Set(
+      mockStudents
+        .filter((student) => student.unitId === user.donViId)
+        .map((student) => student.className)
+    )
+  );
+
   // Get unique majors for filter
-  const majors = Array.from(new Set(mockStudents
-    .filter(student => student.unitId === user.donViId)
-    .map(student => student.major)
-  ));
-  
+  const majors = Array.from(
+    new Set(
+      mockStudents
+        .filter((student) => student.unitId === user.donViId)
+        .map((student) => student.major)
+    )
+  );
+
   // Handle invite participants
   const handleInviteParticipants = () => {
     if (selectedParticipants.length === 0) {
       toast.warning('Vui lòng chọn ít nhất một người tham gia');
       return;
     }
-    
+
     // Mock invite logic - in a real app, this would be an API call
-    toast.success(`Đã gửi lời mời đến ${selectedParticipants.length} người tham gia sự kiện`);
+    toast.success(
+      `Đã gửi lời mời đến ${selectedParticipants.length} người tham gia sự kiện`
+    );
     setSelectedParticipants([]);
   };
-  
+
   // Handle select all visible participants
   const handleSelectAll = () => {
-    const currentList = currentTab === 'students' ? filteredStudents : filteredLecturers;
-    const ids = currentList.map(person => person.id);
-    
+    const currentList =
+      currentTab === 'students' ? filteredStudents : filteredLecturers;
+    const ids = currentList.map((person) => person.id);
+
     if (selectedParticipants.length === ids.length) {
       // If all are selected, deselect all
       setSelectedParticipants([]);
@@ -234,25 +405,23 @@ const EventParticipants = () => {
       setSelectedParticipants(ids);
     }
   };
-  
+
   // Toggle selection of a participant
   const toggleSelection = (id: string) => {
-    setSelectedParticipants(current => 
+    setSelectedParticipants((current) =>
       current.includes(id)
-        ? current.filter(userId => userId !== id)
+        ? current.filter((userId) => userId !== id)
         : [...current, id]
     );
   };
-  
+
   // Check if a participant is already invited
   const isAlreadyInvited = (id: string) => {
     return invitedParticipants.includes(id);
   };
-  
+
   return (
     <div className="flex min-h-screen flex-col">
-      <MainNavigation />
-      
       <main className="flex-1 container py-6">
         <div className="flex items-center gap-4 mb-6">
           <Link to="/events">
@@ -261,11 +430,13 @@ const EventParticipants = () => {
             </Button>
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Mời người tham gia sự kiện</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              Mời người tham gia sự kiện
+            </h1>
             <p className="text-muted-foreground">{event.title}</p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
@@ -280,9 +451,7 @@ const EventParticipants = () => {
               </div>
               <div className="flex items-center">
                 <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
-                <span className="text-sm">
-                  Địa điểm: {event.location}
-                </span>
+                <span className="text-sm">Địa điểm: {event.location}</span>
               </div>
               <div className="flex items-center">
                 <Users className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -292,7 +461,7 @@ const EventParticipants = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Số người đã mời</CardTitle>
@@ -304,7 +473,10 @@ const EventParticipants = () => {
                   <span className="text-sm">Tổng số lời mời đã gửi:</span>
                 </div>
                 <Badge variant="secondary">
-                  {mockInvited.filter(invite => invite.eventId === eventId).length}
+                  {
+                    mockInvited.filter((invite) => invite.eventId === eventId)
+                      .length
+                  }
                 </Badge>
               </div>
               <Separator className="my-2" />
@@ -314,19 +486,25 @@ const EventParticipants = () => {
                   <span className="text-sm">Đã xác nhận tham gia:</span>
                 </div>
                 <Badge className="bg-green-500">
-                  {mockInvited.filter(invite => invite.eventId === eventId && invite.status === 'accepted').length}
+                  {
+                    mockInvited.filter(
+                      (invite) =>
+                        invite.eventId === eventId &&
+                        invite.status === 'accepted'
+                    ).length
+                  }
                 </Badge>
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-base">Hành động</CardTitle>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={handleInviteParticipants} 
+              <Button
+                onClick={handleInviteParticipants}
                 className="w-full"
                 disabled={selectedParticipants.length === 0}
               >
@@ -336,7 +514,7 @@ const EventParticipants = () => {
             </CardContent>
           </Card>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Danh sách người tham gia tiềm năng</CardTitle>
@@ -353,52 +531,61 @@ const EventParticipants = () => {
                 </TabsList>
                 <div className="flex items-center gap-2">
                   <Button size="sm" variant="outline" onClick={handleSelectAll}>
-                    {selectedParticipants.length === 
-                      (currentTab === 'students' ? filteredStudents.length : filteredLecturers.length)
+                    {selectedParticipants.length ===
+                    (currentTab === 'students'
+                      ? filteredStudents.length
+                      : filteredLecturers.length)
                       ? 'Bỏ chọn tất cả'
-                      : 'Chọn tất cả'
-                    }
+                      : 'Chọn tất cả'}
                   </Button>
                 </div>
               </div>
-              
+
               <div className="flex flex-col md:flex-row gap-4 mb-6">
                 <div className="relative flex-grow">
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder={`Tìm kiếm ${currentTab === 'students' ? 'sinh viên' : 'giảng viên'}...`}
+                    placeholder={`Tìm kiếm ${
+                      currentTab === 'students' ? 'sinh viên' : 'giảng viên'
+                    }...`}
                     className="pl-8"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                
+
                 {currentTab === 'students' && (
                   <div className="flex gap-4 flex-wrap md:flex-nowrap">
-                    <Select value={selectedClass} onValueChange={setSelectedClass}>
+                    <Select
+                      value={selectedClass}
+                      onValueChange={setSelectedClass}
+                    >
                       <SelectTrigger className="w-full md:w-[180px]">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Lớp" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả lớp</SelectItem>
-                        {classes.map(className => (
+                        {classes.map((className) => (
                           <SelectItem key={className} value={className}>
                             {className}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    
-                    <Select value={selectedMajor} onValueChange={setSelectedMajor}>
+
+                    <Select
+                      value={selectedMajor}
+                      onValueChange={setSelectedMajor}
+                    >
                       <SelectTrigger className="w-full md:w-[180px]">
                         <Filter className="h-4 w-4 mr-2" />
                         <SelectValue placeholder="Ngành" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tất cả ngành</SelectItem>
-                        {majors.map(major => (
+                        {majors.map((major) => (
                           <SelectItem key={major} value={major}>
                             {major}
                           </SelectItem>
@@ -408,7 +595,7 @@ const EventParticipants = () => {
                   </div>
                 )}
               </div>
-              
+
               <TabsContent value="students" className="m-0">
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
@@ -428,18 +615,24 @@ const EventParticipants = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredStudents.length > 0 ? (
-                        filteredStudents.map(student => (
+                        filteredStudents.map((student) => (
                           <TableRow key={student.id}>
                             <TableCell>
                               <div className="flex items-center justify-center">
-                                <Checkbox 
-                                  checked={selectedParticipants.includes(student.id)}
-                                  onCheckedChange={() => toggleSelection(student.id)}
+                                <Checkbox
+                                  checked={selectedParticipants.includes(
+                                    student.id
+                                  )}
+                                  onCheckedChange={() =>
+                                    toggleSelection(student.id)
+                                  }
                                 />
                               </div>
                             </TableCell>
                             <TableCell>{student.code}</TableCell>
-                            <TableCell className="font-medium">{student.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {student.name}
+                            </TableCell>
                             {!isMobile && (
                               <>
                                 <TableCell>{student.email}</TableCell>
@@ -450,12 +643,16 @@ const EventParticipants = () => {
                               {isAlreadyInvited(student.id) ? (
                                 <div className="flex items-center space-x-1">
                                   <UserCheck className="h-4 w-4 text-green-500" />
-                                  <span className="text-xs text-green-600">Đã mời</span>
+                                  <span className="text-xs text-green-600">
+                                    Đã mời
+                                  </span>
                                 </div>
                               ) : (
                                 <div className="flex items-center space-x-1">
                                   <UserPlus className="h-4 w-4 text-blue-500" />
-                                  <span className="text-xs text-blue-600">Chưa mời</span>
+                                  <span className="text-xs text-blue-600">
+                                    Chưa mời
+                                  </span>
                                 </div>
                               )}
                             </TableCell>
@@ -463,7 +660,10 @@ const EventParticipants = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={isMobile ? 4 : 6} className="text-center py-6 text-muted-foreground">
+                          <TableCell
+                            colSpan={isMobile ? 4 : 6}
+                            className="text-center py-6 text-muted-foreground"
+                          >
                             Không tìm thấy sinh viên nào phù hợp
                           </TableCell>
                         </TableRow>
@@ -472,7 +672,7 @@ const EventParticipants = () => {
                   </Table>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="lecturers" className="m-0">
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
@@ -491,17 +691,23 @@ const EventParticipants = () => {
                     </TableHeader>
                     <TableBody>
                       {filteredLecturers.length > 0 ? (
-                        filteredLecturers.map(lecturer => (
+                        filteredLecturers.map((lecturer) => (
                           <TableRow key={lecturer.id}>
                             <TableCell>
                               <div className="flex items-center justify-center">
-                                <Checkbox 
-                                  checked={selectedParticipants.includes(lecturer.id)}
-                                  onCheckedChange={() => toggleSelection(lecturer.id)}
+                                <Checkbox
+                                  checked={selectedParticipants.includes(
+                                    lecturer.id
+                                  )}
+                                  onCheckedChange={() =>
+                                    toggleSelection(lecturer.id)
+                                  }
                                 />
                               </div>
                             </TableCell>
-                            <TableCell className="font-medium">{lecturer.name}</TableCell>
+                            <TableCell className="font-medium">
+                              {lecturer.name}
+                            </TableCell>
                             {!isMobile && (
                               <>
                                 <TableCell>{lecturer.email}</TableCell>
@@ -512,12 +718,16 @@ const EventParticipants = () => {
                               {isAlreadyInvited(lecturer.id) ? (
                                 <div className="flex items-center space-x-1">
                                   <UserCheck className="h-4 w-4 text-green-500" />
-                                  <span className="text-xs text-green-600">Đã mời</span>
+                                  <span className="text-xs text-green-600">
+                                    Đã mời
+                                  </span>
                                 </div>
                               ) : (
                                 <div className="flex items-center space-x-1">
                                   <UserPlus className="h-4 w-4 text-blue-500" />
-                                  <span className="text-xs text-blue-600">Chưa mời</span>
+                                  <span className="text-xs text-blue-600">
+                                    Chưa mời
+                                  </span>
                                 </div>
                               )}
                             </TableCell>
@@ -525,7 +735,10 @@ const EventParticipants = () => {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={isMobile ? 3 : 5} className="text-center py-6 text-muted-foreground">
+                          <TableCell
+                            colSpan={isMobile ? 3 : 5}
+                            className="text-center py-6 text-muted-foreground"
+                          >
                             Không tìm thấy giảng viên nào phù hợp
                           </TableCell>
                         </TableRow>
@@ -540,7 +753,7 @@ const EventParticipants = () => {
             <Link to="/events">
               <Button variant="outline">Quay lại</Button>
             </Link>
-            <Button 
+            <Button
               onClick={handleInviteParticipants}
               disabled={selectedParticipants.length === 0}
             >

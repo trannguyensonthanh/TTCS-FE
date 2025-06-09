@@ -71,6 +71,11 @@ export interface SuKienDetailResponse
   khachMoiNgoaiGhiChu?: string | null;
   nguoiDuyetBGH?: NguoiDungResponseMin | null;
   ngayDuyetBGH?: string | null;
+  loaiSuKien: {
+    loaiSuKienID: number;
+    tenLoaiSK: string;
+    maLoaiSK?: string | null; // Nếu có mã loại sự kiện
+  } | null; // Có thể null nếu không có loại sự kiện
   lyDoTuChoiBGH?: string | null;
   lyDoHuyNguoiTao?: string | null;
   chiTietDatPhong?: ChiTietDatPhongResponseMin[]; // Có thể có nhiều phòng được xếp
@@ -146,14 +151,27 @@ export interface DuyetHoacTuChoiSKResponse {
   suKien: SuKienDetailResponse;
 }
 
+export interface UpdateSuKienPayload {
+  tenSK?: string;
+  moTaChiTiet?: string | null;
+  tgBatDauDK?: string;
+  tgKetThucDK?: string;
+  slThamDuDK?: number | null;
+  donViChuTriID?: number; // Cân nhắc việc cho phép sửa
+  nguoiChuTriID?: number | null;
+  tenChuTriNgoai?: string | null;
+  donViChuTriNgoai?: string | null;
+  cacDonViThamGiaIDs?: number[];
+  khachMoiNgoaiGhiChu?: string | null;
+  isCongKhaiNoiBo?: boolean;
+  loaiSuKienID?: number | null;
+  ghiChuPhanHoiChoBGH?: string | null;
+}
+
 // --- API Functions ---
 const getSuKienListForManagement = async (
   params: GetSuKienParams
 ): Promise<PaginatedSuKienResponse> => {
-  // apiHelper.get cần hỗ trợ truyền params một cách an toàn (có thể tự build query string)
-  // Ví dụ: const queryString = new URLSearchParams(params as any).toString();
-  // return apiHelper.get(`/sukien?${queryString}`);
-  // Hoặc nếu apiHelper.get đã xử lý object params:
   return apiHelper.get('/sukien', params) as Promise<PaginatedSuKienResponse>;
 };
 
@@ -182,14 +200,13 @@ const getPublicSuKienDetail = async (
   ) as Promise<SuKienDetailResponse>;
 };
 
-// Giả sử là xóa mềm (cập nhật trạng thái) hoặc yêu cầu hủy bởi người tạo nếu ở trạng thái phù hợp
 export interface UpdateSuKienTrangThaiPayload {
-  maTrangThaiMoi: string; // VD: 'DA_HUY_BOI_NGUOI_TAO'
-  lyDo?: string; // Nếu cần ghi lý do trực tiếp vào SuKien (ví dụ LyDoHuyNguoiTao)
+  maTrangThaiMoi: string;
+  lyDo?: string;
 }
 export interface UpdateSuKienTrangThaiResponse {
   message: string;
-  suKien: SuKienDetailResponse; // Trả về sự kiện đã cập nhật
+  suKien: SuKienDetailResponse;
 }
 
 const updateSuKienTrangThai = async (
@@ -206,8 +223,7 @@ export interface CreateYeuCauHuySKPayload {
   suKienID: number;
   lyDoHuy: string;
 }
-// Response có thể là chi tiết YeuCauHuySK vừa tạo
-// hoặc chỉ là message và SuKien đã cập nhật trạng thái
+
 export interface CreateYeuCauHuySKResponse {
   message: string;
   // yeuCauHuy?: YeuCauHuySKDetailResponse; // Nếu cần
@@ -259,8 +275,6 @@ export interface GetSuKienForSelectParams {
   searchTerm?: string;
   limit?: number;
   page?: number;
-  // trangThaiSkMa nên được backend tự xử lý khi có coTheTaoYeuCauPhongMoi
-  // không cần FE gửi lên nữa nếu mục đích là lấy SK có thể tạo YC phòng mới.
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   coTheTaoYeuCauPhongMoi?: boolean; // Thay cho chuaCoYeuCauPhong
@@ -270,9 +284,20 @@ export interface GetSuKienForSelectParams {
 const getSuKienListForSelection = async (
   params?: GetSuKienForSelectParams
 ): Promise<SuKienForSelectResponse[]> => {
+  console.log('Fetching events for selection with params:', params);
   return apiHelper.get('/sukien/cho-chon-yc-phong', params || {}) as Promise<
     SuKienForSelectResponse[]
   >;
+};
+
+const updateSuKien = async (
+  id: number | string,
+  payload: UpdateSuKienPayload
+): Promise<SuKienDetailResponse> => {
+  return apiHelper.put(
+    `/sukien/${id}`,
+    payload
+  ) as Promise<SuKienDetailResponse>;
 };
 
 const eventService = {
@@ -286,6 +311,7 @@ const eventService = {
   approveEventByBGH,
   rejectEventByBGH,
   getSuKienListForSelection,
+  updateSuKien,
 };
 
 export default eventService;

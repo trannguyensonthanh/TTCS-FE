@@ -102,7 +102,6 @@ export const useApproveEventCancelRequest = (
       );
       if (options?.onError) options.onError(error, {} as any, undefined);
     },
-    ...options,
   });
 };
 

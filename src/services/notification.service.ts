@@ -36,6 +36,29 @@ export interface MarkAllAsReadResponse {
   countUpdated: number;
 }
 
+export interface CreateYeuCauChinhSuaThongBaoPayload {
+  loaiThucThe: 'SU_KIEN' | 'YC_MUON_PHONG_CHI_TIET'; // Để biết thông báo này liên quan đến cái gì
+  idThucThe: number; // SuKienID hoặc YcMuonPhongCtID
+  nguoiNhanID: number; // NguoiTaoID của Sự kiện hoặc NguoiYeuCauID của Yêu cầu phòng
+  noiDungGhiChu: string; // Nội dung yêu cầu chỉnh sửa
+  // LoaiThongBao sẽ được backend tự xác định dựa trên loaiThucThe và vai trò người gửi
+}
+
+export interface CreateThongBaoResponse {
+  message: string;
+  thongBao?: ThongBaoResponse; // Thông báo vừa tạo (tùy chọn)
+}
+
+export interface GetAllMyNotificationsParams {
+  daDoc?: boolean;
+  loaiThongBao?: string;
+  searchTerm?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 // --- API Functions ---
 
 // Lấy danh sách thông báo mới nhất cho người dùng
@@ -66,10 +89,31 @@ const markAllNotificationsAsRead = async (): Promise<MarkAllAsReadResponse> => {
   ) as Promise<MarkAllAsReadResponse>;
 };
 
+const sendRevisionRequestNotification = async (
+  payload: CreateYeuCauChinhSuaThongBaoPayload
+): Promise<CreateThongBaoResponse> => {
+  return apiHelper.post(
+    '/thongbao/yeu-cau-chinh-sua',
+    payload
+  ) as Promise<CreateThongBaoResponse>;
+};
+
+// Lấy TẤT CẢ thông báo của tôi (có phân trang, lọc)
+const getAllMyNotifications = async (
+  params?: GetAllMyNotificationsParams
+): Promise<PaginatedNotificationsResponse> => {
+  return apiHelper.get(
+    '/thongbao/cua-toi/tat-ca',
+    params || {}
+  ) as Promise<PaginatedNotificationsResponse>;
+};
+
 const notificationService = {
   getMyNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  sendRevisionRequestNotification,
+  getAllMyNotifications,
 };
 
 export default notificationService;

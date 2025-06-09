@@ -73,6 +73,7 @@ export interface XuLyYcChiTietPayload {
 }
 
 export interface YcMuonPhongChiTietCreatePayload {
+  ycMuonPhongCtID?: number | null;
   moTaNhomPhong?: string | null;
   slPhongNhomNay: number;
   loaiPhongYcID?: number | null;
@@ -171,12 +172,40 @@ const cancelRoomRequestByUser = async (
   ) as Promise<YeuCauMuonPhongDetailResponse>;
 };
 
+export interface YcMuonPhongChiTietUpdatePayload {
+  ycMuonPhongCtID?: number | null; // Có thể null hoặc 0 cho item mới
+  moTaNhomPhong?: string | null;
+  slPhongNhomNay: number;
+  loaiPhongYcID?: number | null;
+  sucChuaYc?: number | null;
+  thietBiThemYc?: string | null;
+  tgMuonDk: string; // ISO
+  tgTraDk: string; // ISO
+}
+export interface UpdateYeuCauMuonPhongPayload {
+  ghiChuChungYc?: string | null;
+  chiTietYeuCau: YcMuonPhongChiTietUpdatePayload[];
+  ghiChuPhanHoiChoCSVC?: string | null;
+}
+
+const updateRoomRequestDetailByUser = async (
+  ycMuonPhongCtID: number | string,
+  payload: UpdateYeuCauMuonPhongPayload
+): Promise<YeuCauMuonPhongDetailResponse> => {
+  // Giả sử trả về chi tiết đã cập nhật
+  return apiHelper.put(
+    `/yeucaumuonphong/chitiet/${ycMuonPhongCtID}/cap-nhat-boi-nguoi-dung`,
+    payload
+  ) as Promise<YeuCauMuonPhongDetailResponse>;
+};
+
 const roomRequestService = {
   getRoomRequests,
   getRoomRequestDetail,
   createRoomRequest,
   processRoomRequestDetail,
   cancelRoomRequestByUser,
+  updateRoomRequestDetailByUser,
 };
 
 export default roomRequestService;

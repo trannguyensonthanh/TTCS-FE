@@ -1,6 +1,7 @@
-// src/enums/maTrangThaiSK.enum.js
+// src/components/enums/maTrangThaiSK.enum.js
 const MaTrangThaiSK = Object.freeze({
   CHO_DUYET_BGH: 'CHO_DUYET_BGH', // Chờ Ban Giám hiệu duyệt
+  BGH_YEU_CAU_CHINH_SUA_SK: 'BGH_YEU_CAU_CHINH_SUA_SK',
   DA_DUYET_BGH: 'DA_DUYET_BGH', // Đã được BGH duyệt (chờ duyệt phòng)
   BI_TU_CHOI_BGH: 'BI_TU_CHOI_BGH', // Bị BGH từ chối
   DA_HUY_BOI_NGUOI_TAO: 'DA_HUY_BOI_NGUOI_TAO', // Người tạo tự hủy trước khi BGH duyệt

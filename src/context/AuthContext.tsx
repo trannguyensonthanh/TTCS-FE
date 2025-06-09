@@ -59,6 +59,9 @@ export interface UserForContext {
   maDinhDanh?: string | null;
   hoTen: string;
   email: string;
+  soDienThoai?: string | null;
+  isActive?: boolean;
+  ngayTao?: string; // ISO Date string, có thể dùng để hiển thị ngày tạo tài khoản
   anhDaiDien?: string | null;
   vaiTroChucNang: VaiTroChucNangResponse[]; // Danh sách các vai trò chức năng được gán
   tuCachCoBan: TuCachCoBanResponse; // Thông tin về tư cách cơ bản (SV, GV)
@@ -114,7 +117,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         anhDaiDien: userDataFromApi.nguoiDung.anhDaiDien,
         vaiTroChucNang: userDataFromApi.vaiTroChucNang,
         tuCachCoBan: userDataFromApi.tuCachCoBan,
+        isActive: userDataFromApi.nguoiDung.isActive,
+        soDienThoai: userDataFromApi.nguoiDung.soDienThoai || null,
         accessToken: accessToken,
+        ngayTao: userDataFromApi.nguoiDung.ngayTao || null,
       };
 
       TokenService.setUser(userToStore); // Lưu vào localStorage (TokenService.setUser cần nhận UserForContext)

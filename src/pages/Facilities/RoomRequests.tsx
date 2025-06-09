@@ -1,30 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Giả sử đường dẫn file là: src/pages/Facilities/RoomRequests.tsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Bỏ useParams nếu không dùng trực tiếp ở đây
-import {
-  format,
-  parseISO,
-  addDays,
-  setHours,
-  setMinutes,
-  setSeconds,
-  setMilliseconds,
-  isBefore,
-  formatISO,
-  isValid, // Thêm isValid
-} from 'date-fns';
+import { Link, useNavigate } from 'react-router-dom';
+import { format, parseISO, formatISO, isValid } from 'date-fns'; // Bỏ các hàm date-fns không dùng trực tiếp ở đây nữa
 import { vi } from 'date-fns/locale';
-import {
-  useForm,
-  Controller,
-  useFieldArray,
-  SubmitHandler,
-} from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 
 import DashboardLayout from '@/components/DashboardLayout';
 import { ReusablePagination } from '@/components/ui/ReusablePagination';
@@ -47,15 +28,6 @@ import {
 } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
@@ -65,16 +37,10 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog'; // Bỏ DialogTrigger nếu không dùng trực tiếp
+} from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar as CalendarShadcn } from '@/components/ui/calendar';
 import {
   Command,
   CommandEmpty,
@@ -84,38 +50,25 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { toast } from '@/components/ui/sonner'; // Giả sử dùng sonner
+import { FormDescription } from '@/components/ui/form'; // Giữ lại nếu cần
+import { toast } from '@/components/ui/sonner';
 
 import {
   useRoomRequests,
   useRoomRequestDetail,
-  useCreateRoomRequest,
   useProcessRoomRequestDetailItem,
   useCancelRoomRequestByUser,
 } from '@/hooks/queries/roomRequestQueries';
+import { EVENT_QUERY_KEYS } from '@/hooks/queries/eventQueries'; // Chỉ cần EVENT_QUERY_KEYS
 import {
-  useSuKienListForSelection,
-  EVENT_QUERY_KEYS, // Giữ lại EVENT_QUERY_KEYS
-} from '@/hooks/queries/eventQueries';
-import {
-  useLoaiPhongList,
+  useLoaiPhongList, // Giữ lại nếu dùng cho modal xử lý
   usePhongListForSelect,
 } from '@/hooks/queries/danhMucQueries';
 
-import MaVaiTro from '@/enums/MaVaiTro.enum'; // Đường dẫn đến constants
-import MaTrangThaiSK from '@/enums/MaTrangThaiSK.enum';
+import MaVaiTro from '@/enums/MaVaiTro.enum';
 import MaTrangThaiYeuCauPhong from '@/enums/MaTrangThaiYeuCauPhong.enum';
 
-import { APIError } from '@/services/apiHelper'; // Giả sử type này tồn tại
+import { APIError } from '@/services/apiHelper';
 
 import {
   Loader2,
@@ -125,22 +78,16 @@ import {
   Eye,
   PlusCircle,
   Trash2,
-  CalendarIcon,
   ListChecks,
   ExternalLink,
-  MinusCircle,
   Send,
-  Plus, // Thêm ExternalLink, MinusCircle, Send
-  // FileText, CalendarClock, History, Building, ChevronLeft, ChevronRight, MoreHorizontal,
-  // MessageSquareWarning, ThumbsUp, ThumbsDown, Info, Users as UsersIcon, MapPin, ChevronsUpDown, Clock, Plus, AlertCircle
-  // Bỏ bớt các icon không dùng đến trong file này
+  // Bỏ các icon không dùng đến
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRole } from '@/context/RoleContext';
 import { cn } from '@/lib/utils';
 import { useDebounce } from '@/hooks/useDebounce';
 import {
-  CreateYeuCauMuonPhongPayload,
   GetYeuCauMuonPhongParams,
   XuLyYcChiTietPayload,
   YcMuonPhongChiTietResponse,
@@ -148,10 +95,12 @@ import {
   YeuCauMuonPhongListItemResponse,
 } from '@/services/roomRequest.service';
 import InfoRowDialog from '@/components/dialog/InfoRowDialog';
-// import { DateRange } from 'react-day-picker'; // Không thấy dùng DateRangePicker
+import { useSendRevisionRequest } from '@/hooks/queries/notificationQueries';
+import { CreateYeuCauChinhSuaThongBaoPayload } from '@/services/notification.service';
 
 // --- Helper Functions ---
 const formatDate = (
+  // Có thể chuyển vào file utils chung
   dateString?: string | Date,
   customFormat = 'HH:mm dd/MM/yyyy'
 ): string => {
@@ -159,7 +108,7 @@ const formatDate = (
   try {
     const date =
       typeof dateString === 'string' ? parseISO(dateString) : dateString;
-    if (!isValid(date)) return 'Ngày không hợp lệ'; // Kiểm tra tính hợp lệ của date
+    if (!isValid(date)) return 'Ngày không hợp lệ';
     return format(date, customFormat, { locale: vi });
   } catch (e) {
     console.error('Error formatting date:', dateString, e);
@@ -226,7 +175,7 @@ const getStatusBadgeForYeuCauPhong = (
         </Badge>
       );
     case MaTrangThaiYeuCauPhong.YCCPCT_DA_HUY:
-    case MaTrangThaiYeuCauPhong.YCCP_DA_HUY_BOI_NGUOI_TAO: // Thêm trạng thái này
+    case MaTrangThaiYeuCauPhong.YCCP_DA_HUY_BOI_NGUOI_TAO:
       return (
         <Badge
           variant="outline"
@@ -267,84 +216,16 @@ const formatDateRangeForDisplay = (
   }
 };
 
-// --- Zod Schemas for Forms ---
-const ycChiTietSchema = z.object({
-  moTaNhomPhong: z
-    .string()
-    .max(255, 'Mô tả không quá 255 ký tự.')
-    .optional()
-    .nullable(),
-  slPhongNhomNay: z.coerce
-    .number()
-    .int()
-    .min(1, 'Số lượng phòng phải lớn hơn 0'),
-  loaiPhongYcID: z.string().optional().nullable(),
-  sucChuaYc: z.coerce
-    .number()
-    .int()
-    .positive('Sức chứa phải là số dương.')
-    .optional()
-    .nullable(),
-  thietBiThemYc: z
-    .string()
-    .max(500, 'Yêu cầu thiết bị không quá 500 ký tự.')
-    .optional()
-    .nullable(),
-  ngayMuon: z.date({ required_error: 'Vui lòng chọn ngày mượn.' }),
-  gioMuon: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Giờ mượn không hợp lệ (HH:mm).'),
-  ngayTra: z.date({ required_error: 'Vui lòng chọn ngày trả.' }),
-  gioTra: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Giờ trả không hợp lệ (HH:mm).'),
-});
-
-const createRoomRequestSchema = z
-  .object({
-    suKienID: z.string().min(1, { message: 'Vui lòng chọn một sự kiện.' }),
-    ghiChuChungYc: z
-      .string()
-      .max(1000, 'Ghi chú chung không quá 1000 ký tự.')
-      .optional()
-      .nullable(),
-    chiTietYeuCau: z
-      .array(ycChiTietSchema)
-      .min(1, 'Phải có ít nhất một chi tiết yêu cầu phòng.'),
-  })
-  .refine(
-    (data) => {
-      for (const chiTiet of data.chiTietYeuCau) {
-        const [hM, mM] = chiTiet.gioMuon.split(':').map(Number);
-        const tgMuonDkFull = setMilliseconds(
-          setSeconds(setMinutes(setHours(chiTiet.ngayMuon, hM), mM), 0),
-          0
-        );
-        const [hT, mT] = chiTiet.gioTra.split(':').map(Number);
-        const tgTraDkFull = setMilliseconds(
-          setSeconds(setMinutes(setHours(chiTiet.ngayTra, hT), mT), 0),
-          0
-        );
-        if (isBefore(tgTraDkFull, tgMuonDkFull)) return false;
-      }
-      return true;
-    },
-    {
-      message:
-        'Thời gian trả phải sau hoặc bằng thời gian mượn cho mỗi yêu cầu chi tiết.',
-      path: ['chiTietYeuCau'], // Hoặc path cụ thể hơn nếu muốn trỏ đến field ngày/giờ
-    }
-  );
-
-type CreateRoomRequestFormValues = z.infer<typeof createRoomRequestSchema>;
-
 // ---- Component Chính ----
 const RoomRequestsPage = () => {
   const { user } = useAuth();
   const { hasRole } = useRole();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-
+  const [showRevisionRequestItemDialog, setShowRevisionRequestItemDialog] =
+    useState(false);
+  const [revisionRequestItemContent, setRevisionRequestItemContent] =
+    useState('');
   const [filterParams, setFilterParams] = useState<GetYeuCauMuonPhongParams>({
     page: 1,
     limit: 10,
@@ -353,22 +234,52 @@ const RoomRequestsPage = () => {
   });
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const sendRevisionRequestItemMutation = useSendRevisionRequest({
+    onSuccess: () => {
+      setShowRevisionRequestItemDialog(false);
+      setRevisionRequestItemContent('');
+    },
+  });
 
+  const openRevisionRequestItemModal = (
+    itemDetail: YcMuonPhongChiTietResponse
+  ) => {
+    setSelectedRequestDetailItem(itemDetail);
+    setRevisionRequestItemContent('');
+    setShowRevisionRequestItemDialog(true);
+    setIsDetailModalOpen(false);
+    setIsProcessItemModalOpen(false);
+  };
+
+  const handleSendRevisionRequestItem = () => {
+    if (
+      !selectedRequestDetailItem ||
+      !revisionRequestItemContent.trim() ||
+      !requestDetailDataForModal
+    ) {
+      toast.error('Vui lòng nhập nội dung yêu cầu chỉnh sửa.');
+      return;
+    }
+
+    const payload: CreateYeuCauChinhSuaThongBaoPayload = {
+      loaiThucThe: 'YC_MUON_PHONG_CHI_TIET',
+      idThucThe: selectedRequestDetailItem.ycMuonPhongCtID,
+      nguoiNhanID: requestDetailDataForModal.nguoiYeuCau.nguoiDungID, // Gửi cho người tạo yêu cầu phòng
+      noiDungGhiChu: revisionRequestItemContent,
+    };
+    sendRevisionRequestItemMutation.mutate(payload);
+  };
   const initialActiveTab = useMemo(() => {
     if (hasRole(MaVaiTro.QUAN_LY_CSVC) || hasRole(MaVaiTro.ADMIN_HE_THONG)) {
       return 'pending_csvc';
     }
-    if (
-      hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
-      hasRole(MaVaiTro.TRUONG_KHOA) /* || other roles that create requests */
-    ) {
+    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) || hasRole(MaVaiTro.TRUONG_KHOA)) {
       return 'my_requests';
     }
-    return 'all'; // Fallback, hoặc có thể là một tab mặc định khác
+    return 'all';
   }, [hasRole]);
   const [activeTab, setActiveTab] = useState(initialActiveTab);
 
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isProcessItemModalOpen, setIsProcessItemModalOpen] = useState(false);
 
@@ -401,10 +312,11 @@ const RoomRequestsPage = () => {
     staleTime: 1 * 60 * 1000,
   });
   const requests = paginatedRequests?.items || [];
+  console.log('Requests:', requests);
   const {
     data: fetchedDetailData,
     isLoading: isLoadingDetail,
-    refetch: refetchDetail,
+    refetch: refetchDetail, // Có thể không cần refetchDetail trực tiếp ở đây nữa
   } = useRoomRequestDetail(selectedRequestHeader?.ycMuonPhongID);
 
   useEffect(() => {
@@ -413,26 +325,14 @@ const RoomRequestsPage = () => {
     }
   }, [fetchedDetailData]);
 
-  const { data: dsSuKienForSelect, isLoading: isLoadingSuKienSelect } =
-    useSuKienListForSelection(
-      {
-        coTheTaoYeuCauPhongMoi: true, // Backend sẽ xử lý việc lấy SK có trạng thái DA_DUYET_BGH hoặc PHONG_BI_TU_CHOI (và không có YC phòng active)
-        limit: 100,
-        sortBy: 'TenSK',
-        sortOrder: 'asc',
-        // Thêm nguoiTaoID hoặc donViChuTriID nếu CBTC chỉ được tạo YC cho SK của họ/đơn vị họ
-        // nguoiTaoID: user?.nguoiDungID
-      },
-      { enabled: isCreateModalOpen }
-    );
+  // dsLoaiPhong vẫn cần cho modal process item
   const { data: dsLoaiPhong, isLoading: isLoadingLoaiPhong } = useLoaiPhongList(
     { limit: 100 },
     {
-      enabled:
-        isCreateModalOpen ||
-        (isProcessItemModalOpen && processingAction === 'DUYET'),
+      enabled: isProcessItemModalOpen && processingAction === 'DUYET',
     }
   );
+
   const { data: dsPhongTrongTruong, isLoading: isLoadingPhongTrongTruong } =
     usePhongListForSelect(
       {
@@ -442,10 +342,10 @@ const RoomRequestsPage = () => {
         sucChuaToiThieu: selectedRequestDetailItem?.sucChuaYc,
         thoiGianMuon: selectedRequestDetailItem?.tgMuonDk
           ? formatISO(parseISO(selectedRequestDetailItem.tgMuonDk))
-          : undefined, // Ensure ISO format
+          : undefined,
         thoiGianTra: selectedRequestDetailItem?.tgTraDk
           ? formatISO(parseISO(selectedRequestDetailItem.tgTraDk))
-          : undefined, // Ensure ISO format
+          : undefined,
         trangThaiPhongMa: 'SAN_SANG',
       },
       {
@@ -455,13 +355,12 @@ const RoomRequestsPage = () => {
           !!selectedRequestDetailItem,
       }
     );
-
+  console.log('Phong trong truong:', dsPhongTrongTruong);
   // --- Mutation Hooks ---
   const commonMutationOptions = {
     onSuccess: () => {
-      refetchRoomRequests(); // Refetch list chung
+      refetchRoomRequests();
       if (selectedRequestHeader?.ycMuonPhongID) {
-        // Refetch detail nếu đang mở
         queryClient.invalidateQueries({
           queryKey: ['roomRequestDetail', selectedRequestHeader.ycMuonPhongID],
         });
@@ -474,22 +373,6 @@ const RoomRequestsPage = () => {
     },
   };
 
-  const createRequestMutation = useCreateRoomRequest({
-    onSuccess: (data) => {
-      commonMutationOptions.onSuccess();
-      toast.success('Tạo yêu cầu thành công!');
-      setIsCreateModalOpen(false);
-      formCreate.reset();
-      if (data.suKien?.suKienID) {
-        queryClient.invalidateQueries({
-          queryKey: EVENT_QUERY_KEYS.detail(data.suKien.suKienID),
-        });
-        queryClient.invalidateQueries({ queryKey: EVENT_QUERY_KEYS.lists() });
-      }
-    },
-    onError: commonMutationOptions.onError,
-  });
-
   const processItemMutation = useProcessRoomRequestDetailItem({
     onSuccess: () => {
       commonMutationOptions.onSuccess();
@@ -497,7 +380,7 @@ const RoomRequestsPage = () => {
       setIsProcessItemModalOpen(false);
       setProcessingReason('');
       setPhongDuocChonChoChiTiet(undefined);
-      setPhongSearchTerm(''); // Reset search phòng
+      setPhongSearchTerm('');
     },
     onError: commonMutationOptions.onError,
   });
@@ -512,60 +395,12 @@ const RoomRequestsPage = () => {
         });
         queryClient.invalidateQueries({ queryKey: EVENT_QUERY_KEYS.lists() });
       }
-      if (isDetailModalOpen) setIsDetailModalOpen(false); // Đóng dialog chi tiết nếu đang mở
+      if (isDetailModalOpen) setIsDetailModalOpen(false);
     },
     onError: commonMutationOptions.onError,
   });
 
-  // --- Form Handling ---
-  const defaultChiTietYeuCauValue = {
-    slPhongNhomNay: 1,
-    gioMuon: '08:00',
-    gioTra: '17:00',
-    ngayMuon: addDays(new Date(), 1),
-    ngayTra: addDays(new Date(), 1),
-    moTaNhomPhong: '',
-    loaiPhongYcID: '',
-    sucChuaYc: null,
-    thietBiThemYc: '',
-  };
-  const formCreate = useForm<CreateRoomRequestFormValues>({
-    resolver: zodResolver(createRoomRequestSchema),
-    defaultValues: {
-      suKienID: '',
-      ghiChuChungYc: '',
-      chiTietYeuCau: [defaultChiTietYeuCauValue],
-    },
-  });
-  const { fields, append, remove } = useFieldArray({
-    control: formCreate.control,
-    name: 'chiTietYeuCau',
-  });
-
-  const selectedSuKienIdForForm = formCreate.watch('suKienID');
-  useEffect(() => {
-    if (selectedSuKienIdForForm && dsSuKienForSelect) {
-      const suKien = dsSuKienForSelect.find(
-        (sk) => sk.suKienID.toString() === selectedSuKienIdForForm
-      );
-      if (suKien?.tgBatDauDK && suKien.tgKetThucDK) {
-        const startDate = parseISO(suKien.tgBatDauDK);
-        const endDate = parseISO(suKien.tgKetThucDK);
-        if (isValid(startDate) && isValid(endDate)) {
-          formCreate.setValue('chiTietYeuCau', [
-            {
-              // Reset về 1 chi tiết với ngày của sự kiện
-              ...defaultChiTietYeuCauValue,
-              ngayMuon: startDate,
-              ngayTra: endDate,
-              gioMuon: format(startDate, 'HH:mm'),
-              gioTra: format(endDate, 'HH:mm'),
-            },
-          ]);
-        }
-      }
-    }
-  }, [selectedSuKienIdForForm, dsSuKienForSelect, formCreate]);
+  // --- Form Handling (đã chuyển form tạo mới sang trang riêng) ---
 
   useEffect(() => {
     setFilterParams((prev) => ({
@@ -583,7 +418,7 @@ const RoomRequestsPage = () => {
   const openDetailModal = useCallback(
     (request: YeuCauMuonPhongListItemResponse) => {
       setSelectedRequestHeader(request);
-      setRequestDetailDataForModal(null); // Clear old detail data
+      // setRequestDetailDataForModal(null);
       setIsDetailModalOpen(true);
     },
     []
@@ -593,7 +428,7 @@ const RoomRequestsPage = () => {
     (itemDetail: YcMuonPhongChiTietResponse, action: 'DUYET' | 'TU_CHOI') => {
       setSelectedRequestDetailItem(itemDetail);
       setProcessingAction(action);
-      setProcessingReason(itemDetail.ghiChuCtCSVC || ''); // Load lại ghi chú cũ nếu có
+      setProcessingReason(itemDetail.ghiChuCtCSVC || '');
       setPhongDuocChonChoChiTiet(
         itemDetail.phongDuocCap && itemDetail.phongDuocCap.length > 0
           ? itemDetail.phongDuocCap[0].phongID.toString()
@@ -604,48 +439,6 @@ const RoomRequestsPage = () => {
     },
     []
   );
-
-  const onSubmitCreateRequest: SubmitHandler<CreateRoomRequestFormValues> =
-    useCallback(
-      (data) => {
-        if (!data.suKienID) {
-          formCreate.setError('suKienID', {
-            type: 'manual',
-            message: 'Vui lòng chọn một sự kiện.',
-          });
-          return;
-        }
-        const payload: CreateYeuCauMuonPhongPayload = {
-          suKienID: parseInt(data.suKienID, 10),
-          ghiChuChungYc: data.ghiChuChungYc || null,
-          chiTietYeuCau: data.chiTietYeuCau.map((ct) => {
-            const [hM, mM] = ct.gioMuon.split(':').map(Number);
-            const tgMuonDkFull = setMilliseconds(
-              setSeconds(setMinutes(setHours(ct.ngayMuon, hM), mM), 0),
-              0
-            );
-            const [hT, mT] = ct.gioTra.split(':').map(Number);
-            const tgTraDkFull = setMilliseconds(
-              setSeconds(setMinutes(setHours(ct.ngayTra, hT), mT), 0),
-              0
-            );
-            return {
-              moTaNhomPhong: ct.moTaNhomPhong || null,
-              slPhongNhomNay: ct.slPhongNhomNay,
-              loaiPhongYcID: ct.loaiPhongYcID
-                ? parseInt(ct.loaiPhongYcID, 10)
-                : null,
-              sucChuaYc: ct.sucChuaYc ? Number(ct.sucChuaYc) : null,
-              thietBiThemYc: ct.thietBiThemYc || null,
-              tgMuonDk: formatISO(tgMuonDkFull),
-              tgTraDk: formatISO(tgTraDkFull),
-            };
-          }),
-        };
-        createRequestMutation.mutate(payload);
-      },
-      [createRequestMutation, formCreate]
-    );
 
   const handleSubmitProcessItem = useCallback(() => {
     if (
@@ -707,7 +500,7 @@ const RoomRequestsPage = () => {
       limit: filterParams.limit,
       sortBy: 'NgayYeuCau',
       sortOrder: 'desc',
-      searchTerm: debouncedSearchTerm || undefined, // Giữ lại searchTerm khi chuyển tab
+      searchTerm: debouncedSearchTerm || undefined,
     };
     if (value === 'pending_csvc')
       newParams.trangThaiChungMa = MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY;
@@ -754,7 +547,9 @@ const RoomRequestsPage = () => {
   const currentPage = paginatedRequests?.currentPage || 1;
 
   // --- JSX Render ---
-  const renderRequestsTable = (requests: YeuCauMuonPhongListItemResponse[]) => (
+  const renderRequestsTable = (
+    requestsList: YeuCauMuonPhongListItemResponse[]
+  ) => (
     <div className="rounded-md border shadow-sm bg-card dark:border-slate-800">
       <Table>
         <TableHeader>
@@ -786,14 +581,14 @@ const RoomRequestsPage = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {requests.map((req) => (
+          {requestsList.map((req) => (
             <TableRow
               key={req.ycMuonPhongID}
               className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
             >
               <TableCell className="font-medium py-3 px-4 align-top">
                 <Link
-                  to={`/events/${req.suKien.suKienID}`}
+                  to={`/events/${req.suKien.suKienID}`} // Giả sử có route này
                   className="hover:underline text-primary dark:text-ptit-red font-semibold group flex items-start"
                 >
                   <span className="flex-1 line-clamp-2">
@@ -809,7 +604,7 @@ const RoomRequestsPage = () => {
                 {req.nguoiYeuCau.hoTen}
               </TableCell>
               <TableCell className="text-sm py-3 px-4 text-muted-foreground align-top">
-                {req.donViYeuCau.tenDonVi}
+                {req?.donViYeuCau?.tenDonVi}
               </TableCell>
               <TableCell className="text-sm py-3 px-4 text-muted-foreground align-top">
                 {formatDate(req.ngayYeuCau)}
@@ -864,21 +659,7 @@ const RoomRequestsPage = () => {
       headerActions={
         canCreateNewRequest && (
           <Button
-            onClick={() => {
-              const tomorrow = addDays(new Date(), 1);
-              formCreate.reset({
-                suKienID: '',
-                ghiChuChungYc: '',
-                chiTietYeuCau: [
-                  {
-                    ...defaultChiTietYeuCauValue,
-                    ngayMuon: tomorrow,
-                    ngayTra: tomorrow,
-                  },
-                ],
-              });
-              setIsCreateModalOpen(true);
-            }}
+            onClick={() => navigate('/facilities/room-requests/new')} // Điều hướng tới trang tạo mới
             className="bg-gradient-to-r from-ptit-blue to-sky-500 hover:from-ptit-blue/90 hover:to-sky-500/90 text-white shadow-md hover:shadow-lg transition-all"
           >
             <PlusCircle className="mr-2 h-5 w-5" /> Tạo Yêu Cầu Mới
@@ -908,7 +689,7 @@ const RoomRequestsPage = () => {
               )}
               {(hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
                 hasRole(MaVaiTro.TRUONG_KHOA)) &&
-                !canProcessRequests && (
+                !canProcessRequests && ( // Chỉ hiện thị tab này nếu không phải là CSVC/Admin
                   <TabsTrigger
                     value="my_requests"
                     className="px-4 py-1.5 text-sm"
@@ -948,21 +729,9 @@ const RoomRequestsPage = () => {
                       <Button
                         variant="link"
                         className="p-0 h-auto text-primary"
-                        onClick={() => {
-                          const tomorrow = addDays(new Date(), 1);
-                          formCreate.reset({
-                            suKienID: '',
-                            ghiChuChungYc: '',
-                            chiTietYeuCau: [
-                              {
-                                ...defaultChiTietYeuCauValue,
-                                ngayMuon: tomorrow,
-                                ngayTra: tomorrow,
-                              },
-                            ],
-                          });
-                          setIsCreateModalOpen(true);
-                        }}
+                        onClick={() =>
+                          navigate('/facilities/create-room-request')
+                        }
                       >
                         tạo yêu cầu mới
                       </Button>
@@ -987,430 +756,18 @@ const RoomRequestsPage = () => {
         </Tabs>
       </motion.div>
 
-      {/* Dialog Tạo Yêu Cầu Mượn Phòng Mới */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-3xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl max-h-[90vh] flex flex-col overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-xl">
-              Tạo Yêu Cầu Mượn Phòng Mới
-            </DialogTitle>
-            <DialogDescription>
-              Điền thông tin chi tiết cho yêu cầu mượn phòng.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...formCreate}>
-            <form
-              onSubmit={formCreate.handleSubmit(onSubmitCreateRequest)}
-              id="createRoomRequestForm"
-              className="flex-grow  flex flex-col"
-            >
-              <ScrollArea className="flex-grow pr-5 -mr-1">
-                {' '}
-                {/* -mr-1 để scrollbar không chiếm chỗ của padding nội dung */}
-                <div className="space-y-6 p-1 pr-1">
-                  <FormField
-                    control={formCreate.control}
-                    name="suKienID"
-                    render={({ field }) => (
-                      <FormItem>
-                        {' '}
-                        <FormLabel>
-                          Chọn Sự Kiện (đã được BGH duyệt và chưa có YC phòng){' '}
-                          <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isLoadingSuKienSelect}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue
-                                placeholder={
-                                  isLoadingSuKienSelect
-                                    ? 'Đang tải DS sự kiện...'
-                                    : 'Chọn sự kiện'
-                                }
-                              />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectLabel>Sự kiện khả dụng</SelectLabel>
-                              {dsSuKienForSelect?.map((sk) => (
-                                <SelectItem
-                                  key={sk.suKienID}
-                                  value={sk.suKienID.toString()}
-                                >
-                                  {sk.tenSK} (
-                                  {formatDate(sk.tgBatDauDK, 'dd/MM')}-
-                                  {formatDate(sk.tgKetThucDK, 'dd/MM/yy')})
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>{' '}
-                        <FormMessage />{' '}
-                      </FormItem>
-                    )}
-                  />
-                  <Separator />
-                  <div className="flex justify-between items-center">
-                    <FormLabel className="text-md font-semibold">
-                      Chi tiết các phòng/khu vực cần mượn:
-                    </FormLabel>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        append({
-                          ...defaultChiTietYeuCauValue,
-                          ngayMuon:
-                            formCreate.getValues('chiTietYeuCau.0.ngayMuon') ||
-                            addDays(new Date(), 1),
-                          ngayTra:
-                            formCreate.getValues('chiTietYeuCau.0.ngayTra') ||
-                            addDays(new Date(), 1),
-                        })
-                      }
-                      className="shrink-0"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Thêm hạng mục
-                    </Button>
-                  </div>
-                  {fields.map((item, index) => (
-                    <Card
-                      key={item.id}
-                      className="p-4 border-dashed relative group bg-muted/20 dark:bg-slate-800/20"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h4 className="font-medium text-base">
-                          Hạng mục yêu cầu phòng #{index + 1}
-                        </h4>
-                        {fields.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => remove(index)}
-                            className="absolute top-1 right-1 text-destructive opacity-50 group-hover:opacity-100 transition-opacity h-7 w-7"
-                          >
-                            <MinusCircle className="h-4 w-4" />{' '}
-                            <span className="sr-only">Xóa hạng mục</span>
-                          </Button>
-                        )}
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-5">
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.moTaNhomPhong`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Mô tả/Tên gợi nhớ</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="VD: Phòng hội thảo chính"
-                                  {...field}
-                                  value={field.value ?? ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.slPhongNhomNay`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Số lượng phòng này{' '}
-                                <span className="text-destructive">*</span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input type="number" min="1" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.loaiPhongYcID`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Loại phòng mong muốn</FormLabel>
-                              <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value || undefined}
-                                disabled={isLoadingLoaiPhong}
-                              >
-                                <FormControl>
-                                  <SelectTrigger>
-                                    <SelectValue
-                                      placeholder={
-                                        isLoadingLoaiPhong
-                                          ? 'Đang tải...'
-                                          : 'Không yêu cầu cụ thể'
-                                      }
-                                    />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="/">
-                                    {'Không yêu cầu cụ thể'}
-                                  </SelectItem>
-                                  {dsLoaiPhong?.map((lp) => (
-                                    <SelectItem
-                                      key={lp.loaiPhongID}
-                                      value={lp.loaiPhongID.toString()}
-                                    >
-                                      {lp.tenLoaiPhong}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.sucChuaYc`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Sức chứa tối thiểu</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  placeholder="VD: 50"
-                                  {...field}
-                                  onChange={(e) =>
-                                    field.onChange(
-                                      e.target.value === ''
-                                        ? null
-                                        : Number(e.target.value)
-                                    )
-                                  }
-                                  value={field.value ?? ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.ngayMuon`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>
-                                Ngày mượn{' '}
-                                <span className="text-destructive">*</span>
-                              </FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={'outline'}
-                                      className={cn(
-                                        'w-full pl-3 text-left font-normal',
-                                        !field.value && 'text-muted-foreground'
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, 'dd/MM/yyyy', {
-                                          locale: vi,
-                                        })
-                                      ) : (
-                                        <span>Chọn ngày</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0"
-                                  align="start"
-                                >
-                                  <CalendarShadcn
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.gioMuon`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Giờ mượn{' '}
-                                <span className="text-destructive">*</span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input type="time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.ngayTra`}
-                          render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                              <FormLabel>
-                                Ngày trả{' '}
-                                <span className="text-destructive">*</span>
-                              </FormLabel>
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <FormControl>
-                                    <Button
-                                      variant={'outline'}
-                                      className={cn(
-                                        'w-full pl-3 text-left font-normal',
-                                        !field.value && 'text-muted-foreground'
-                                      )}
-                                    >
-                                      {field.value ? (
-                                        format(field.value, 'dd/MM/yyyy', {
-                                          locale: vi,
-                                        })
-                                      ) : (
-                                        <span>Chọn ngày</span>
-                                      )}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                    </Button>
-                                  </FormControl>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-auto p-0"
-                                  align="start"
-                                >
-                                  <CalendarShadcn
-                                    mode="single"
-                                    selected={field.value}
-                                    onSelect={field.onChange}
-                                    disabled={(date) =>
-                                      date <
-                                      (formCreate.getValues(
-                                        `chiTietYeuCau.${index}.ngayMuon`
-                                      ) || new Date(0))
-                                    }
-                                    initialFocus
-                                  />
-                                </PopoverContent>
-                              </Popover>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.gioTra`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Giờ trả{' '}
-                                <span className="text-destructive">*</span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input type="time" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={formCreate.control}
-                          name={`chiTietYeuCau.${index}.thietBiThemYc`}
-                          render={({ field }) => (
-                            <FormItem className="sm:col-span-2 lg:col-span-3">
-                              <FormLabel>Yêu cầu thiết bị thêm</FormLabel>
-                              <FormControl>
-                                <Textarea
-                                  placeholder="Liệt kê các thiết bị đặc biệt cần cho nhóm phòng này..."
-                                  {...field}
-                                  value={field.value ?? ''}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </Card>
-                  ))}
-                  <FormField
-                    control={formCreate.control}
-                    name="ghiChuChungYc"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Ghi chú chung cho toàn bộ yêu cầu</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Ghi chú thêm cho bộ phận CSVC..."
-                            {...field}
-                            value={field.value ?? ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </ScrollArea>
-              <DialogFooter className="pt-6 border-t mt-auto shrink-0">
-                {' '}
-                {/* mt-auto để đẩy footer xuống */}
-                <DialogClose asChild>
-                  <Button type="button" variant="outline">
-                    Đóng
-                  </Button>
-                </DialogClose>
-                <Button
-                  type="submit"
-                  form="createRoomRequestForm"
-                  disabled={
-                    createRequestMutation.isPending ||
-                    !formCreate.formState.isValid
-                  }
-                >
-                  {createRequestMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Send className="mr-2 h-4 w-4" />
-                  )}{' '}
-                  Gửi Yêu Cầu
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
+      {/* Dialog Chi Tiết Yêu Cầu */}
       <Dialog
         open={isDetailModalOpen}
         onOpenChange={(open) => {
           if (!open) {
             setSelectedRequestHeader(null);
-            setRequestDetailDataForModal(null);
+            // setRequestDetailDataForModal(null);
           }
           setIsDetailModalOpen(open);
         }}
       >
-        <DialogContent className="max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-3xl md:max-w-4xl lg:max-w-5xl max-h-[90vh] flex flex-col ">
           <DialogHeader>
             <DialogTitle className="text-xl">
               Chi Tiết Yêu Cầu Mượn Phòng
@@ -1430,11 +787,11 @@ const RoomRequestsPage = () => {
             )}
           </DialogHeader>
           {requestDetailDataForModal && !isLoadingDetail ? (
-            <ScrollArea className="flex-grow pr-5 -mr-1">
+            <ScrollArea className="flex-grow pr-5 -mr-1 overflow-auto">
               <div className="space-y-6 py-4 pr-1">
                 <InfoRowDialog
                   label="Người yêu cầu:"
-                  value={`${requestDetailDataForModal.nguoiYeuCau.hoTen} (${requestDetailDataForModal.donViYeuCau.tenDonVi})`}
+                  value={`${requestDetailDataForModal?.nguoiYeuCau.hoTen} (${requestDetailDataForModal?.donViYeuCau?.tenDonVi})`}
                 />
                 <InfoRowDialog
                   label="Ngày yêu cầu:"
@@ -1521,10 +878,9 @@ const RoomRequestsPage = () => {
                         {detail.phongDuocCap &&
                           detail.phongDuocCap.length > 0 && (
                             <div className="pt-2">
-                              {' '}
                               <p className="font-medium text-green-600 dark:text-green-400">
                                 Phòng được xếp:
-                              </p>{' '}
+                              </p>
                               {detail.phongDuocCap.map((p) => (
                                 <div
                                   key={p.datPhongID}
@@ -1563,6 +919,17 @@ const RoomRequestsPage = () => {
                               <CheckCircle className="mr-1.5 h-4 w-4" /> Duyệt &
                               Xếp phòng
                             </Button>
+                            <Button
+                              variant="outline"
+                              className="mr-auto"
+                              onClick={() =>
+                                openRevisionRequestItemModal(detail)
+                              }
+                              disabled={processItemMutation.isPending}
+                            >
+                              <Send className="mr-2 h-4 w-4" />
+                              Yêu cầu chỉnh sửa
+                            </Button>
                           </CardFooter>
                         )}
                     </Card>
@@ -1585,6 +952,7 @@ const RoomRequestsPage = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Dialog Xử lý Hạng mục Yêu cầu */}
       <Dialog
         open={isProcessItemModalOpen && canProcessRequests}
         onOpenChange={(open) => {
@@ -1595,7 +963,7 @@ const RoomRequestsPage = () => {
           setIsProcessItemModalOpen(open);
         }}
       >
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>
               Xử lý hạng mục:{' '}
@@ -1612,8 +980,6 @@ const RoomRequestsPage = () => {
             </DialogDescription>
           </DialogHeader>
           <ScrollArea className="max-h-[60vh] -mx-6 px-6 py-4">
-            {' '}
-            {/* Scroll cho nội dung dialog */}
             <div className="space-y-4">
               {processingAction === 'DUYET' && (
                 <div className="space-y-2">
@@ -1621,6 +987,7 @@ const RoomRequestsPage = () => {
                     Chọn phòng để xếp (
                     {selectedRequestDetailItem?.slPhongNhomNay} vị trí)
                   </Label>
+                  {/* `dsLoaiPhong` đã được fetch ở trên cho modal này */}
                   <Command className="rounded-lg border shadow-sm bg-card">
                     <CommandInput
                       placeholder="Tìm theo tên/mã phòng..."
@@ -1663,7 +1030,7 @@ const RoomRequestsPage = () => {
                                   <div>
                                     {p.tenPhong} ({p.maPhong}){' '}
                                     <span className="text-xs text-muted-foreground">
-                                      - {p.tenLoaiPhong} - SC: {p.sucChua}
+                                      - {p.tenLoaiPhong} - Sức chứa: {p.sucChua}
                                     </span>
                                   </div>
                                   {phongDuocChonChoChiTiet ===
@@ -1677,10 +1044,9 @@ const RoomRequestsPage = () => {
                       </ScrollArea>
                     </CommandList>
                   </Command>
-                  <FormDescription className="text-xs">
-                    Lưu ý: Chọn một phòng. Nếu cần nhiều hơn, hãy tạo yêu cầu
-                    chi tiết riêng hoặc bộ phận CSVC sẽ liên hệ.
-                  </FormDescription>
+                  {/* Lưu ý: Hiện tại chỉ hỗ trợ xếp 1 phòng cho 1 hạng mục yêu cầu.
+                  Nếu hạng mục yêu cầu nhiều phòng (slPhongNhomNay {'>'} 1),
+                  CSVC sẽ tự phân bổ thêm các phòng tương tự hoặc liên hệ lại. */}
                 </div>
               )}
               <div className="space-y-2">
@@ -1710,6 +1076,7 @@ const RoomRequestsPage = () => {
             <DialogClose asChild>
               <Button variant="outline">Hủy bỏ</Button>
             </DialogClose>
+
             <Button
               onClick={handleSubmitProcessItem}
               disabled={
@@ -1731,6 +1098,76 @@ const RoomRequestsPage = () => {
               {processingAction === 'DUYET'
                 ? 'Xác nhận Xếp Phòng'
                 : 'Xác nhận Từ Chối'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={showRevisionRequestItemDialog && !!selectedRequestDetailItem}
+        onOpenChange={(open) => {
+          if (!open) setSelectedRequestDetailItem(null);
+          setShowRevisionRequestItemDialog(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl">
+              Gửi Yêu Cầu Chỉnh Sửa Hạng Mục Phòng
+            </DialogTitle>
+            <DialogDescription>
+              Sự kiện:{' '}
+              <span className="font-semibold">
+                {requestDetailDataForModal?.suKien.tenSK}
+              </span>
+              <br />
+              Hạng mục:{' '}
+              <span className="font-semibold">
+                {selectedRequestDetailItem?.moTaNhomPhong ||
+                  `Yêu cầu ${selectedRequestDetailItem?.slPhongNhomNay} phòng`}
+              </span>
+              <br />
+              Nội dung yêu cầu sẽ được gửi đến người tạo. Hạng mục này sẽ vẫn ở
+              trạng thái "Chờ duyệt".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-2">
+            <Label htmlFor="revisionRequestItemContent" className="font-medium">
+              Nội dung yêu cầu chỉnh sửa{' '}
+              <span className="text-destructive">*</span>
+            </Label>
+            <Textarea
+              id="revisionRequestItemContent"
+              value={revisionRequestItemContent}
+              onChange={(e) => setRevisionRequestItemContent(e.target.value)}
+              placeholder="Nêu rõ các điểm cần chỉnh sửa cho hạng mục này, ví dụ: số lượng không phù hợp, thời gian cần điều chỉnh, loại phòng không có..."
+              className="min-h-[120px]"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowRevisionRequestItemDialog(false);
+                setSelectedRequestDetailItem(null);
+              }}
+            >
+              Hủy bỏ
+            </Button>
+            <Button
+              onClick={handleSendRevisionRequestItem}
+              disabled={
+                !revisionRequestItemContent.trim() ||
+                sendRevisionRequestItemMutation.isPending
+              }
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {sendRevisionRequestItemMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="mr-2 h-4 w-4" />
+              )}
+              Gửi Yêu Cầu Chỉnh Sửa
             </Button>
           </DialogFooter>
         </DialogContent>

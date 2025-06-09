@@ -101,64 +101,31 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
               return true;
             if (
               resource === 'SuKien' &&
-              (action === 'edit' || action === 'delete') &&
-              resourceContext?.nguoiTaoID === user.nguoiDungID
+              (action === 'edit' || action === 'delete')
             ) {
               // Kiểm tra thêm trạng thái sự kiện cho phép sửa/xóa
-              if (
-                action === 'edit' &&
-                ['CHO_DUYET_BGH', 'PHONG_BI_TU_CHOI'].includes(
-                  resourceContext?.maTrangThaiSK
-                )
-              )
-                return true;
+              if (action === 'edit') return true;
             }
-            if (
-              resource === 'SuKien' &&
-              action === 'self_cancel' &&
-              resourceContext?.nguoiTaoID === user.nguoiDungID &&
-              resourceContext?.maTrangThaiSK === 'CHO_DUYET_BGH'
-            ) {
+            if (resource === 'SuKien' && action === 'self_cancel') {
               return true;
             }
-            if (
-              resource === 'YeuCauMuonPhong' &&
-              action === 'create' &&
-              resourceContext?.maTrangThaiSK === 'DA_DUYET_BGH'
-            )
+            if (resource === 'YeuCauMuonPhong' && action === 'create')
               return true;
-            if (
-              resource === 'YeuCauDoiPhong' &&
-              action === 'create' &&
-              resourceContext?.maTrangThaiSK === 'DA_XAC_NHAN_PHONG'
-            )
+            if (resource === 'YeuCauDoiPhong' && action === 'create')
               return true;
             if (resource === 'SK_MoiThamGia' && action === 'create')
               return true; // Mời cho sự kiện họ quản lý
             if (
               resource === 'TaiLieuSK' &&
-              (action === 'create' ||
-                action === 'edit' ||
-                action === 'delete') &&
-              resourceContext?.nguoiTaoID === user.nguoiDungID
+              (action === 'create' || action === 'edit' || action === 'delete')
             )
               return true;
             if (resource === 'SuKien' && action === 'view') return true; // Xem sự kiện họ tạo/đơn vị họ
             break;
 
           case MaVaiTro.BGH_DUYET_SK_TRUONG:
-            if (
-              resource === 'SuKien' &&
-              action === 'approve' &&
-              resourceContext?.maTrangThaiSK === 'CHO_DUYET_BGH'
-            )
-              return true;
-            if (
-              resource === 'YeuCauHuySK' &&
-              action === 'approve' &&
-              resourceContext?.maTrangThaiYcHuySK === 'CHO_DUYET_HUY_BGH'
-            )
-              return true;
+            if (resource === 'SuKien' && action === 'approve') return true;
+            if (resource === 'YeuCauHuySK' && action === 'approve') return true;
             if (resource === 'SuKien' && action === 'view') return true; // Xem tất cả sự kiện để duyệt
             if (resource === 'DashboardTongQuan' && action === 'view')
               return true;
@@ -175,17 +142,9 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
                 action === 'view')
             )
               return true;
-            if (
-              resource === 'YeuCauMuonPhong' &&
-              action === 'approve' &&
-              resourceContext?.maTrangThaiYcPhongChung === 'YCCP_CHO_XU_LY'
-            )
+            if (resource === 'YeuCauMuonPhong' && action === 'approve')
               return true; // Giả sử có trạng thái này
-            if (
-              resource === 'YeuCauDoiPhong' &&
-              action === 'approve' &&
-              resourceContext?.maTrangThaiYcDoiPhong === 'CHO_DUYET_DOI_PHONG'
-            )
+            if (resource === 'YeuCauDoiPhong' && action === 'approve')
               return true;
             if (
               (resource === 'YeuCauMuonPhong' ||
@@ -201,31 +160,14 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
           case MaVaiTro.TRUONG_KHOA:
           case MaVaiTro.TRUONG_CLB:
           case MaVaiTro.BI_THU_DOAN:
-            if (
-              resource === 'DashboardDonVi' &&
-              action === 'view' &&
-              userRole.donViThucThi?.donViID === resourceContext?.donViID
-            )
-              return true;
-            if (
-              resource === 'SuKien' &&
-              action === 'view' &&
-              (resourceContext?.donViChuTriID ===
-                userRole.donViThucThi?.donViID ||
-                resourceContext?.donViThamGiaIDs?.includes(
-                  userRole.donViThucThi?.donViID
-                ))
-            ) {
+            if (resource === 'DashboardDonVi' && action === 'view') return true;
+            if (resource === 'SuKien' && action === 'view') {
               return true;
             }
             // Giai đoạn 2: có thể cho 'create' SuKien cho đơn vị của họ
             // if (resource === 'SuKien' && action === 'create' && resourceContext?.donViChuTriID === userRole.donViThucThi?.donViID) return true;
             // Quyền mời người tham gia cho đơn vị của họ:
-            if (
-              resource === 'SK_MoiThamGia' &&
-              action === 'create' &&
-              resourceContext?.donViChuTriID === userRole.donViThucThi?.donViID
-            )
+            if (resource === 'SK_MoiThamGia' && action === 'create')
               return true;
             break;
 
@@ -234,44 +176,34 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // Quyền xem mặc định cho GIANG_VIEN và SINH_VIEN (nếu không có vai trò chức năng nào ở trên cho phép)
-      if (action === 'view' && resource === 'SuKien') {
-        if (
-          resourceContext?.isCongKhaiNoiBo &&
-          ['DA_DUYET_BGH', 'DA_XAC_NHAN_PHONG', 'HOAN_THANH'].includes(
-            resourceContext?.maTrangThaiSK
-          )
-        )
-          return true;
-        if (resourceContext?.isInvitedUser) return true; // Cần thêm logic để kiểm tra user hiện tại có trong SK_MoiThamGia không
-        // Logic kiểm tra đơn vị tham gia cho SV/GV cơ bản
-        if (user?.tuCachCoBan?.chiTiet) {
-          const userProfile = user.tuCachCoBan.chiTiet as any; // Cần ép kiểu an toàn hơn
-          if (
-            user.tuCachCoBan.loai === 'SINH_VIEN' &&
-            resourceContext?.donViThamGiaIDs?.includes(userProfile.lopID)
-          )
-            return true; // Giả sử LopID là DonViID
-          if (
-            user.tuCachCoBan.loai === 'GIANG_VIEN' &&
-            resourceContext?.donViThamGiaIDs?.includes(
-              userProfile.donViCongTacID
-            )
-          )
-            return true;
-        }
-      }
-      if (
-        action === 'view' &&
-        resource === 'TaiLieuSK' &&
-        resourceContext?.isCongKhaiTL
-      )
-        return true;
-      if (
-        action === 'create' &&
-        resource === 'DanhGiaSK' &&
-        resourceContext?.daThamGia
-      )
-        return true; // Cần logic xác định đã tham gia
+      // if (action === 'view' && resource === 'SuKien') {
+      //   if (
+      //     resourceContext?.isCongKhaiNoiBo &&
+      //     ['DA_DUYET_BGH', 'DA_XAC_NHAN_PHONG', 'HOAN_THANH'].includes(
+      //       resourceContext?.maTrangThaiSK
+      //     )
+      //   )
+      //     return true;
+      //   if (resourceContext?.isInvitedUser) return true; // Cần thêm logic để kiểm tra user hiện tại có trong SK_MoiThamGia không
+      //   // Logic kiểm tra đơn vị tham gia cho SV/GV cơ bản
+      //   if (user?.tuCachCoBan?.chiTiet) {
+      //     const userProfile = user.tuCachCoBan.chiTiet as any; // Cần ép kiểu an toàn hơn
+      //     if (
+      //       user.tuCachCoBan.loai === 'SINH_VIEN' &&
+      //       resourceContext?.donViThamGiaIDs?.includes(userProfile.lopID)
+      //     )
+      //       return true; // Giả sử LopID là DonViID
+      //     if (
+      //       user.tuCachCoBan.loai === 'GIANG_VIEN' &&
+      //       resourceContext?.donViThamGiaIDs?.includes(
+      //         userProfile.donViCongTacID
+      //       )
+      //     )
+      //       return true;
+      //   }
+      // }
+      if (action === 'view' && resource === 'TaiLieuSK') return true;
+      if (action === 'create' && resource === 'DanhGiaSK') return true; // Cần logic xác định đã tham gia
 
       return false;
     },

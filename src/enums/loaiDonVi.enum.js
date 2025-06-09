@@ -1,4 +1,4 @@
-// src/enums/loaiDonVi.enum.js
+// src/components/enums/loaiDonVi.enum.js
 const LoaiDonVi = Object.freeze({
   KHOA: 'KHOA',
   PHONG: 'PHONG',

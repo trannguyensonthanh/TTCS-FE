@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { format, formatDate, isSameDay, parseISO } from 'date-fns';
+import { format, parseISO, isSameDay } from 'date-fns'; // Keep this import
 import { vi } from 'date-fns/locale';
-
+import MaVaiTro from '@/enums/MaVaiTro.enum'; // Đảm bảo import này đúng
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   useUpdateEventStatus, // Hook để tự hủy bởi người tạo
@@ -15,6 +15,8 @@ import {
   // Giả định có thêm hook này nếu BGH duyệt/từ chối yêu cầu hủy từ trang này
   // useProcessEventCancelRequest
 } from '@/hooks/queries/eventQueries';
+import { motion } from 'framer-motion';
+import MaTrangThaiSK from '@/enums/MaTrangThaiSK.enum'; // Enum cho trạng thái sự kiện
 import {
   SuKienListItemResponse,
   SuKienDetailResponse,
@@ -87,6 +89,8 @@ import {
   MoreHorizontal,
   CalendarX,
   Building,
+  ClipboardList,
+  Clipboard,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -102,6 +106,8 @@ import { toast } from '@/components/ui/sonner';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { useQueryClient } from '@tanstack/react-query';
+import { useDebounce } from '@/hooks/useDebounce';
+import { ReusablePagination } from '@/components/ui/ReusablePagination';
 
 // --- Helper Functions (Nên đưa ra file utils riêng nếu dùng ở nhiều nơi) ---
 const formatDateRange = (start?: string, end?: string) => {
@@ -148,7 +154,8 @@ const EventsList = () => {
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterParams, setFilterParams] = useState<GetSuKienParams>({
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [filterParamsState, setFilterParamsState] = useState<GetSuKienParams>({
     page: 1,
     limit: 10,
     sortOrder: 'desc',
@@ -163,9 +170,80 @@ const EventsList = () => {
     useState<SuKienListItemResponse | null>(null);
   const [showCancelRequestDialog, setShowCancelRequestDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const getDefaultTab = () => {
+    if (hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)) return 'pending_bgh_approval';
+    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)) return 'my_events';
+    return 'all';
+  };
+  const [activeTab, setActiveTab] = useState<string>(getDefaultTab());
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10); // Giữ nguyên limit
+  const [currentSortBy, setCurrentSortBy] = useState('NgayTaoSK');
+  const [currentSortOrder, setCurrentSortOrder] = useState<'asc' | 'desc'>(
+    'desc'
+  );
+  const [filterTrangThaiSkMa, setFilterTrangThaiSkMa] = useState<
+    string | undefined
+  >(getDefaultTab() === 'pending_bgh_approval' ? 'CHO_DUYET_BGH' : undefined);
 
-  const [activeTab, setActiveTab] = useState('all'); // 'all', 'my_events', 'pending_bgh_approval', 'upcoming'
+  // Tạo filterParams một cách có kiểm soát dựa trên activeTab và các state lọc khác
+  const filterParams = useMemo((): GetSuKienParams => {
+    const params: GetSuKienParams = {
+      page,
+      limit,
+      sortBy: currentSortBy,
+      sortOrder: currentSortOrder,
+      searchTerm: debouncedSearchTerm || undefined,
+      trangThaiSkMa: filterTrangThaiSkMa, // Sử dụng state riêng cho bộ lọc trạng thái
+    };
 
+    if (activeTab === 'my_events' && user?.nguoiDungID) {
+      if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)) {
+        params.nguoiTaoID = user.nguoiDungID;
+      } else if (user.vaiTroChucNang && user.vaiTroChucNang.length > 0) {
+        // Giả sử lấy đơn vị từ vai trò chức năng đầu tiên có đơn vị
+        const managedUnit = user.vaiTroChucNang.find(
+          (vt) => vt.donViThucThi
+        )?.donViThucThi;
+        if (managedUnit) {
+          // Nếu là trưởng khoa, clb, đoàn thì lọc theo đơn vị họ quản lý
+          if (
+            hasRole(MaVaiTro.TRUONG_KHOA) ||
+            hasRole(MaVaiTro.TRUONG_CLB) ||
+            hasRole(MaVaiTro.BI_THU_DOAN)
+          ) {
+            params.donViChuTriID = managedUnit.donViID; // Hoặc thamGiaDonViID tùy logic backend
+          }
+        }
+      }
+    } else if (activeTab === 'pending_bgh_approval') {
+      params.trangThaiSkMa = 'CHO_DUYET_BGH'; // Luôn lọc trạng thái này cho tab BGH
+      // Nếu có filterTrangThaiSkMa từ select, nó sẽ ghi đè, cần xử lý
+      // Hoặc ẩn select trạng thái khi ở tab này
+    } else if (activeTab === 'upcoming') {
+      params.sapDienRa = true;
+      // Chỉ sự kiện đã sẵn sàng (có thể cho phép người dùng chọn thêm trạng thái ở filter)
+      params.trangThaiSkMa =
+        filterTrangThaiSkMa || 'DA_DUYET_BGH,DA_XAC_NHAN_PHONG';
+    }
+    // Nếu người dùng chọn một trạng thái cụ thể từ dropdown, nó sẽ ghi đè logic của tab
+    // (trừ tab pending_bgh_approval có thể muốn cố định)
+    if (filterTrangThaiSkMa && activeTab !== 'pending_bgh_approval') {
+      params.trangThaiSkMa = filterTrangThaiSkMa;
+    }
+
+    return params;
+  }, [
+    page,
+    limit,
+    currentSortBy,
+    currentSortOrder,
+    debouncedSearchTerm,
+    activeTab,
+    user,
+    hasRole,
+    filterTrangThaiSkMa,
+  ]);
   // --- React Query Hooks ---
   const {
     data: paginatedEvents,
@@ -186,6 +264,7 @@ const EventsList = () => {
     selectedEventForDetail?.suKienID
     // Remove 'enabled' option as it's not supported by the hook
   );
+  console.log('Event Detail Data:', eventDetailData);
 
   const updateStatusMutation = useUpdateEventStatus({
     onSuccess: () => {
@@ -215,6 +294,7 @@ const EventsList = () => {
   console.log('Event Detail Data:', eventDetailData);
   console.log('Selected Event For Detail:', selectedEventForDetail);
   console.log('Paginated Events:', paginatedEvents);
+  console.log('loadding:', isLoading);
   const events = paginatedEvents?.items || [];
   const totalPages = paginatedEvents?.totalPages || 1;
   const currentPage = paginatedEvents?.currentPage || 1;
@@ -222,10 +302,16 @@ const EventsList = () => {
   // --- Event Handlers ---
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+    setPage(1); // Reset về trang 1 khi tìm kiếm
+  };
+
+  const handleFilterTrangThaiChange = (value: string) => {
+    setFilterTrangThaiSkMa(value === 'all' ? undefined : value);
+    setPage(1);
   };
 
   const applySearchAndFilters = useCallback(() => {
-    setFilterParams((prev) => ({
+    setFilterParamsState((prev) => ({
       ...prev,
       searchTerm: searchTerm || undefined,
       page: 1,
@@ -234,18 +320,18 @@ const EventsList = () => {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (searchTerm !== (filterParams.searchTerm || '')) {
+      if (searchTerm !== (filterParamsState.searchTerm || '')) {
         applySearchAndFilters();
       }
     }, 500); // Debounce
     return () => clearTimeout(handler);
-  }, [searchTerm, filterParams.searchTerm, applySearchAndFilters]);
+  }, [searchTerm, filterParamsState.searchTerm, applySearchAndFilters]);
 
   const handleFilterChange = (
     key: keyof GetSuKienParams,
     value: string | number | boolean | undefined
   ) => {
-    setFilterParams((prev) => ({
+    setFilterParamsState((prev) => ({
       ...prev,
       [key]: value === 'all' || value === '' ? undefined : value,
       page: 1,
@@ -253,34 +339,21 @@ const EventsList = () => {
   };
 
   const handlePageChange = (newPage: number) => {
-    setFilterParams((prev) => ({ ...prev, page: newPage }));
+    setFilterParamsState((prev) => ({ ...prev, page: newPage }));
   };
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    const newParams: GetSuKienParams = {
-      page: 1,
-      limit: filterParams.limit,
-      sortOrder: filterParams.sortOrder,
-      sortBy: filterParams.sortBy,
-    }; // Reset params trừ page, limit, sort
-
-    if (value === 'my_events' && user?.nguoiDungID) {
-      // CBTC chỉ xem sự kiện họ tạo, các vai trò quản lý đơn vị xem sự kiện đơn vị họ chủ trì/tham gia
-      if (hasRole('CB_TO_CHUC_SU_KIEN')) {
-        newParams.nguoiTaoID = user.nguoiDungID;
-      } else if (user.vaiTroChucNang[0].donViThucThi.donViID) {
-        // Giả sử AuthContext cung cấp donViThucThiID_Chinh của vai trò quản lý đơn vị
-        newParams.donViChuTriID = user.vaiTroChucNang[0].donViThucThi.donViID;
-        // Hoặc newParams.thamGiaDonViID = user.donViThucThiID_Chinh;
-      }
-    } else if (value === 'pending_bgh_approval') {
-      newParams.trangThaiSkMa = 'CHO_DUYET_BGH';
+    setPage(1); // Reset về trang 1 khi chuyển tab
+    // Các logic lọc riêng cho từng tab sẽ được áp dụng trong useMemo của filterParams
+    // Ví dụ, nếu tab là "pending_bgh_approval", setFilterTrangThaiSkMa thành 'CHO_DUYET_BGH'
+    if (value === 'pending_bgh_approval') {
+      setFilterTrangThaiSkMa('CHO_DUYET_BGH');
     } else if (value === 'upcoming') {
-      newParams.sapDienRa = true;
-      newParams.trangThaiSkMa = 'DA_DUYET_BGH,DA_XAC_NHAN_PHONG'; // Chỉ sự kiện đã sẵn sàng
+      setFilterTrangThaiSkMa('DA_DUYET_BGH,DA_XAC_NHAN_PHONG'); // Mặc định cho sắp diễn ra
+    } else {
+      setFilterTrangThaiSkMa(undefined); // Xóa filter trạng thái khi chuyển sang tab 'all' hoặc 'my_events' (để user tự chọn)
     }
-    setFilterParams(newParams);
   };
 
   const openEventDetailsModal = async (eventId: number) => {
@@ -351,35 +424,41 @@ const EventsList = () => {
   // --- JSX Rendering ---
   const renderActionButtons = (event: SuKienListItemResponse) => {
     // Logic hiển thị nút dựa trên vai trò và trạng thái sự kiện
+    console.log('Event:', event);
     const canUserEdit =
       can('edit', 'SuKien') &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID &&
-      (event.trangThaiSK.maTrangThai === 'CHO_DUYET_BGH' ||
-        event.trangThaiSK.maTrangThai === 'DA_HUY_BOI_NGUOI_TAO');
+      (event.trangThaiSK.maTrangThai === MaTrangThaiSK.CHO_DUYET_BGH ||
+        event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_HUY_BOI_NGUOI_TAO ||
+        event.trangThaiSK.maTrangThai ===
+          MaTrangThaiSK.BGH_YEU_CAU_CHINH_SUA_SK ||
+        event.trangThaiSK.maTrangThai === MaTrangThaiSK.BI_TU_CHOI_BGH);
 
     const canUserSelfCancel =
       can('delete', 'SuKien') &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID &&
-      event.trangThaiSK.maTrangThai === 'CHO_DUYET_BGH';
+      (event.trangThaiSK.maTrangThai === MaTrangThaiSK.CHO_DUYET_BGH ||
+        event.trangThaiSK.maTrangThai ===
+          MaTrangThaiSK.BGH_YEU_CAU_CHINH_SUA_SK);
 
     const canUserRequestCancel =
       can('create', 'YeuCauHuySK') &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID &&
-      (event.trangThaiSK.maTrangThai === 'DA_DUYET_BGH' ||
-        event.trangThaiSK.maTrangThai === 'DA_XAC_NHAN_PHONG');
+      (event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_DUYET_BGH ||
+        event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_XAC_NHAN_PHONG);
 
     const canUserRequestRoom =
       can('create', 'YeuCauMuonPhong') &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID &&
-      event.trangThaiSK.maTrangThai === 'DA_DUYET_BGH' &&
+      event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_DUYET_BGH &&
       !event.daCoPhong;
 
     const canUserInvite =
       can('create', 'SK_MoiThamGia') &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID && // Hoặc trưởng đơn vị
-      (event.trangThaiSK.maTrangThai === 'DA_DUYET_BGH' ||
-        event.trangThaiSK.maTrangThai === 'DA_XAC_NHAN_PHONG' ||
-        event.trangThaiSK.maTrangThai === 'HOAN_THANH');
+      (event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_DUYET_BGH ||
+        event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_XAC_NHAN_PHONG ||
+        event.trangThaiSK.maTrangThai === MaTrangThaiSK.HOAN_THANH);
 
     return (
       <DropdownMenu>
@@ -447,139 +526,246 @@ const EventsList = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header và TabsList đã có ở trên */}
-        <Tabs>
-          <TabsContent value={activeTab} className="mt-0">
-            {' '}
-            {/* Thêm mt-0 để sát TabsList */}
-            <Card>
-              {/* Header và Bộ lọc đã có ở trên */}
-              <CardContent className="pt-6">
-                {' '}
-                {/* Thêm pt-6 nếu cần khoảng cách */}
-                {isLoading ? (
-                  <div className="text-center py-10">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                  </div>
-                ) : !isLoading && events.length === 0 ? (
-                  <div className="text-center py-10 text-muted-foreground">
-                    Không có sự kiện nào phù hợp với tiêu chí hiện tại.
-                  </div>
-                ) : (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="min-w-[280px]">
-                            Tên sự kiện
-                          </TableHead>
-                          <TableHead className="min-w-[180px]">
-                            Thời gian
-                          </TableHead>
-                          <TableHead className="min-w-[180px]">
-                            Địa điểm
-                          </TableHead>
-                          <TableHead className="min-w-[200px]">
-                            Đơn vị tổ chức
-                          </TableHead>
-                          <TableHead className="text-center min-w-[120px]">
-                            Trạng thái
-                          </TableHead>
-                          <TableHead className="text-right min-w-[100px]">
-                            Thao tác
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {events.map((event) => (
-                          <TableRow key={event.suKienID}>
-                            <TableCell className="font-medium">
-                              <span
-                                className="hover:text-primary cursor-pointer"
-                                onClick={() =>
-                                  openEventDetailsModal(event.suKienID)
-                                }
-                              >
-                                {event.tenSK}
-                              </span>
-                              {!event.isCongKhaiNoiBo && (
-                                <Badge
-                                  variant="outline"
-                                  className="ml-2 text-xs"
-                                >
-                                  Riêng tư
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-col text-xs">
-                                <span>
-                                  {format(
-                                    parseISO(event.tgBatDauDK),
-                                    'HH:mm dd/MM'
-                                  )}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  đến{' '}
-                                  {format(
-                                    parseISO(event.tgKetThucDK),
-                                    'HH:mm dd/MM/yy'
-                                  )}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {event.diaDiemToChucDaXep || 'Chưa xếp phòng'}
-                            </TableCell>
-                            <TableCell>{event.donViChuTri.tenDonVi}</TableCell>
-                            <TableCell className="text-center">
+    <DashboardLayout pageTitle="Quản Lý Sự Kiện">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
+        className="space-y-6"
+      >
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="space-y-4"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <TabsList className="bg-card border dark:border-slate-700 p-1 rounded-lg shadow-sm w-full md:w-auto">
+              <TabsTrigger
+                value="all"
+                className="px-3 py-1.5 text-sm whitespace-nowrap"
+              >
+                Tất cả Sự kiện
+              </TabsTrigger>
+              {(hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
+                hasRole(MaVaiTro.TRUONG_KHOA) ||
+                hasRole(MaVaiTro.TRUONG_CLB) ||
+                hasRole(MaVaiTro.BI_THU_DOAN)) && (
+                <TabsTrigger
+                  value="my_events"
+                  className="px-3 py-1.5 text-sm whitespace-nowrap"
+                >
+                  Sự kiện Của tôi/Đơn vị
+                </TabsTrigger>
+              )}
+              {(hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) ||
+                hasRole(MaVaiTro.ADMIN_HE_THONG)) && (
+                <TabsTrigger
+                  value="pending_bgh_approval"
+                  className="px-3 py-1.5 text-sm whitespace-nowrap"
+                >
+                  Chờ BGH Duyệt
+                </TabsTrigger>
+              )}
+              <TabsTrigger
+                value="upcoming"
+                className="px-3 py-1.5 text-sm whitespace-nowrap"
+              >
+                Sắp diễn ra
+              </TabsTrigger>
+            </TabsList>
+            <div className="relative w-full md:w-auto md:max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Tìm tên, đơn vị tổ chức..."
+                className="pl-10 h-10 rounded-md shadow-sm w-full"
+                value={searchTerm}
+                onChange={handleSearchInputChange}
+              />
+            </div>
+          </div>
+
+          {/* BỘ LỌC CHUNG CHO CÁC TAB (TRỪ KHI TAB CÓ LOGIC RIÊNG HOÀN TOÀN) */}
+          {activeTab !== 'pending_bgh_approval' && ( // Ví dụ: không cho BGH lọc trạng thái khác khi ở tab chờ duyệt
+            <div className="mb-6 p-4 border rounded-lg bg-card dark:border-slate-700 shadow">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+                <div>
+                  <Label
+                    htmlFor="filter-trangthai"
+                    className="text-xs font-semibold text-muted-foreground"
+                  >
+                    Lọc theo Trạng thái
+                  </Label>
+                  <Select
+                    value={filterTrangThaiSkMa || 'all'}
+                    onValueChange={handleFilterTrangThaiChange}
+                  >
+                    <SelectTrigger id="filter-trangthai">
+                      <SelectValue placeholder="Tất cả trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                      <SelectItem value={MaTrangThaiSK.CHO_DUYET_BGH}>
+                        Chờ duyệt BGH
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_DUYET_BGH}>
+                        Đã duyệt BGH
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.CHO_DUYET_PHONG}>
+                        Chờ duyệt phòng
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_XAC_NHAN_PHONG}>
+                        Đã có phòng
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.BI_TU_CHOI_BGH}>
+                        Bị từ chối
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_HUY}>
+                        Đã hủy
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.HOAN_THANH}>
+                        Đã hoàn thành
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Thêm các bộ lọc khác nếu cần: Loại sự kiện, Đơn vị tổ chức (nếu không phải tab my_events) */}
+              </div>
+            </div>
+          )}
+
+          {/* Không cần TabsContent riêng cho mỗi tab nếu table và pagination là chung */}
+          {/* Logic render data dựa trên activeTab đã được xử lý trong filterParams */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="text-xl">
+                {activeTab === 'all' && 'Tất cả Sự kiện Hệ thống'}
+                {activeTab === 'my_events' &&
+                  (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)
+                    ? 'Sự kiện Tôi Tạo'
+                    : 'Sự kiện Đơn vị Tôi Quản Lý/Tham Gia')}
+                {activeTab === 'pending_bgh_approval' &&
+                  'Sự kiện Chờ Ban Giám Hiệu Duyệt'}
+                {activeTab === 'upcoming' && 'Sự kiện Sắp Diễn Ra'}
+              </CardTitle>
+              <CardDescription>
+                Danh sách các sự kiện và trạng thái xử lý tương ứng.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading && !events.length ? (
+                <div className="text-center py-10">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+                </div>
+              ) : !isLoading && events.length === 0 ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <Clipboard className="h-16 w-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
+                  <p className="text-lg">Không có sự kiện nào phù hợp.</p>
+                </div>
+              ) : (
+                <div className="rounded-md border shadow-sm bg-background dark:border-slate-800 overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50 dark:bg-slate-800/30">
+                        <TableHead className="w-[30%] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Tên sự kiện
+                        </TableHead>
+                        <TableHead className="w-[20%] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Đơn vị tổ chức
+                        </TableHead>
+                        <TableHead className="w-[25%] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Thời gian
+                        </TableHead>
+                        <TableHead className="min-w-[150px] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Địa điểm
+                        </TableHead>
+                        <TableHead className="text-center min-w-[140px] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Trạng thái
+                        </TableHead>
+                        <TableHead className="text-right min-w-[100px] px-4 py-3 text-sm font-semibold text-muted-foreground">
+                          Thao tác
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {events.map((event) => (
+                        <TableRow
+                          key={event.suKienID}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                        >
+                          <TableCell className="font-medium py-3 px-4">
+                            <span
+                              className="hover:text-primary dark:hover:text-ptit-red cursor-pointer font-semibold"
+                              onClick={() =>
+                                openEventDetailsModal(event.suKienID)
+                              }
+                            >
+                              {event.tenSK}
+                            </span>
+                            {!event.isCongKhaiNoiBo && (
                               <Badge
-                                variant={getStatusBadgeVariant(
-                                  event.trangThaiSK.maTrangThai
-                                )}
+                                variant="outline"
+                                className="ml-2 text-xs border-amber-500 text-amber-600"
                               >
-                                {event.trangThaiSK.tenTrangThai}
+                                Riêng tư
                               </Badge>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {renderActionButtons(event)}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                )}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-end space-x-2 py-4">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1 || isLoading}
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
-                      Trang trước
-                    </Button>
-                    <span className="text-sm text-muted-foreground">
-                      Trang {currentPage} / {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages || isLoading}
-                    >
-                      Trang sau
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                            )}
+                            <div className="text-xs text-muted-foreground mt-1">
+                              Người tạo: {event.nguoiTao.hoTen}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-sm py-3 px-4 text-muted-foreground">
+                            {event.donViChuTri.tenDonVi}
+                          </TableCell>
+                          <TableCell className="text-xs py-3 px-4 text-muted-foreground">
+                            {format(
+                              parseISO(event.tgBatDauDK),
+                              'dd/MM/yy HH:mm'
+                            )}
+                            <br />
+                            <span className="text-slate-400 dark:text-slate-500">
+                              đến{' '}
+                              {format(
+                                parseISO(event.tgKetThucDK),
+                                'dd/MM/yy HH:mm'
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-sm py-3 px-4 text-muted-foreground">
+                            {event.diaDiemToChucDaXep ||
+                              (event.daCoPhong ? 'Đã xếp' : 'Chưa xếp')}
+                          </TableCell>
+                          <TableCell className="text-center py-3 px-4">
+                            <Badge
+                              variant={getStatusBadgeVariant(
+                                event.trangThaiSK.maTrangThai
+                              )}
+                              className="whitespace-nowrap"
+                            >
+                              {event.trangThaiSK.tenTrangThai}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right py-3 px-4">
+                            {renderActionButtons(event)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+
+              {paginatedEvents && totalPages > 1 && (
+                <ReusablePagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  isLoading={isLoading}
+                  className="mt-6"
+                />
+              )}
+            </CardContent>
+          </Card>
         </Tabs>
 
         {/* Event Details Dialog */}
@@ -673,16 +859,20 @@ const EventsList = () => {
                       selectedEventForDetail.isCongKhaiNoiBo ? 'Có' : 'Không'
                     }
                   />
-                  <InfoRow
-                    label="Người tạo:"
-                    value={`${
-                      selectedEventForDetail.nguoiTao.hoTen
-                    } (vào ${format(
-                      parseISO(selectedEventForDetail.ngayTaoSK),
-                      'dd/MM/yyyy HH:mm',
-                      { locale: vi }
-                    )})`}
-                  />
+                  {selectedEventForDetail?.nguoiTao && (
+                    <InfoRow
+                      label="Người tạo:"
+                      value={`${selectedEventForDetail?.nguoiTao?.hoTen} (vào ${
+                        selectedEventForDetail?.ngayTaoSK
+                          ? format(
+                              parseISO(selectedEventForDetail?.ngayTaoSK),
+                              'dd/MM/yyyy HH:mm',
+                              { locale: vi }
+                            )
+                          : 'N/A'
+                      })`}
+                    />
+                  )}
                   {selectedEventForDetail.nguoiDuyetBGH && (
                     <InfoRow
                       label="BGH Duyệt:"
@@ -690,8 +880,8 @@ const EventsList = () => {
                         selectedEventForDetail.nguoiDuyetBGH.hoTen
                       } (vào ${
                         selectedEventForDetail.ngayDuyetBGH
-                          ? formatDate(
-                              selectedEventForDetail.ngayDuyetBGH,
+                          ? format(
+                              parseISO(selectedEventForDetail.ngayDuyetBGH),
                               'dd/MM/yyyy HH:mm',
                               { locale: vi }
                             )
@@ -798,8 +988,10 @@ const EventsList = () => {
                       />
                       <InfoRow
                         label="Ngày YC Hủy:"
-                        value={formatDate(
-                          selectedEventForDetail.yeuCauHuy.ngayYeuCauHuy,
+                        value={format(
+                          parseISO(
+                            selectedEventForDetail.yeuCauHuy.ngayYeuCauHuy
+                          ), // PARSE THE DATE STRING
                           'dd/MM/yyyy HH:mm',
                           { locale: vi }
                         )}
@@ -879,7 +1071,7 @@ const EventsList = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 };

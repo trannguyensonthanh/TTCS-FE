@@ -108,6 +108,13 @@ export interface GetPhongParams {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface GetMaPhongDetailParams {
+  toaNhaTangID?: number;
+  loaiPhongID?: number;
+  soThuTuPhong?: string;
+  phongID?: number | null;
+}
+
 const getPhongList = async (
   params: GetPhongParams
 ): Promise<PaginatedPhongResponse> => {
@@ -150,12 +157,29 @@ const deletePhong = async (
   }>;
 };
 
+const generateMaPhong = async (
+  params: GetMaPhongDetailParams
+): Promise<{ maPhongGoiY: string; isUnique: boolean; message: string }> => {
+  const response = await apiHelper.get(`/danhmuc/phong/generate-ma-phong`, {
+    ...params,
+  });
+
+  return {
+    maPhongGoiY: response.maPhongGoiY,
+    isUnique: !response.isUnique,
+    message: response.message
+      ? 'Mã phòng gợi ý đã được sử dụng.'
+      : 'Tạo mã phòng gợi ý thành công.',
+  };
+};
+
 const phongService = {
   getPhongList,
   getPhongDetail,
   createPhong,
   updatePhong,
   deletePhong,
+  generateMaPhong,
 };
 
 export default phongService;

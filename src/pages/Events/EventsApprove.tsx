@@ -70,6 +70,7 @@ import {
   Users as UsersIcon,
   MapPin,
   Building,
+  Send,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -89,6 +90,8 @@ import MaTrangThaiSK from '@/enums/maTrangThaiSK.enum';
 import MaVaiTro from '@/enums/maVaiTro.enum';
 import { useQueryClient } from '@tanstack/react-query';
 import InfoRowDialog from '@/components/dialog/InfoRowDialog';
+import { useSendRevisionRequest } from '@/hooks/queries/notificationQueries';
+import { CreateYeuCauChinhSuaThongBaoPayload } from '@/services/notification.service';
 // --- Helper Functions (Có thể đã có ở EventsList.tsx hoặc utils) ---
 const formatDateRangeForDisplay = (start?: string, end?: string): string => {
   if (!start) return 'N/A';
@@ -142,7 +145,14 @@ const EventsApprove = () => {
   const { user } = useAuth();
   const { hasRole } = useRole();
   const navigate = useNavigate();
-
+  const [showRevisionRequestDialog, setShowRevisionRequestDialog] =
+    useState(false);
+  const [revisionRequestContent, setRevisionRequestContent] = useState('');
+  const [eventForRevision, setEventForRevision] = useState<
+    SuKienListItemResponse | SuKienDetailResponse | null
+  >(null);
+  const [reasonText, setReasonText] = useState('');
+  const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const queryClient = useQueryClient();
@@ -203,6 +213,16 @@ const EventsApprove = () => {
     },
   });
 
+  const sendRevisionRequestMutation = useSendRevisionRequest({
+    onSuccess: () => {
+      setShowRevisionRequestDialog(false);
+      setRevisionRequestContent('');
+      setEventForRevision(null);
+      // Không cần refetch danh sách sự kiện chờ duyệt vì trạng thái không đổi
+      // Chỉ cần người tạo sự kiện nhận được thông báo
+    },
+  });
+
   const eventsToApprove = paginatedEvents?.items || [];
   const totalPages = paginatedEvents?.totalPages || 1;
   const currentPage = paginatedEvents?.currentPage || 1;
@@ -257,6 +277,122 @@ const EventsApprove = () => {
       payload: { lyDoTuChoiBGH: rejectReason },
     });
   };
+
+  const openRevisionRequestModal = (
+    eventItem: SuKienListItemResponse | SuKienDetailResponse
+  ) => {
+    setEventForRevision(eventItem);
+    setRevisionRequestContent(''); // Reset nội dung
+    setShowRevisionRequestDialog(true);
+  };
+
+  const handleSendRevisionRequest = () => {
+    if (!eventForRevision || !revisionRequestContent.trim()) {
+      toast.error('Vui lòng nhập nội dung yêu cầu chỉnh sửa.');
+      return;
+    }
+    if (!eventForRevision.nguoiTao?.nguoiDungID) {
+      // Đảm bảo có người tạo để gửi thông báo
+      toast.error('Không tìm thấy thông tin người tạo sự kiện để gửi yêu cầu.');
+      return;
+    }
+
+    const payload: CreateYeuCauChinhSuaThongBaoPayload = {
+      loaiThucThe: 'SU_KIEN',
+      idThucThe: eventForRevision.suKienID,
+      nguoiNhanID: eventForRevision.nguoiTao.nguoiDungID, // Gửi cho người tạo sự kiện
+      noiDungGhiChu: revisionRequestContent,
+    };
+    sendRevisionRequestMutation.mutate(payload);
+  };
+
+  const renderActionButtonsForApprovePage = (event: SuKienListItemResponse) => (
+    <div className="flex justify-end gap-1 md:gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setSelectedEvent(event.suKienID.toString());
+          setShowDetailsDialog(true);
+        }}
+      >
+        <Info className="h-4 w-4 mr-1 md:mr-2" />{' '}
+        <span className="hidden md:inline">Chi tiết</span>
+      </Button>
+      {/* Nút Yêu cầu chỉnh sửa */}
+      <Dialog
+        open={
+          showRevisionRequestDialog &&
+          eventForRevision?.suKienID === event.suKienID
+        }
+        onOpenChange={(open) => {
+          if (!open) setEventForRevision(null);
+          setShowRevisionRequestDialog(open);
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-orange-600 border-orange-500 hover:bg-orange-50 hover:text-orange-700 dark:text-orange-400 dark:border-orange-400 dark:hover:bg-orange-900/30 dark:hover:text-orange-300"
+            onClick={() => openRevisionRequestModal(event)}
+          >
+            <MessageSquareWarning className="h-4 w-4 mr-1 md:mr-2" />{' '}
+            <span className="hidden md:inline">YC Chỉnh Sửa</span>
+          </Button>
+        </DialogTrigger>
+        {/* Dialog Content sẽ được khai báo ở dưới cùng */}
+      </Dialog>
+      <Dialog
+        open={openRejectModal && selectedEvent === event.suKienID.toString()}
+        onOpenChange={(open) => {
+          if (!open) setSelectedEvent(null);
+          setShowRejectDialog(open);
+        }}
+      >
+        <DialogTrigger asChild>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              setSelectedEvent(event.suKienID.toString());
+              setReasonText('');
+            }}
+            disabled={
+              rejectMutation.isPending &&
+              rejectMutation.variables?.suKienID === event.suKienID
+            }
+          >
+            {rejectMutation.isPending &&
+            rejectMutation.variables?.suKienID === event.suKienID ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-1 md:mr-2" />
+            ) : (
+              <ThumbsDown className="h-4 w-4 mr-1 md:mr-2" />
+            )}
+            <span className="hidden md:inline">Từ chối</span>
+          </Button>
+        </DialogTrigger>
+        {/* Dialog Content Từ chối sẽ được khai báo ở dưới cùng */}
+      </Dialog>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => handleConfirmApprove(event)}
+        disabled={
+          approveMutation.isPending &&
+          approveMutation.variables?.suKienID === event.suKienID
+        }
+      >
+        {approveMutation.isPending &&
+        approveMutation.variables?.suKienID === event.suKienID ? (
+          <Loader2 className="h-4 w-4 animate-spin mr-1 md:mr-2" />
+        ) : (
+          <ThumbsUp className="h-4 w-4 mr-1 md:mr-2" />
+        )}
+        <span className="hidden md:inline">Duyệt</span>
+      </Button>
+    </div>
+  );
 
   // --- Quyền ---
   // Chỉ BGH và Admin mới được vào trang này
@@ -464,6 +600,67 @@ const EventsApprove = () => {
             )}
           </CardContent>
         </Card>
+        <Dialog
+          open={showRevisionRequestDialog && !!eventForRevision}
+          onOpenChange={(open) => {
+            if (!open) setEventForRevision(null);
+            setShowRevisionRequestDialog(open);
+          }}
+        >
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="text-xl">
+                Gửi Yêu Cầu Chỉnh Sửa Sự Kiện
+              </DialogTitle>
+              <DialogDescription>
+                Sự kiện:{' '}
+                <span className="font-semibold">{eventForRevision?.tenSK}</span>
+                <br />
+                Nội dung yêu cầu chỉnh sửa sẽ được gửi đến người tạo sự kiện. Sự
+                kiện sẽ vẫn ở trạng thái "Chờ duyệt".
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-2">
+              <Label htmlFor="revisionRequestContent" className="font-medium">
+                Nội dung yêu cầu chỉnh sửa{' '}
+                <span className="text-destructive">*</span>
+              </Label>
+              <Textarea
+                id="revisionRequestContent"
+                value={revisionRequestContent}
+                onChange={(e) => setRevisionRequestContent(e.target.value)}
+                placeholder="Nêu rõ các điểm cần chỉnh sửa, ví dụ: thời gian chưa hợp lý, mô tả cần chi tiết hơn, kiểm tra lại đơn vị tham gia..."
+                className="min-h-[120px]"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowRevisionRequestDialog(false);
+                  setEventForRevision(null);
+                }}
+              >
+                Hủy bỏ
+              </Button>
+              <Button
+                onClick={handleSendRevisionRequest}
+                disabled={
+                  !revisionRequestContent.trim() ||
+                  sendRevisionRequestMutation.isPending
+                }
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                {sendRevisionRequestMutation.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                Gửi Yêu Cầu Chỉnh Sửa
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </motion.div>
 
       {/* Dialog Chi Tiết Sự Kiện (Tái sử dụng từ EventsList hoặc tạo component riêng) */}
@@ -636,6 +833,16 @@ const EventsApprove = () => {
                     disabled={approveMutation.isPending}
                   >
                     <CheckCircle className="mr-2 h-4 w-4" /> Duyệt sự kiện
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setShowDetailsDialog(false);
+                      openRevisionRequestModal(eventDetailData);
+                    }}
+                    disabled={sendRevisionRequestMutation.isPending}
+                  >
+                    Yêu cầu chỉnh sửa
                   </Button>
                 </div>
               )}

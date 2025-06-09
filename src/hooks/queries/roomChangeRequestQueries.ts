@@ -52,7 +52,7 @@ export const useRoomChangeRequestDetail = (
   id: number | string | undefined,
   options?: Omit<
     UseQueryOptions<YeuCauDoiPhongDetailResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<YeuCauDoiPhongDetailResponse, APIError>({
