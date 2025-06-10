@@ -562,7 +562,7 @@ const BuildingFloorsPage = () => {
                     <FormLabel>Mô Tả cho Tầng này</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Mô tả chi tiết về tầng này trong tòa nhà (nếu có)..."
+                        placeholder="Mô tả chi tiết về tầng này trong tòa nhà ( )..."
                         {...field}
                         value={field.value ?? ''}
                       />

@@ -32,7 +32,8 @@ const Footer = () => (
         (PTITHCM)
       </p>
       <p className="text-sm text-slate-400 dark:text-gray-500">
-        © {new Date().getFullYear()} PTITHCM. Phát triển bởi [Tên Của Bạn/Nhóm].
+        © {new Date().getFullYear()} PTITHCM. Phát triển bởi Nhóm 7 - Chiến
+        Thần.
       </p>
     </div>
   </footer>
@@ -316,7 +317,46 @@ const AboutPage = () => {
                 Chiến Thần
               </p>
             </motion.div>
-            {/* Thông tin của bạn/nhóm */}
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+              {[
+                {
+                  name: 'Trần Nguyễn Sơn Thành',
+                  role: 'Lập trình viên',
+                  avatar: 'https://i.pravatar.cc/150?img=1',
+                },
+                {
+                  name: 'Trần Thị B',
+                  role: 'Thiết kế UI/UX',
+                  avatar: 'https://i.pravatar.cc/150?img=2',
+                },
+                {
+                  name: 'Lê Văn C',
+                  role: 'Quản lý dự án',
+                  avatar: 'https://i.pravatar.cc/150?img=3',
+                },
+                {
+                  name: 'Phạm Thị D',
+                  role: 'Kiểm thử phần mềm',
+                  avatar: 'https://i.pravatar.cc/150?img=4',
+                },
+              ].map((member) => (
+                <Card key={member.name} className="text-center">
+                  <CardHeader>
+                    <img
+                      src={member.avatar}
+                      alt={member.name}
+                      className="w-24 h-24 rounded-full mx-auto mb-4"
+                    />
+                    <CardTitle className="text-lg font-semibold">
+                      {member.name}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      {member.role}
+                    </p>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
       </main>

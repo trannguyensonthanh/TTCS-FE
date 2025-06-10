@@ -370,7 +370,7 @@ const ProcessRoomRequestPage = () => {
   ) => {
     setSelectedDetailItem(item);
     setProcessingAction(action);
-    // Reset form với giá trị mặc định từ item (nếu có)
+    // Reset form với giá trị mặc định từ item ( )
     formProcess.reset({
       ghiChuCSVC: item.ghiChuCtCSVC || '',
       phongID: undefined,
@@ -769,7 +769,7 @@ const ProcessRoomRequestPage = () => {
                       <FormItem>
                         <FormLabel className="font-semibold">
                           {processingAction === 'DUYET'
-                            ? 'Ghi chú thêm (nếu có)'
+                            ? 'Ghi chú thêm ( )'
                             : 'Lý do từ chối'}
                           {processingAction === 'TU_CHOI' && (
                             <span className="text-destructive">*</span>

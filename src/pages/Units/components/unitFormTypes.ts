@@ -7,19 +7,6 @@ import {
 } from '@/services/donVi.service';
 import * as z from 'zod';
 
-// Lấy LoaiDonVi từ enum bạn đã tạo (ví dụ: src/enums/loaiDonVi.enum.ts)
-// Giả sử LoaiDonVi enum có dạng:
-// export enum LoaiDonViEnum {
-//   KHOA = 'KHOA',
-//   PHONG = 'PHONG',
-//   BAN = 'BAN',
-//   TRUNG_TAM = 'TRUNG_TAM',
-//   BO_MON = 'BO_MON',
-//   CLB = 'CLB',
-//   DOAN_THE = 'DOAN_THE',
-//   CO_SO = 'CO_SO',
-// }
-// Hoặc bạn có thể hardcode mảng các giá trị hợp lệ
 const ALLOWED_LOAI_DON_VI = [
   'KHOA',
   'PHONG',

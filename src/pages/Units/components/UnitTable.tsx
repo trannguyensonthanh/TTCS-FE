@@ -48,7 +48,7 @@ export function UnitTable({
         return 'outline';
       case 'CLB':
       case 'DOAN_THE':
-        return 'destructive'; // Hoặc một màu khác, ví dụ 'warning' nếu có
+        return 'destructive'; // Hoặc một màu khác, ví dụ 'warning'
       case 'BO_MON':
       case 'CO_SO':
         return 'secondary';

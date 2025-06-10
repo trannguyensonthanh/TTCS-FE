@@ -57,7 +57,7 @@ export interface ThietBiTrongPhongInput {
 
 export interface CreatePhongPayload {
   tenPhong: string; // NOT NULL
-  maPhong?: string | null; // UNIQUE nếu có
+  maPhong?: string | null; // UNIQUE
   loaiPhongID: number; // NOT NULL
   sucChua?: number | null;
   trangThaiPhongID: number; // NOT NULL

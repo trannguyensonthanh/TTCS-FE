@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/form';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { DatePicker } from '@/components/ui/date-picker'; // Giả sử bạn có component này
+import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2, UserPlus, Save } from 'lucide-react';
 import { UserFormValues, userFormSchema } from './userFormTypes';
 
@@ -139,7 +139,7 @@ export function UserFormDialog({
         anhDaiDien: ngDung.anhDaiDien || null,
         isActive: ngDung.isActive,
         matKhau: '', // Không hiển thị/sửa mật khẩu ở form này
-        trangThaiTk: editingUser.nguoiDung.isActive ? 'Active' : 'Disabled', // Cần logic map từ TaiKhoan.TrangThaiTk thực tế nếu có
+        trangThaiTk: editingUser.nguoiDung.isActive ? 'Active' : 'Disabled', // Cần logic map từ TaiKhoan.TrangThaiTk thực tế
         loaiNguoiDung: loaiNguoiDung,
         ngaySinh: ngDung.ngaySinh
           ? format(parseISO(ngDung.ngaySinh), 'yyyy-MM-dd')
@@ -198,7 +198,7 @@ export function UserFormDialog({
     if (values.loaiNguoiDung !== LoaiNguoiDungEnum.GIANG_VIEN)
       cleanValues.thongTinGiangVien = null;
 
-    // Chuyển đổi ngày nhập học sang ISO string nếu có
+    // Chuyển đổi ngày nhập học sang ISO string
     if (cleanValues.thongTinSinhVien?.ngayNhapHoc) {
       try {
         // Đảm bảo parseISO nhận đúng định dạng nếu nó là string, hoặc format nếu là Date object
@@ -220,7 +220,7 @@ export function UserFormDialog({
       }
     }
 
-    // Chuyển đổi ngày sinh sang ISO string nếu có
+    // Chuyển đổi ngày sinh sang ISO string
     if (cleanValues.ngaySinh) {
       try {
         const dateObj =

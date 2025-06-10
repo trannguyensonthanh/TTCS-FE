@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/Facilities/CreateRoomRequestPage.tsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom'; // Thêm useSearchParams
@@ -197,7 +196,7 @@ const CreateRoomRequestPage = () => {
   const formCreate = useForm<CreateRoomRequestFormValues>({
     resolver: zodResolver(createRoomRequestSchema),
     defaultValues: {
-      suKienID: eventIdFromQuery || '', // Set suKienID từ query nếu có
+      suKienID: eventIdFromQuery || '', // Set suKienID từ query
       ghiChuChungYc: '',
       chiTietYeuCau: [defaultChiTietYeuCauValue],
     },

@@ -530,7 +530,7 @@ const BuildingsPage = () => {
                     <FormLabel>Mô Tả</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Mô tả ngắn về tòa nhà (nếu có)..."
+                        placeholder="Mô tả ngắn về tòa nhà ( )..."
                         {...field}
                         value={field.value ?? ''}
                       />

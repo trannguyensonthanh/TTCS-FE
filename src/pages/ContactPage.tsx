@@ -55,7 +55,8 @@ const Footer = () => (
         (PTITHCM)
       </p>
       <p className="text-sm text-slate-400 dark:text-gray-500">
-        © {new Date().getFullYear()} PTITHCM. Phát triển bởi [Tên Của Bạn/Nhóm].
+        © {new Date().getFullYear()} PTITHCM. Phát triển bởi Nhóm 7 - Chiến
+        Thần.
       </p>
     </div>
   </footer>

@@ -157,7 +157,7 @@ export function UnitFormDialog({
                   <FormLabel>Mã Đơn Vị</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="VD: CNTT (Nếu có)"
+                      placeholder="VD: CNTT ( )"
                       {...field}
                       value={field.value ?? ''}
                     />
@@ -209,7 +209,7 @@ export function UnitFormDialog({
               name="donViChaID"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Đơn Vị Cha (Nếu có)</FormLabel>
+                  <FormLabel>Đơn Vị Cha ( )</FormLabel>
                   <Select
                     onValueChange={(value) =>
                       field.onChange(value === 'null' ? null : value)

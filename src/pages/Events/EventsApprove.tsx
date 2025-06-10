@@ -179,7 +179,7 @@ const EventsApprove = () => {
     refetch: refetchEventsToApprove,
   } = useManagedEventsList(filterParams, {
     enabled:
-      hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) || hasRole(MaVaiTro.ADMIN_HE_THONG), // Chỉ fetch nếu có quyền
+      hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) || hasRole(MaVaiTro.ADMIN_HE_THONG), // Chỉ fetch   quyền
   });
 
   const {

@@ -524,7 +524,7 @@ const FloorTypesPage = () => {
                     <FormLabel>Mô Tả</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Mô tả ngắn về loại tầng này (nếu có)..."
+                        placeholder="Mô tả ngắn về loại tầng này ( )..."
                         {...field}
                         value={field.value ?? ''}
                       />

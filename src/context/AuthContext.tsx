@@ -136,13 +136,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
   const logout = useCallback(async () => {
     try {
-      // Gọi API logout của backend nếu có
       // await authService.logout(); // authService này cần được tạo
     } catch (error) {
       console.error('Error calling backend logout:', error);
     } finally {
       TokenService.removeUser();
-      TokenService.removeRefreshToken(); // Nếu có lưu refresh token ở client
+      TokenService.removeRefreshToken();
       setUser(null);
       toast.success('Đăng xuất thành công.');
       navigate('/login'); // Điều hướng về trang đăng nhập

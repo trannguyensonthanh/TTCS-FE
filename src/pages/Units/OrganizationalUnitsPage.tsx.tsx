@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { PlusCircle, Loader2, AlertTriangle, ListFilter } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce'; // Giả sử bạn có hook này
+import { useDebounce } from '@/hooks/useDebounce';
 import {
   useDonViList,
   useCreateDonVi,
@@ -88,14 +88,14 @@ function OrganizationalUnitsPage() {
       searchTerm: debouncedSearchTerm, // Sử dụng debouncedSearchTerm ở đây
     },
     {
-      enabled: canManageUnits, // Chỉ fetch nếu có quyền
+      enabled: canManageUnits, // Chỉ fetch   quyền
       staleTime: 5 * 60 * 1000,
     }
   );
 
   const { data: loaiDonViOptions, isLoading: isLoadingLoaiDonVi } =
     useLoaiDonViOptions({
-      enabled: canManageUnits, // Chỉ fetch nếu có quyền
+      enabled: canManageUnits, // Chỉ fetch   quyền
     });
 
   const { data: donViChaOptions, isLoading: isLoadingDonViCha } =

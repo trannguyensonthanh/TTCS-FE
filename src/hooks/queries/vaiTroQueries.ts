@@ -23,7 +23,7 @@ export const VAI_TRO_QUERY_KEYS = {
   lists: () => [...VAI_TRO_QUERY_KEYS.all, 'list'] as const,
   list: (params: GetVaiTroHeThongParams) =>
     [...VAI_TRO_QUERY_KEYS.lists(), params] as const,
-  // details: () => [...VAI_TRO_QUERY_KEYS.all, 'detail'] as const, // Nếu có API chi tiết
+  // details: () => [...VAI_TRO_QUERY_KEYS.all, 'detail'] as const, //   API chi tiết
   // detail: (id: number | string | undefined) => [...VAI_TRO_QUERY_KEYS.details(), id] as const,
 };
 
@@ -86,7 +86,7 @@ export const useUpdateVaiTro = (
     onSuccess: (data) => {
       toast.success(`Đã cập nhật vai trò "${data.tenVaiTro}" thành công.`);
       queryClient.invalidateQueries({ queryKey: VAI_TRO_QUERY_KEYS.lists() });
-      // queryClient.setQueryData(VAI_TRO_QUERY_KEYS.detail(variables.id), data); // Nếu có API chi tiết
+      // queryClient.setQueryData(VAI_TRO_QUERY_KEYS.detail(variables.id), data); //   API chi tiết
       if (options?.onSuccess) options.onSuccess(data, {} as any, undefined); // Bỏ qua variables vì không có id trong payload
     },
     onError: (error: APIError) => {
@@ -108,7 +108,7 @@ export const useDeleteVaiTro = (
     onSuccess: (data, id) => {
       toast.success(data.message || `Đã xóa vai trò ID: ${id}.`);
       queryClient.invalidateQueries({ queryKey: VAI_TRO_QUERY_KEYS.lists() });
-      // queryClient.removeQueries({ queryKey: VAI_TRO_QUERY_KEYS.detail(id) }); // Nếu có API chi tiết
+      // queryClient.removeQueries({ queryKey: VAI_TRO_QUERY_KEYS.detail(id) }); //   API chi tiết
       if (options?.onSuccess) options.onSuccess(data, id, undefined);
     },
     onError: (error: APIError) => {

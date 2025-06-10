@@ -11,7 +11,6 @@ const MaTrangThaiSK = Object.freeze({
   CHO_DUYET_HUY_SAU_DUYET: 'CHO_DUYET_HUY_SAU_DUYET', // Chờ BGH duyệt yêu cầu hủy (sau khi sự kiện đã từng được BGH duyệt)
   DA_HUY: 'DA_HUY', // Sự kiện đã được hủy chính thức (sau khi BGH duyệt hủy)
   HOAN_THANH: 'HOAN_THANH', // Sự kiện đã diễn ra và hoàn thành
-  // Thêm các mã trạng thái sự kiện khác nếu có
 });
 
 export default MaTrangThaiSK;

@@ -96,7 +96,7 @@ const lopHocFormSchema = z.object({
     .refine((val) => val !== '', { message: 'Vui lòng chọn ngành học.' }),
   chuyenNganhID: z.string().optional().nullable(),
   nienKhoa: z.string().max(50, 'Tối đa 50 ký tự.').optional().nullable(),
-  // gvcnID: z.string().optional().nullable(), // Nếu có GVCN
+  // gvcnID: z.string().optional().nullable(), //   GVCN
 });
 type LopHocFormValues = z.infer<typeof lopHocFormSchema>;
 
@@ -152,7 +152,7 @@ const ClassesPage = () => {
     );
   const { data: dsGiangVien, isLoading: isLoadingGVCN } =
     useNguoiDungListForSelect(
-      // Nếu có GVCN
+      //   GVCN
       { maVaiTro: 'GIANG_VIEN', limit: 200 },
       { enabled: isFormModalOpen }
     );
@@ -579,7 +579,7 @@ const ClassesPage = () => {
                   name="chuyenNganhID"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Chuyên Ngành (nếu có)</FormLabel>
+                      <FormLabel>Chuyên Ngành ( )</FormLabel>
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || ''}
@@ -593,7 +593,7 @@ const ClassesPage = () => {
                               placeholder={
                                 isLoadingChuyenNganh
                                   ? 'Tải...'
-                                  : 'Chọn chuyên ngành (nếu có)'
+                                  : 'Chọn chuyên ngành ( )'
                               }
                             />
                           </SelectTrigger>
@@ -634,7 +634,7 @@ const ClassesPage = () => {
                   </FormItem>
                 )}
               />
-              {/* <FormField control={form.control} name="gvcnID" render={...} /> Nếu có quản lý GVCN */}
+              {/* <FormField control={form.control} name="gvcnID" render={...} />   quản lý GVCN */}
               <DialogFooter className="pt-4 border-t mt-2">
                 <DialogClose asChild>
                   <Button type="button" variant="outline">

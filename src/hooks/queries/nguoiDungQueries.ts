@@ -279,7 +279,7 @@ export const useAdminAssignFunctionalRole = (
       }); // Cập nhật chi tiết user để thấy vai trò mới
       queryClient.invalidateQueries({
         queryKey: NGUOI_DUNG_QUERY_KEYS.lists(),
-      }); // Cập nhật danh sách user (nếu có hiển thị vai trò)
+      }); // Cập nhật danh sách user (  hiển thị vai trò)
       if (options?.onSuccess)
         options.onSuccess(data, {} as AssignFunctionalRolePayload, undefined);
     },

@@ -1,4 +1,4 @@
-// src/components/users/ImportUsersDialog.tsx (Hoặc đường dẫn của bạn)
+// src/components/users/ImportUsersDialog.tsx
 
 import React, { useState, useCallback } from 'react';
 import {
@@ -30,7 +30,7 @@ import {
   parseUsersFromExcel,
 } from '@/lib/excelUtils';
 import { cn } from '@/lib/utils';
-import { LoaiNguoiDungEnum } from '@/enums/loaiNguoiDung.enum'; // Bạn cần tạo file enum này
+import { LoaiNguoiDungEnum } from '@/enums/loaiNguoiDung.enum';
 import {
   ImportUserResultItem,
   UserImportRowPayload,

@@ -101,7 +101,7 @@ export const useToaNhaTangListForSelect = (
     queryKey: DANH_MUC_QUERY_KEYS.toaNhaTangForSelect(params),
     queryFn: () => danhMucService.getToaNhaTangListForSelect(params),
     staleTime: 15 * 60 * 1000, // 15 phút, vì có thể có tầng mới được thêm
-    // enabled: !!toaNhaId, // Chỉ fetch nếu có toaNhaId (nếu là param bắt buộc của hook)
+    // enabled: !!toaNhaId, // Chỉ fetch   toaNhaId (nếu là param bắt buộc của hook)
     ...options,
   });
 };

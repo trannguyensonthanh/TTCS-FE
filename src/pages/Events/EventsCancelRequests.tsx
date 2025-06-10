@@ -618,7 +618,6 @@ const EventsCancelRequests = () => {
                     undefined
                   )}
                 />
-                {/* Giả sử suKien trong YC Hủy chỉ có tgBatDauDK, hoặc bạn có thể fetch chi tiết SuKien nếu cần nhiều hơn */}
               </div>
             </ScrollArea>
           ) : (

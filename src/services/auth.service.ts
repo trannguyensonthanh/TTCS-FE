@@ -154,12 +154,7 @@ export interface ResendOtpResponse {
 export const resendOtpApi = async (
   payload: ResendOtpPayload
 ): Promise<ResendOtpResponse> => {
-  // Endpoint này có thể giống forgot-password hoặc là một endpoint riêng
-  // tùy theo thiết kế backend của bạn.
-  // Ví dụ, nếu dùng lại forgot-password:
   return apiHelper.post('/auth/forgot-password', payload);
-  // Hoặc nếu có endpoint riêng:
-  // return apiHelper.post('/auth/resend-otp', payload);
 };
 
 // src/services/auth.service.ts
@@ -209,7 +204,7 @@ export const logoutUser = async (): Promise<{ message: string }> => {
     {},
     {},
     {
-      credentials: 'include', // Gửi cookie (nếu có)
+      credentials: 'include', // Gửi cookie ( )
     }
   ); // apiHelper sẽ tự động gửi token hiện tại
   // Xóa thông tin user và token khỏi localStorage phía client
@@ -227,7 +222,7 @@ export const logoutUserApi = async (token = ''): Promise<any> => {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      credentials: 'include', // Gửi cookie (nếu có)
+      credentials: 'include', // Gửi cookie ( )
       body: JSON.stringify({}), // Không cần body nếu API không yêu cầu
     });
     // Không cần quan tâm nhiều đến kết quả response logout, chỉ cần gọi là chính

@@ -245,7 +245,7 @@ const RoomSchedulePage = () => {
           organizer: item.donViToChuc.tenDonVi,
           roomName: item.phong.tenPhong,
           suKienID: item.suKienID,
-          // participantsCount: item.soLuongThamGiaDuKien, // Nếu có
+          // participantsCount: item.soLuongThamGiaDuKien, //
           maTrangThaiDatPhong: item.maTrangThaiDatPhong,
           originalData: item,
         },

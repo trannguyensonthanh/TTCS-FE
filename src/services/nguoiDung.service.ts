@@ -41,7 +41,6 @@ export interface NguoiDungFullResponse {
   ngayTao: string; // ISO Date string
   isActive: boolean;
   ngaySinh?: string | null;
-  // Các trường khác từ bảng NguoiDung nếu bạn muốn hiển thị
 }
 export interface ThongTinSinhVienInput {
   lopID: number;
@@ -70,7 +69,7 @@ export interface ThongTinSinhVienChiTietResponse {
   heDaoTao?: string | null;
   ngayNhapHoc?: string | null; // ISO Date
   trangThaiHocTap?: string | null;
-  // Các thông tin khác của sinh viên nếu có trong ThongTinSinhVien
+  // Các thông tin khác của sinh viên   trong ThongTinSinhVien
 }
 
 export interface ThongTinGiangVienInput {
@@ -94,7 +93,7 @@ export interface ThongTinGiangVienChiTietResponse {
   hocHam?: string | null;
   chucDanhGD?: string | null;
   chuyenMonChinh?: string | null;
-  // Các thông tin khác của giảng viên nếu có trong ThongTinGiangVien
+  // Các thông tin khác của giảng viên   trong ThongTinGiangVien
 }
 // Thông tin nhân viên khác (nếu cần, đơn giản hóa)
 
@@ -154,7 +153,7 @@ export interface CreateNguoiDungPayload {
   thongTinSinhVien?: ThongTinSinhVienInput | null;
   thongTinGiangVien?: ThongTinGiangVienInput | null;
   // Danh sách VaiTroChucNang ban đầu (Optional)
-  // Mỗi item sẽ có VaiTroID và DonViThucThiID (nếu có)
+  // Mỗi item sẽ có VaiTroID và DonViThucThiID ( )
   vaiTroChucNang?: {
     vaiTroID: number;
     donViID?: number | null;
@@ -175,7 +174,7 @@ export interface UpdateNguoiDungAdminPayload {
   ngaySinh?: string | null; // ISO Date string, có thể null nếu không có
   trangThaiTk?: string; // Default là Active
 
-  // Thông tin hồ sơ (Optional, chỉ gửi nếu có)
+  // Thông tin hồ sơ (Optional, chỉ gửi  )
   thongTinSinhVien?: Partial<ThongTinSinhVienInput> | null; // null để xóa nếu cho phép
   thongTinGiangVien?: Partial<ThongTinGiangVienInput> | null;
 }

@@ -74,7 +74,7 @@ export interface SuKienDetailResponse
   loaiSuKien: {
     loaiSuKienID: number;
     tenLoaiSK: string;
-    maLoaiSK?: string | null; // Nếu có mã loại sự kiện
+    maLoaiSK?: string | null; //   mã loại sự kiện
   } | null; // Có thể null nếu không có loại sự kiện
   lyDoTuChoiBGH?: string | null;
   lyDoHuyNguoiTao?: string | null;
@@ -87,7 +87,7 @@ export interface SuKienDetailResponse
 export interface GetSuKienParams {
   searchTerm?: string;
   trangThaiSkMa?: string;
-  loaiSuKienMa?: string; // Nếu có bảng LoaiSuKien và FE gửi MaLoaiSuKien
+  loaiSuKienMa?: string; //   bảng LoaiSuKien và FE gửi MaLoaiSuKien
   donViChuTriID?: number;
   tuNgay?: string;
   denNgay?: string;
@@ -185,6 +185,7 @@ const getPublicSuKienList = async (
   ) as Promise<PaginatedSuKienResponse>;
 };
 
+// Lấy chi tiết một sự kiện QUẢN LÝ
 const getSuKienDetailForManagement = async (
   suKienID: number | string
 ): Promise<SuKienDetailResponse> => {
@@ -209,6 +210,7 @@ export interface UpdateSuKienTrangThaiResponse {
   suKien: SuKienDetailResponse;
 }
 
+// Cập nhật trạng thái sự kiện
 const updateSuKienTrangThai = async (
   suKienID: number | string,
   payload: UpdateSuKienTrangThaiPayload
@@ -230,6 +232,7 @@ export interface CreateYeuCauHuySKResponse {
   suKienUpdated?: SuKienDetailResponse;
 }
 
+// Tạo yêu cầu hủy sự kiện
 const createYeuCauHuySK = async (
   payload: CreateYeuCauHuySKPayload
 ): Promise<CreateYeuCauHuySKResponse> => {
@@ -239,6 +242,7 @@ const createYeuCauHuySK = async (
   ) as Promise<CreateYeuCauHuySKResponse>;
 };
 
+// Tạo sự kiện mới
 const createSuKien = async (
   payload: CreateSuKienPayload
 ): Promise<CreateSuKienSuccessResponse> => {

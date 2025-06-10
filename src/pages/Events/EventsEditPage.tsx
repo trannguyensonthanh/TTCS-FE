@@ -209,7 +209,7 @@ const EventsEditPage = () => {
       form.reset({
         tenSK: eventToEditData.tenSK,
         loaiSuKienID:
-          eventToEditData.loaiSuKien?.loaiSuKienID?.toString() || undefined, // Nếu có loaiSuKienID trong SuKienDetailResponse
+          eventToEditData.loaiSuKien?.loaiSuKienID?.toString() || undefined, //   loaiSuKienID trong SuKienDetailResponse
         moTaChiTiet: eventToEditData.moTaChiTiet || '',
         ngayBatDau: eventToEditData.tgBatDauDK
           ? parseISO(eventToEditData.tgBatDauDK)
@@ -495,7 +495,7 @@ const EventsEditPage = () => {
                       <FormLabel>Mô tả chi tiết</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Nhập mô tả chi tiết (nếu có)"
+                          placeholder="Nhập mô tả chi tiết ( )"
                           {...field}
                           value={field.value ?? ''}
                         />
@@ -644,7 +644,7 @@ const EventsEditPage = () => {
                           />
                         </FormControl>
                         <FormDescription>
-                          Không bắt buộc, chỉ nhập nếu có dự kiến số lượng.
+                          Không bắt buộc, chỉ nhập dự kiến số lượng.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -757,7 +757,7 @@ const EventsEditPage = () => {
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Chọn người chủ trì nội bộ (nếu có).
+                        Chọn người chủ trì nội bộ ( ).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -795,7 +795,7 @@ const EventsEditPage = () => {
                         <FormLabel>Đơn vị chủ trì ngoài</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Nhập đơn vị chủ trì ngoài (nếu có)"
+                            placeholder="Nhập đơn vị chủ trì ngoài ( )"
                             {...field}
                             value={field.value ?? ''}
                           />
@@ -879,7 +879,7 @@ const EventsEditPage = () => {
                         </ScrollArea>
                       </div>
                       <FormDescription>
-                        Chọn các đơn vị sẽ tham gia sự kiện (nếu có).
+                        Chọn các đơn vị sẽ tham gia sự kiện ( ).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -895,7 +895,7 @@ const EventsEditPage = () => {
                       <FormLabel>Ghi chú khách mời ngoài</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Nhập ghi chú về khách mời ngoài (nếu có)"
+                          placeholder="Nhập ghi chú về khách mời ngoài ( )"
                           {...field}
                           value={field.value ?? ''}
                         />

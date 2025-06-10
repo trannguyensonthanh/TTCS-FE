@@ -70,7 +70,7 @@
   background-color: hsla(var(--primary-rgb), 0.15);
 }
 
-/* Header Toolbar (Nếu bạn quyết định dùng headerToolbar của FullCalendar thay vì tự tạo) */
+/* Header Toolbar */
 .fc-theme-ptit .fc-toolbar-title {
   font-size: 1.5em; /* To hơn một chút */
   font-weight: 600;
@@ -197,7 +197,7 @@
   color: hsl(var(--primary-foreground));
 }
 
-/* Custom Event Colors (Ví dụ - bạn có thể định nghĩa các class này cho từng event) */
+/* Custom Event Colors  */
 .fc-theme-ptit .fc-event.event-category-hoc-thuat {
   background-color: hsl(var(--ptit-blue)); /* Giả sử có biến màu này */
   border-color: hsl(var(--ptit-blue-darker));

@@ -55,7 +55,7 @@ export function UserTable({
   canManageRolesForUser,
 }: UserTableProps) {
   const navigate = useNavigate();
-  // Giả sử bạn có hàm useNavigate từ react-router-dom
+
   return (
     <div className="rounded-md border shadow-sm bg-card dark:border-slate-800 overflow-x-auto">
       <Table>

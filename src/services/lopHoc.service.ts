@@ -28,7 +28,7 @@ export interface PaginatedLopHocResponse {
 
 export interface CreateLopHocPayload {
   tenLop: string; // NOT NULL
-  maLop?: string | null; // UNIQUE nếu có
+  maLop?: string | null; // UNIQUE
   nganhHocID: number; // NOT NULL
   chuyenNganhID?: number | null; // Phải thuộc nganhHocID đã chọn
   nienKhoa?: string | null;

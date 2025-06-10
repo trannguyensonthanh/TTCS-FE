@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Home, Search, FileWarning, ArrowLeft } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { PTITLogo } from '@/assets/logo'; // Giả sử bạn có logo PTIT
+import { PTITLogo } from '@/assets/logo';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher'; // Nếu muốn có theme switcher ở đây
 import {
   Card,
@@ -57,7 +57,7 @@ const NotFound: React.FC = () => {
               <FileWarning className="w-20 h-20 text-ptit-red mx-auto mb-6 opacity-80" />
               {/* Hoặc một illustration đẹp hơn */}
               {/* <img
-                src="/src/assets/not-found-illustration.jpg" // Thay bằng đường dẫn đến illustration của bạn
+                src="/src/assets/not-found-illustration.jpg" 
                 alt="Page Not Found Illustration"
                 className="w-48 h-48 mx-auto mb-6"
                 // Hoặc dùng SVG inline
@@ -82,7 +82,7 @@ const NotFound: React.FC = () => {
                 type="search"
                 placeholder="Thử tìm kiếm lại..."
                 className="pl-10 h-11 text-base rounded-full shadow-inner"
-                // Logic tìm kiếm thực tế cần được thêm vào nếu bạn muốn có chức năng này
+
                 // Ví dụ: onKeyPress={(e) => { if(e.key === 'Enter') navigate(`/search?q=${e.currentTarget.value}`) }}
               />
             </div>

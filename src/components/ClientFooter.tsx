@@ -182,9 +182,9 @@ export const ClientFooter = () => {
             TP. Hồ Chí Minh.
             <br className="sm:hidden" /> Bảo lưu mọi quyền.
           </p>
-          {/* <p className="text-xs mt-2">
-            Phát triển bởi [Tên Nhóm/Bạn] với ❤️
-          </p> */}
+          <p className="text-xs mt-2">
+            Phát triển bởi Nhóm 7 - Chiến Thần với ❤️
+          </p>
         </div>
       </div>
     </footer>

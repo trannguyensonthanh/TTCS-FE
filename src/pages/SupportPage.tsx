@@ -300,7 +300,7 @@ const SupportPage = () => {
               </p>
             </motion.div>
 
-            {isLoading ? ( // Giả định isLoading là của việc fetch FAQ nếu có
+            {isLoading ? ( // Giả định isLoading là của việc fetch FAQ
               <div className="text-center">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>

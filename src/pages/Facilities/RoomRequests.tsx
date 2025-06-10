@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Giả sử đường dẫn file là: src/pages/Facilities/RoomRequests.tsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -1052,7 +1051,7 @@ const RoomRequestsPage = () => {
               <div className="space-y-2">
                 <Label htmlFor="processingReason" className="font-semibold">
                   {processingAction === 'DUYET'
-                    ? 'Ghi chú thêm (nếu có)'
+                    ? 'Ghi chú thêm ( )'
                     : 'Lý do từ chối'}
                   {processingAction === 'TU_CHOI' && (
                     <span className="text-destructive">*</span>

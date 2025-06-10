@@ -920,7 +920,7 @@ const RoomChangeRequestsPage = () => {
                   />
                   <Separator className="my-4 !mt-6 !mb-3" />
                   <p className="font-semibold text-sm text-muted-foreground mb-1">
-                    Yêu cầu cho phòng mới (nếu có):
+                    Yêu cầu cho phòng mới ( ):
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-5">
                     <FormField
@@ -1342,7 +1342,7 @@ const RoomChangeRequestsPage = () => {
                   className="font-semibold"
                 >
                   {processingActionChange === 'DUYET'
-                    ? 'Ghi chú thêm (nếu có)'
+                    ? 'Ghi chú thêm ( )'
                     : 'Lý do từ chối'}
                   {processingActionChange === 'TU_CHOI' && (
                     <span className="text-destructive">*</span>

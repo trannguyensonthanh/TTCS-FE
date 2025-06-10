@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// src/utils/excelHelper.ts (Hoặc tên file của bạn)
+// src/utils/excelHelper.ts
 
 import * as XLSX from 'xlsx';
 import { UserImportRowPayload } from '@/services/nguoiDung.service'; // Import payload từ service
@@ -201,7 +201,7 @@ export const parseUsersFromExcel = (
               ? ngaySinhDate.toISOString().split('T')[0]
               : undefined;
 
-            // Chuyển đổi ngày nhập học sang định dạng ISO string nếu có
+            // Chuyển đổi ngày nhập học sang định dạng ISO string
             if (userObject.ngayNhapHoc) {
               const ngayNhapHocDate = new Date(userObject.ngayNhapHoc);
               if (!isNaN(ngayNhapHocDate.getTime())) {

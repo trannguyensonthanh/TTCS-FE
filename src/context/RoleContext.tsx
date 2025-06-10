@@ -7,10 +7,9 @@ import React, {
   useCallback,
 } from 'react';
 import { useAuth, UserForContext } from './AuthContext';
-import MaVaiTro from '@/enums/maVaiTro.enum'; // Import hằng số MaVaiTro bạn đã định nghĩa
+import MaVaiTro from '@/enums/maVaiTro.enum';
 
 // Định nghĩa các action và resource có thể có trong hệ thống
-// Bạn cần mở rộng danh sách này cho đầy đủ các chức năng
 type Action =
   | 'view'
   | 'create'
@@ -41,7 +40,7 @@ type Resource =
   | 'ThongBao'
   | 'DashboardTongQuan'
   | 'DashboardDonVi' // Cho TK, TCLB, BTĐ
-  | 'ThanhVienCLB' // Nếu có chức năng quản lý thành viên CLB
+  | 'ThanhVienCLB'
   | 'SK_MoiThamGia'; // Thêm SK_MoiThamGia để khớp với logic phía dưới
 
 interface RoleContextType {
@@ -171,7 +170,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
               return true;
             break;
 
-          // Các vai trò khác nếu có...
+          // Các vai trò khác  ...
         }
       }
 

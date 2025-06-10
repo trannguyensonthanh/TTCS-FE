@@ -851,7 +851,7 @@ const EventsNew = () => {
                               <CommandGroup>
                                 {(dsDonViThamGiaOptions || dsDonVi)?.items.map(
                                   (
-                                    dv // Ưu tiên dsDonViThamGiaOptions nếu có search term
+                                    dv // Ưu tiên dsDonViThamGiaOptions   search term
                                   ) => (
                                     <CommandItem
                                       key={dv.donViID}
@@ -893,7 +893,7 @@ const EventsNew = () => {
                       </Popover>
                       <FormDescription>
                         Chọn các Khoa, Phòng, Ban, CLB... được chỉ định tham gia
-                        (nếu có).
+                        ( ).
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -907,7 +907,7 @@ const EventsNew = () => {
                       <FormLabel>Ghi chú về khách mời ngoài Học viện</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Liệt kê các khách mời quan trọng từ bên ngoài (nếu có), vai trò của họ..."
+                          placeholder="Liệt kê các khách mời quan trọng từ bên ngoài ( ), vai trò của họ..."
                           className="min-h-[100px]"
                           {...field}
                           value={field.value ?? ''}

@@ -97,11 +97,11 @@ const deleteChuyenNganh = async (
 };
 
 const chuyenNganhService = {
-  getChuyenNganhListByNganh,
-  getChuyenNganhDetail,
-  createChuyenNganhForNganh,
-  updateChuyenNganh,
-  deleteChuyenNganh,
+  getChuyenNganhListByNganh, // Lấy danh sách chuyên ngành theo ngành
+  getChuyenNganhDetail, // Lấy chi tiết chuyên ngành
+  createChuyenNganhForNganh, // Tạo chuyên ngành mới cho ngành
+  updateChuyenNganh, // Cập nhật chuyên ngành
+  deleteChuyenNganh, // Xóa chuyên ngành
 };
 
 export default chuyenNganhService;

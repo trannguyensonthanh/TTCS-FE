@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
-import { VaiTroChucNangResponse } from '@/services/auth.service'; // Hoặc types của bạn
+import { VaiTroChucNangResponse } from '@/services/auth.service';
 import { UserTable } from './components/UserTable';
 import { UserFilters } from './components/UserFilters';
 import { AssignRoleDialog } from './components/AssignRoleDialog';
@@ -47,7 +47,7 @@ import {
 } from '@/components/ui/dialog';
 import { useDonViList } from '@/hooks/queries/donViQueries';
 import { useVaiTroList } from '@/hooks/queries/vaiTroQueries';
-import ImportUsersDialog from '@/components/users/ImportUsersDialog'; // Import component của bạn
+import ImportUsersDialog from '@/components/users/ImportUsersDialog';
 import {
   useAdminUpdateUserAccountStatus,
   useUserManagementList,
@@ -233,7 +233,7 @@ function UsersPage() {
         anhDaiDien: userItem.anhDaiDien,
         isActive: userItem.isActive,
         ngayTao: userItem.ngayTao,
-        // Thêm các trường còn thiếu của NguoiDungFullResponse nếu có
+        // Thêm các trường còn thiếu của NguoiDungFullResponse
       },
       thongTinSinhVien: userItem._rawThongTinSinhVien || null,
       thongTinGiangVien: userItem._rawThongTinGiangVien || null,

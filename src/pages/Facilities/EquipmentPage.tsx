@@ -425,7 +425,7 @@ const EquipmentPage = () => {
                   </FormItem>
                 )}
               />
-              {/* Thêm Checkbox cho IsActive nếu có */}
+              {/* Thêm Checkbox cho IsActive   */}
               <DialogFooter className="pt-4">
                 <DialogClose asChild>
                   <Button type="button" variant="outline">

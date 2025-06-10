@@ -20,9 +20,8 @@ export interface DonViListItem {
   tenLoaiDonVi?: string; // Tên hiển thị của loại đơn vị (Backend có thể join hoặc FE tự map)
   donViCha?: DonViChaInfo | null;
   soLuongDonViCon?: number; // Số lượng đơn vị con trực tiếp
-  soLuongThanhVien?: number; // Số lượng người dùng (GV, SV, NV) thuộc đơn vị này (nếu có và cần thiết)
+  soLuongThanhVien?: number; // Số lượng người dùng (GV, SV, NV) thuộc đơn vị này (  và cần thiết)
   moTaDv?: string | null;
-  // Thêm các thông tin khác nếu cần cho danh sách
 }
 
 export interface CreateDonViPayload {
@@ -70,6 +69,8 @@ export interface PaginatedDonViResponse {
   totalItems: number;
   pageSize: number; // Thêm pageSize để biết limit hiện tại
 }
+
+// Lấy danh sách đơn vị với phân trang và lọc
 const getDonViList = async (
   params?: GetDonViParams
 ): Promise<PaginatedDonViResponse> => {
@@ -79,14 +80,17 @@ const getDonViList = async (
   ) as Promise<PaginatedDonViResponse>;
 };
 
+// Lấy chi tiết đơn vị theo ID
 const getDonViDetail = (donViId: number | string): Promise<DonViDetail> => {
   return apiHelper.get(`/donvi/${Number(donViId)}`);
 };
 
+// Tạo đơn vị mới
 const createDonVi = (payload: CreateDonViPayload): Promise<DonViDetail> => {
   return apiHelper.post('/donvi', payload);
 };
 
+// Cập nhật thông tin đơn vị
 const updateDonVi = (
   donViId: number | string,
   payload: UpdateDonViPayload
@@ -94,16 +98,19 @@ const updateDonVi = (
   return apiHelper.put(`/donvi/${Number(donViId)}`, payload);
 };
 
+// Xoá đơn vị theo ID
 const deleteDonVi = (
   donViId: number | string
 ): Promise<{ message: string }> => {
   return apiHelper.delete(`/donvi/${Number(donViId)}`);
 };
 
+// Lấy danh sách loại đơn vị (VD: KHOA, PHONG) cho Select
 const getLoaiDonViOptions = (): Promise<LoaiDonViOption[]> => {
   return apiHelper.get('/danhmuc/loai-don-vi');
 };
 
+// Lấy danh sách đơn vị cha (VD: Khoa, Phòng) cho Select
 const getDonViChaOptions = (
   excludeDonViId?: number
 ): Promise<DonViSelectOption[]> => {
@@ -113,11 +120,11 @@ const getDonViChaOptions = (
 };
 
 export const donViService = {
-  getDonViList,
-  getDonViDetail,
-  createDonVi,
-  updateDonVi,
-  deleteDonVi,
-  getLoaiDonViOptions,
-  getDonViChaOptions,
+  getDonViList, // Lấy danh sách đơn vị
+  getDonViDetail, // Lấy chi tiết đơn vị
+  createDonVi, // Tạo đơn vị mới
+  updateDonVi, // Cập nhật thông tin đơn vị
+  deleteDonVi, // Xoá đơn vị theo ID
+  getLoaiDonViOptions, // Lấy danh sách loại đơn vị (VD: KHOA, PHONG) cho Select
+  getDonViChaOptions, // Lấy danh sách đơn vị cha (VD: Khoa, Phòng) cho Select
 };

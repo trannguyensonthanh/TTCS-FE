@@ -14,10 +14,7 @@ import authService, {
   ResendOtpResponse,
 } from '@/services/auth.service';
 import { APIError } from '@/services/apiHelper';
-import {
-  useAuth,
-  UserForContext, // Đảm bảo UserForContext được export từ AuthContext
-} from '@/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { toast } from '@/components/ui/sonner';
 
 // --- Login Hook ---
@@ -25,7 +22,6 @@ export const useLogin = (
   options?: UseMutationOptions<LoginSuccessResponse, APIError, LoginCredentials>
 ) => {
   const { login: contextLogin } = useAuth();
-  // const navigate = useNavigate(); // Điều hướng sẽ do AuthContext xử lý
 
   return useMutation<LoginSuccessResponse, APIError, LoginCredentials>({
     mutationFn: authService.loginApi,
@@ -35,7 +31,7 @@ export const useLogin = (
       contextLogin(data, data.tokens.accessToken, data.tokens.refreshToken);
       // Toast success đã có trong contextLogin
       if (options?.onSuccess) {
-        options.onSuccess(data, {} as LoginCredentials, undefined); // Gọi lại onSuccess từ options nếu có
+        options.onSuccess(data, {} as LoginCredentials, undefined); // Gọi lại onSuccess từ options
       }
     },
     onError: (error: APIError) => {
@@ -47,7 +43,7 @@ export const useLogin = (
         options.onError(error, {} as LoginCredentials, undefined);
       }
     },
-    ...options, // Spread các options khác từ bên ngoài nếu có
+    ...options, // Spread các options khác từ bên ngoài
   });
 };
 

@@ -85,7 +85,7 @@ function RolesPage() {
       searchTerm: debouncedSearchTerm,
     },
     {
-      enabled: canManageRoles, // Chỉ fetch nếu có quyền
+      enabled: canManageRoles, // Chỉ fetch   quyền
       staleTime: 5 * 60 * 1000,
     }
   );

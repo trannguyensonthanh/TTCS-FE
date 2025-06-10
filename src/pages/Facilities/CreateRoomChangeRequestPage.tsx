@@ -121,7 +121,7 @@ const CreateRoomChangeRequestPage = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-  const initialBookedRoomId = searchParams.get('bookedRoomId'); // Lấy ID phòng đã đặt từ URL nếu có
+  const initialBookedRoomId = searchParams.get('bookedRoomId'); // Lấy ID phòng đã đặt từ URL
 
   const [selectedBookedRoomForChange, setSelectedBookedRoomForChange] =
     useState<ChiTietDatPhongForSelect | null>(null);
@@ -157,7 +157,7 @@ const CreateRoomChangeRequestPage = () => {
       queryClient.invalidateQueries({
         queryKey: ROOM_CHANGE_REQUEST_QUERY_KEYS.lists(),
       });
-      // Invalidate chi tiết yêu cầu mượn phòng gốc để cập nhật trạng thái (nếu có)
+      // Invalidate chi tiết yêu cầu mượn phòng gốc để cập nhật trạng thái ( )
       if (selectedBookedRoomForChange?.ycMuonPhongCtID) {
         // Cần tìm ra YcMuonPhongID (header) từ ycMuonPhongCtID để invalidate đúng
         // Giả sử API trả về thông tin này hoặc có cách lấy được
@@ -172,7 +172,7 @@ const CreateRoomChangeRequestPage = () => {
     },
   });
 
-  // Effect để tự động chọn phòng nếu có initialBookedRoomId từ URL
+  // Effect để tự động chọn phòng   initialBookedRoomId từ URL
   useEffect(() => {
     if (initialBookedRoomId && myBookedRooms && myBookedRooms.length > 0) {
       const roomToSelect = myBookedRooms.find(

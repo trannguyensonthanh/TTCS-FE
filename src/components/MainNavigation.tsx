@@ -253,7 +253,7 @@
 //             label: 'Quản lý Tòa Nhà',
 //             href: '/units/buildings', // Hoặc /admin/buildings
 //             icon: Building, // Icon Building đã có
-//             activePaths: ['/units/buildings'], // Bao gồm cả trang con nếu có
+//             activePaths: ['/units/buildings'], // Bao gồm cả trang con
 //             allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC], // CSVC có thể được xem
 //           },
 //           {
@@ -399,7 +399,7 @@
 //             title={subItem.label}
 //             icon={subItem.icon}
 //           >
-//             {/* Mô tả ngắn cho subItem nếu có */}
+//             {/* Mô tả ngắn cho subItem   */}
 //           </ListItem>
 //         ))}
 //       </ul>

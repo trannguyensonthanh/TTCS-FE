@@ -9,7 +9,7 @@
 | **Tên cột** | **Kiểu dữ liệu** | **Ràng buộc/Ghi chú**                          |
 | ----------- | ---------------- | ---------------------------------------------- |
 | NguoiDungID | INT              | PRIMARY KEY, IDENTITY(1,1)                     |
-| MaDinhDanh  | VARCHAR(50)      | UNIQUE, NULL (Mã nhân sự/SV chung nếu có)      |
+| MaDinhDanh  | VARCHAR(50)      | UNIQUE, NULL (Mã nhân sự/SV chung )            |
 | HoTen       | NVARCHAR(150)    | NOT NULL                                       |
 | Email       | VARCHAR(150)     | UNIQUE, NOT NULL                               |
 | SoDienThoai | VARCHAR(20)      | UNIQUE, NULL                                   |
@@ -847,6 +847,7 @@ return null;
 if (isLoading && !notifications.length && !isFetching) {
 return (
 <DashboardLayout pageTitle="Thông Báo Của Bạn">
+
 <div className="flex justify-center items-center h-[calc(100vh-12rem)]">
 <Loader2 className="h-12 w-12 animate-spin text-primary" />
 </div>
@@ -870,6 +871,7 @@ Trung Tâm Thông Báo
 Xem lại tất cả các thông báo và cập nhật quan trọng từ hệ thống.
 </CardDescription>
 <Separator className="my-4" />
+
 <div className="flex items-center justify-between">
 <div className="text-sm text-muted-foreground">
 Tổng số thông báo: {paginatedNotifications?.totalItems || 0}

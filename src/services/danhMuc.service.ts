@@ -175,6 +175,7 @@ export interface GetNganhHocForSelectParams {
   limit?: number; // Mặc định lấy hết hoặc một số lượng lớn (vd: 200)
 }
 
+// Lấy danh sách Ngành Học cho Select
 const getNganhHocListForSelect = async (
   params?: GetNganhHocForSelectParams
 ): Promise<NganhHocResponseMin[]> => {
@@ -190,6 +191,7 @@ export interface GetChuyenNganhForSelectParams {
   limit?: number;
 }
 
+// Lấy danh sách Chuyên Ngành cho Select theo Ngành Học ID
 const getChuyenNganhListForSelectByNganh = async (
   nganhHocId: number,
   params?: GetChuyenNganhForSelectParams
@@ -201,13 +203,13 @@ const getChuyenNganhListForSelectByNganh = async (
 };
 
 const danhMucService = {
-  getLoaiPhongList,
-  getPhongListForSelect,
-  getTrangThaiPhongList,
-  getToaNhaTangListForSelect,
-  getTrangThietBiListForSelect,
-  getNganhHocListForSelect,
-  getChuyenNganhListForSelectByNganh,
+  getLoaiPhongList, // Lấy danh sách loại phòng
+  getPhongListForSelect, // Lấy danh sách phòng cho Select
+  getTrangThaiPhongList, // Lấy danh sách trạng thái phòng
+  getToaNhaTangListForSelect, // Lấy danh sách tòa nhà tầng cho Select
+  getTrangThietBiListForSelect, // Lấy danh sách trang thiết bị cho Select
+  getNganhHocListForSelect, // Lấy danh sách ngành học cho Select
+  getChuyenNganhListForSelectByNganh, // Lấy danh sách chuyên ngành theo ngành học ID
 };
 
 export default danhMucService;

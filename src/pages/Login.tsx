@@ -69,8 +69,7 @@ const Login: React.FC = () => {
   const onSubmit = async (data: LoginFormValues) => {
     try {
       await loginMutation.mutateAsync(data); // mutateAsync để có thể await
-      // AuthContext sẽ xử lý việc lưu user và token, sau đó điều hướng
-      // Hoặc bạn có thể điều hướng ở đây sau khi loginMutation.onSuccess được gọi trong hook
+      // AuthContext sẽ xử lý việc lưu user và token, sau đó điều hướng về trang chủ
       // navigate('/'); // Chuyển về hook useLogin để xử lý điều hướng sau khi AuthContext cập nhật xong
     } catch (error: any) {
       // Lỗi đã được toast trong useLogin hoặc AuthContext, không cần toast lại ở đây trừ khi muốn custom
@@ -289,5 +288,5 @@ const MOCK_USERS_FOR_DEMO_DISPLAY: Record<string, unknown> = {
   // 'student@example.com': {},
   // 'lecturer@example.com': {},
   'sonthanh12345678910@gmail.com': 'union',
-  // 'secretary@example.com': {} // Bạn có thể thêm lại nếu cần
+  // 'secretary@example.com': {}
 };

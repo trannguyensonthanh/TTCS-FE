@@ -29,7 +29,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { DatePicker } from '@/components/ui/date-picker'; // Giả sử bạn có component này
+import { DatePicker } from '@/components/ui/date-picker';
 import { Loader2, UserCog, CalendarDays } from 'lucide-react';
 import { AssignRoleFormValues, assignRoleFormSchema } from './userFormTypes'; // Lấy từ file types đã tạo
 
@@ -80,7 +80,7 @@ export function AssignRoleDialog({
     userToAssignRole?.nguoiDungID || 0
   ); // Cần NguoiDungID
   const updateAssignedRoleMutation = useAdminUpdateAssignedRole();
-  // const removeAssignedRoleMutation = useAdminRemoveAssignedRole(); // Sẽ dùng nếu có nút xóa trực tiếp ở đây
+  // const removeAssignedRoleMutation = useAdminRemoveAssignedRole(); // Sẽ dùng   nút xóa trực tiếp ở đây
 
   // Data cho Selects
   const { data: dsVaiTro, isLoading: isLoadingVaiTro } = useVaiTroList(
@@ -186,7 +186,7 @@ export function AssignRoleDialog({
           ? ` tại ${existingRoleAssignment.donViThucThi.tenDonVi}`
           : ''
       }.`
-    : 'Chọn vai trò chức năng, đơn vị thực thi (nếu có) và thời gian hiệu lực.';
+    : 'Chọn vai trò chức năng, đơn vị thực thi ( ) và thời gian hiệu lực.';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -255,7 +255,7 @@ export function AssignRoleDialog({
                     name="donViID"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Đơn Vị Thực Thi (nếu có)</FormLabel>
+                        <FormLabel>Đơn Vị Thực Thi ( )</FormLabel>
                         <Select
                           onValueChange={(val) =>
                             field.onChange(val === 'null' ? null : val)
@@ -348,7 +348,7 @@ export function AssignRoleDialog({
                         <FormLabel>Ghi Chú</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Ghi chú thêm về việc gán vai trò này (nếu có)..."
+                            placeholder="Ghi chú thêm về việc gán vai trò này ( )..."
                             className="resize-y min-h-[80px]"
                             {...field}
                             value={field.value ?? ''}

@@ -382,7 +382,7 @@ const EventsPublic = () => {
     if (key === 'loaiSuKienMa') {
       setFilterLoaiSuKien(value);
     }
-    // Nếu có thêm filter khác, xử lý tại đây
+    //   thêm filter khác, xử lý tại đây
   }
 
   function handleSearchInputChange(
@@ -752,7 +752,7 @@ const EventsPublic = () => {
                     </div>
                   </div>
                 )}
-                {/* Nút đăng ký tham gia (nếu có) */}
+                {/* Nút đăng ký tham gia ( ) */}
                 {/* <div className="pt-4">
                 <Button className="w-full sm:w-auto">
                   <Ticket className="mr-2 h-5 w-5"/> Đăng ký tham gia
