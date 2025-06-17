@@ -174,7 +174,33 @@ const eventFormSchema = z
         'Vui lòng cung cấp thông tin Người chủ trì (nội bộ hoặc bên ngoài).',
       path: ['nguoiChuTriID'], // Gán lỗi cho một trong hai trường
     }
-  );
+  )
+  .superRefine((data, ctx) => {
+    // Nếu có tenChuTriNgoai hoặc donViChuTriNgoai thì phải có cả hai
+    if (
+      (data.tenChuTriNgoai && !data.donViChuTriNgoai) ||
+      (!data.tenChuTriNgoai && data.donViChuTriNgoai)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Nếu nhập tên chủ trì ngoài thì phải nhập cả đơn vị chủ trì ngoài (và ngược lại).',
+        path: ['donViChuTriNgoai'],
+      });
+    }
+    // Không được phép có cả nguoiChuTriID và tenChuTriNgoai/donViChuTriNgoai
+    if (
+      (data.nguoiChuTriID && (data.tenChuTriNgoai || data.donViChuTriNgoai)) ||
+      (!data.nguoiChuTriID && !data.tenChuTriNgoai && !data.donViChuTriNgoai)
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          'Chỉ được chọn 1 trong 2: Người chủ trì nội bộ hoặc nhập thông tin chủ trì ngoài.',
+        path: ['nguoiChuTriID'],
+      });
+    }
+  });
 
 type EventFormValues = z.infer<typeof eventFormSchema>;
 
@@ -295,6 +321,24 @@ const EventsNew = () => {
       setSeconds(setMinutes(setHours(ngayKetThuc, hK), mK), 0),
       0
     );
+    // Xử lý loại bỏ các trường không hợp lệ trước khi gửi payload
+    let nguoiChuTriID = data.nguoiChuTriID;
+    let tenChuTriNgoai = data.tenChuTriNgoai;
+    let donViChuTriNgoai = data.donViChuTriNgoai;
+    // Nếu có nguoiChuTriID thì xóa luôn tenChuTriNgoai và donViChuTriNgoai
+    if (nguoiChuTriID) {
+      tenChuTriNgoai = undefined;
+      donViChuTriNgoai = undefined;
+    }
+    // Nếu có tenChuTriNgoai hoặc donViChuTriNgoai thì xóa luôn nguoiChuTriID
+    if (tenChuTriNgoai || donViChuTriNgoai) {
+      nguoiChuTriID = undefined;
+      // Nếu 1 trong 2 bị rỗng thì xóa cả hai
+      if (!tenChuTriNgoai || !donViChuTriNgoai) {
+        tenChuTriNgoai = undefined;
+        donViChuTriNgoai = undefined;
+      }
+    }
     const payload: CreateSuKienPayload = {
       tenSK: data.tenSK,
       tgBatDauDK: formatISO(tgBatDauDKFull),
@@ -303,12 +347,10 @@ const EventsNew = () => {
         ? parseInt(data.loaiSuKienID, 10)
         : undefined,
       donViChuTriID: parseInt(data.donViChuTriID, 10),
-      nguoiChuTriID: data.nguoiChuTriID
-        ? parseInt(data.nguoiChuTriID, 10)
-        : undefined,
+      nguoiChuTriID: nguoiChuTriID ? parseInt(nguoiChuTriID, 10) : undefined,
       moTaChiTiet: data.moTaChiTiet ?? undefined,
-      tenChuTriNgoai: data.tenChuTriNgoai ?? undefined,
-      donViChuTriNgoai: data.donViChuTriNgoai ?? undefined,
+      tenChuTriNgoai: tenChuTriNgoai ?? undefined,
+      donViChuTriNgoai: donViChuTriNgoai ?? undefined,
       cacDonViThamGiaIDs: data.cacDonViThamGiaIDs?.map((idStr) =>
         parseInt(idStr, 10)
       ),
@@ -622,7 +664,7 @@ const EventsNew = () => {
                       <Select
                         onValueChange={field.onChange}
                         value={field.value || ''} // Đảm bảo value không phải undefined cho Select
-                        disabled={isLoadingDonVi || !!defaultDonViChuTri} // Disable nếu đã có đơn vị mặc định theo vai trò
+                        disabled={isLoadingDonVi} // Disable nếu đã có đơn vị mặc định theo vai trò
                       >
                         <FormControl>
                           <SelectTrigger>
