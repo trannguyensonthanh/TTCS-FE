@@ -7,7 +7,6 @@ const MaVaiTro = Object.freeze({
   TRUONG_KHOA: 'TRUONG_KHOA',
   TRUONG_CLB: 'TRUONG_CLB',
   BI_THU_DOAN: 'BI_THU_DOAN',
-
   SINH_VIEN: 'SINH_VIEN',
   GIANG_VIEN: 'GIANG_VIEN',
 });

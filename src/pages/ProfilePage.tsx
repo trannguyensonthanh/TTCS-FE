@@ -124,6 +124,7 @@ const ProfilePage = () => {
   const displayThongTinGiangVien = userProfile?.thongTinGiangVien;
   const displayVaiTroChucNang =
     userProfile?.vaiTroChucNang || authUser?.vaiTroChucNang || [];
+  console.log('displayVaiTroChucNang:', userProfile);
 
   const getInitials = (name?: string | null) => {
     if (!name || typeof name !== 'string') return 'U';

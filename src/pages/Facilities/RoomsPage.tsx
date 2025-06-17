@@ -247,7 +247,7 @@ const RoomsPage = () => {
   const { data: dsTrangThaiPhong, isLoading: isLoadingTrangThaiPhong } =
     useTrangThaiPhongList({ limit: 50 }, { enabled: true });
   const { data: dsToaNhaTang, isLoading: isLoadingToaNhaTang } =
-    useToaNhaTangListForSelect({ limit: 200 }, { enabled: true }); // Always enabled, avoid referencing dsToaNhaTang before declaration
+    useToaNhaTangListForSelect({ limit: 100 }, { enabled: true }); // Always enabled, avoid referencing dsToaNhaTang before declaration
   const { data: dsTrangThietBi, isLoading: isLoadingTrangThietBi } =
     useTrangThietBiListForSelect({ limit: 199 }, { enabled: isFormModalOpen });
 

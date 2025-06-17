@@ -159,7 +159,7 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
           )}
         </div>
       </CardHeader>
-      <CardContent className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1">
+      <CardContent className="p-6 grid grid-cols-1 gap-y-1">
         <InfoRow
           icon={Mail}
           label="Email"
@@ -172,48 +172,50 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
             </a>
           }
         />
-        <InfoRow
-          icon={Phone}
-          label="Số điện thoại"
-          value={nguoiDung.soDienThoai || 'Chưa cập nhật'}
-        />
-        <InfoRow
-          icon={Fingerprint}
-          label="Tên đăng nhập"
-          value={taiKhoan.tenDangNhap}
-        />
-        <InfoRow
-          icon={ShieldCheck}
-          label="Trạng thái tài khoản"
-          value={getTrangThaiTkBadge()}
-        />
-        <InfoRow
-          icon={CalendarDays}
-          label="Ngày tạo người dùng"
-          value={format(parseISO(nguoiDung.ngayTao), 'dd/MM/yyyy HH:mm', {
-            locale: vi,
-          })}
-        />
-        <InfoRow
-          icon={CalendarDays}
-          label="Ngày tạo tài khoản"
-          value={format(parseISO(taiKhoan.ngayTaoTk), 'dd/MM/yyyy HH:mm', {
-            locale: vi,
-          })}
-        />
-        {taiKhoan.lanDangNhapCuoi &&
-          isValid(parseISO(taiKhoan.lanDangNhapCuoi)) && (
-            <InfoRow
-              icon={Clock}
-              label="Đăng nhập cuối"
-              value={format(
-                parseISO(taiKhoan.lanDangNhapCuoi),
-                'dd/MM/yyyy HH:mm:ss',
-                { locale: vi }
-              )}
-              valueClassName="md:col-span-2"
-            />
-          )}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 mt-2">
+          <InfoRow
+            icon={Phone}
+            label="Số điện thoại"
+            value={nguoiDung.soDienThoai || 'Chưa cập nhật'}
+          />
+          {/* <InfoRow
+        icon={Fingerprint}
+        label="Tên đăng nhập"
+        value={taiKhoan.tenDangNhap}
+          /> */}
+          <InfoRow
+            icon={ShieldCheck}
+            label="Trạng thái tài khoản"
+            value={getTrangThaiTkBadge()}
+          />
+          <InfoRow
+            icon={CalendarDays}
+            label="Ngày tạo người dùng"
+            value={format(parseISO(nguoiDung.ngayTao), 'dd/MM/yyyy HH:mm', {
+              locale: vi,
+            })}
+          />
+          <InfoRow
+            icon={CalendarDays}
+            label="Ngày tạo tài khoản"
+            value={format(parseISO(taiKhoan.ngayTaoTk), 'dd/MM/yyyy HH:mm', {
+              locale: vi,
+            })}
+          />
+          {taiKhoan.lanDangNhapCuoi &&
+            isValid(parseISO(taiKhoan.lanDangNhapCuoi)) && (
+              <InfoRow
+                icon={Clock}
+                label="Đăng nhập cuối"
+                value={format(
+                  parseISO(taiKhoan.lanDangNhapCuoi),
+                  'dd/MM/yyyy HH:mm:ss',
+                  { locale: vi }
+                )}
+                valueClassName="md:col-span-2"
+              />
+            )}
+        </div>
       </CardContent>
     </Card>
   );

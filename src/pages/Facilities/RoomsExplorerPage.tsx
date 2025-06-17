@@ -130,13 +130,13 @@ const RoomsExplorerPage = () => {
   const { data: dsTrangThaiPhong, isLoading: isLoadingTrangThaiPhong } =
     useTrangThaiPhongList({ limit: 50 });
   const { data: dsToaNha, isLoading: isLoadingToaNha } = useToaNhaListForSelect(
-    { limit: 200 }
+    { limit: 100 }
   );
   const { data: dsToaNhaTang, isLoading: isLoadingToaNhaTang } =
     useToaNhaTangListForSelect(
       {
         toaNhaID: selectedToaNhaID ? parseInt(selectedToaNhaID) : undefined,
-        limit: 200,
+        limit: 100,
       },
       { enabled: !!selectedToaNhaID }
     );

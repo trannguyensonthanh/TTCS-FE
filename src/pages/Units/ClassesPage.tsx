@@ -138,7 +138,7 @@ const ClassesPage = () => {
 
   // Data cho Selects trong Form
   const { data: dsNganhHoc, isLoading: isLoadingNganhHoc } =
-    useNganhHocListForSelect({ limit: 200 }, { enabled: isFormModalOpen });
+    useNganhHocListForSelect({ limit: 100 }, { enabled: isFormModalOpen });
 
   const selectedNganhHocIDForForm =
     useForm<LopHocFormValues>().watch('nganhHocID');
@@ -153,7 +153,7 @@ const ClassesPage = () => {
   const { data: dsGiangVien, isLoading: isLoadingGVCN } =
     useNguoiDungListForSelect(
       //   GVCN
-      { maVaiTro: 'GIANG_VIEN', limit: 200 },
+      { maVaiTro: 'GIANG_VIEN', limit: 100 },
       { enabled: isFormModalOpen }
     );
 

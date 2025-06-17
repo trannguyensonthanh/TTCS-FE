@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, parseISO, isSameDay } from 'date-fns'; // Keep this import
 import { vi } from 'date-fns/locale';
-import MaVaiTro from '@/enums/MaVaiTro.enum'; // Đảm bảo import này đúng
+import MaVaiTro from '@/enums/MaVaiTro.enum.js'; // Đảm bảo import này đúng
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   useUpdateEventStatus, // Hook để tự hủy bởi người tạo
@@ -171,11 +171,13 @@ const EventsList = () => {
   const [showCancelRequestDialog, setShowCancelRequestDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const getDefaultTab = () => {
+    if (hasRole(MaVaiTro.QUAN_LY_CSVC)) return 'approved';
     if (hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)) return 'pending_bgh_approval';
     if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)) return 'my_events';
     return 'all';
   };
   const [activeTab, setActiveTab] = useState<string>(getDefaultTab());
+  console.log('getDefaultTab():', hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN));
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10); // Giữ nguyên limit
   const [currentSortBy, setCurrentSortBy] = useState('NgayTaoSK');
@@ -222,9 +224,12 @@ const EventsList = () => {
       // Hoặc ẩn select trạng thái khi ở tab này
     } else if (activeTab === 'upcoming') {
       params.sapDienRa = true;
-      // Chỉ sự kiện đã sẵn sàng (có thể cho phép người dùng chọn thêm trạng thái ở filter)
       params.trangThaiSkMa =
         filterTrangThaiSkMa || 'DA_DUYET_BGH,DA_XAC_NHAN_PHONG';
+    } else if (activeTab === 'approved') {
+      params.trangThaiSkMa =
+        filterTrangThaiSkMa ||
+        'CHO_DUYET_PHONG,DA_XAC_NHAN_PHONG,PHONG_BI_TU_CHOI,HOAN_THANH';
     }
     // Nếu người dùng chọn một trạng thái cụ thể từ dropdown, nó sẽ ghi đè logic của tab
     // (trừ tab pending_bgh_approval có thể muốn cố định)
@@ -291,10 +296,7 @@ const EventsList = () => {
       }
     },
   });
-  console.log('Event Detail Data:', eventDetailData);
-  console.log('Selected Event For Detail:', selectedEventForDetail);
-  console.log('Paginated Events:', paginatedEvents);
-  console.log('loadding:', isLoading);
+
   const events = paginatedEvents?.items || [];
   const totalPages = paginatedEvents?.totalPages || 1;
   const currentPage = paginatedEvents?.currentPage || 1;
@@ -350,7 +352,11 @@ const EventsList = () => {
     if (value === 'pending_bgh_approval') {
       setFilterTrangThaiSkMa('CHO_DUYET_BGH');
     } else if (value === 'upcoming') {
-      setFilterTrangThaiSkMa('DA_DUYET_BGH,DA_XAC_NHAN_PHONG'); // Mặc định cho sắp diễn ra
+      setFilterTrangThaiSkMa('DA_DUYET_BGH,DA_XAC_NHAN_PHONG');
+    } else if (value === 'approved') {
+      setFilterTrangThaiSkMa(
+        'CHO_DUYET_PHONG,DA_XAC_NHAN_PHONG,PHONG_BI_TU_CHOI,HOAN_THANH'
+      );
     } else {
       setFilterTrangThaiSkMa(undefined); // Xóa filter trạng thái khi chuyển sang tab 'all' hoặc 'my_events' (để user tự chọn)
     }
@@ -568,6 +574,14 @@ const EventsList = () => {
                   Chờ BGH Duyệt
                 </TabsTrigger>
               )}
+              {hasRole(MaVaiTro.QUAN_LY_CSVC) && (
+                <TabsTrigger
+                  value="approved"
+                  className="px-3 py-1.5 text-sm whitespace-nowrap"
+                >
+                  Sự kiện đã duyệt (chờ/yêu cầu phòng)
+                </TabsTrigger>
+              )}
               <TabsTrigger
                 value="upcoming"
                 className="px-3 py-1.5 text-sm whitespace-nowrap"
@@ -607,27 +621,46 @@ const EventsList = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      <SelectItem value={MaTrangThaiSK.CHO_DUYET_BGH}>
-                        Chờ duyệt BGH
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.DA_DUYET_BGH}>
-                        Đã duyệt BGH
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.CHO_DUYET_PHONG}>
-                        Chờ duyệt phòng
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.DA_XAC_NHAN_PHONG}>
-                        Đã có phòng
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.BI_TU_CHOI_BGH}>
-                        Bị từ chối
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.DA_HUY}>
-                        Đã hủy
-                      </SelectItem>
-                      <SelectItem value={MaTrangThaiSK.HOAN_THANH}>
-                        Đã hoàn thành
-                      </SelectItem>
+                      {hasRole(MaVaiTro.QUAN_LY_CSVC) ? (
+                        <>
+                          <SelectItem value={MaTrangThaiSK.CHO_DUYET_PHONG}>
+                            Chờ duyệt phòng
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.DA_XAC_NHAN_PHONG}>
+                            Đã có phòng
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.PHONG_BI_TU_CHOI}>
+                            Phòng bị từ chối
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.HOAN_THANH}>
+                            Đã hoàn thành
+                          </SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value={MaTrangThaiSK.CHO_DUYET_BGH}>
+                            Chờ duyệt BGH
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.DA_DUYET_BGH}>
+                            Đã duyệt BGH
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.CHO_DUYET_PHONG}>
+                            Chờ duyệt phòng
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.DA_XAC_NHAN_PHONG}>
+                            Đã có phòng
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.BI_TU_CHOI_BGH}>
+                            Bị từ chối
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.DA_HUY}>
+                            Đã hủy
+                          </SelectItem>
+                          <SelectItem value={MaTrangThaiSK.HOAN_THANH}>
+                            Đã hoàn thành
+                          </SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -649,6 +682,8 @@ const EventsList = () => {
                 {activeTab === 'pending_bgh_approval' &&
                   'Sự kiện Chờ Ban Giám Hiệu Duyệt'}
                 {activeTab === 'upcoming' && 'Sự kiện Sắp Diễn Ra'}
+                {activeTab === 'approved' &&
+                  'Sự kiện Đã Duyệt (Chờ/Yêu Cầu Phòng)'}
               </CardTitle>
               <CardDescription>
                 Danh sách các sự kiện và trạng thái xử lý tương ứng.
