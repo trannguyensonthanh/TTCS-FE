@@ -28,7 +28,24 @@ const baseUserSchema = {
     .string()
     .optional()
     .nullable()
-    .transform((v) => (v === '' ? null : v)), // Sẽ là string YYYY-MM-DD từ date picker
+    .refine(
+      (v) =>
+        !v ||
+        /^\d{4}-\d{2}-\d{2}$/.test(v) || // yyyy-MM-dd
+        /^\d{2}\/\d{2}\/\d{4}$/.test(v), // dd/MM/yyyy
+      {
+        message: 'Ngày sinh phải đúng định dạng yyyy-MM-dd hoặc dd/MM/yyyy',
+      }
+    )
+    .transform((v) => {
+      if (!v || v === '') return null;
+      // Chuyển dd/MM/yyyy về yyyy-MM-dd
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(v)) {
+        const [d, m, y] = v.split('/');
+        return `${y}-${m}-${d}`;
+      }
+      return v;
+    }), // Sẽ là string YYYY-MM-DD từ date picker
   anhDaiDien: z
     .string()
     .url('URL ảnh không hợp lệ.')
@@ -41,8 +58,11 @@ const baseUserSchema = {
 const accountSchema = {
   matKhau: z
     .string()
-    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự (nếu tạo mới).')
-    .optional(), // Optional khi sửa, bắt buộc khi tạo
+    .optional()
+    .refine((val) => !val || val.length === 0 || val.length >= 6, {
+      message:
+        'Mật khẩu phải có ít nhất 6 ký tự (nếu tạo mới). Hoặc để trống để dùng mật khẩu mặc định.',
+    }),
   trangThaiTk: z.string().optional(), // VD: 'Active', 'Locked'
 };
 

@@ -12,6 +12,7 @@ import vaiTroService, {
   GetVaiTroHeThongParams,
   PaginatedVaiTroHeThongResponse,
   UpdateVaiTroHeThongPayload,
+  VaiTroForSelectResponse,
   VaiTroHeThongItem,
 } from '@/services/vaiTro.service';
 
@@ -23,8 +24,21 @@ export const VAI_TRO_QUERY_KEYS = {
   lists: () => [...VAI_TRO_QUERY_KEYS.all, 'list'] as const,
   list: (params: GetVaiTroHeThongParams) =>
     [...VAI_TRO_QUERY_KEYS.lists(), params] as const,
-  // details: () => [...VAI_TRO_QUERY_KEYS.all, 'detail'] as const, //   API chi tiết
-  // detail: (id: number | string | undefined) => [...VAI_TRO_QUERY_KEYS.details(), id] as const,
+  selectOptions: () => [...VAI_TRO_QUERY_KEYS.all, 'selectOptions'] as const,
+};
+
+export const useVaiTroForSelect = (
+  options?: Omit<
+    UseQueryOptions<VaiTroForSelectResponse[], APIError>,
+    'queryKey' | 'queryFn'
+  >
+) => {
+  return useQuery<VaiTroForSelectResponse[], APIError>({
+    queryKey: VAI_TRO_QUERY_KEYS.selectOptions(),
+    queryFn: () => vaiTroService.getVaiTroForSelect(),
+    staleTime: 60 * 60 * 1000, // Cache 1 giờ
+    ...options,
+  });
 };
 
 export const useVaiTroList = (

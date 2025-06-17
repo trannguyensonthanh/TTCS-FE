@@ -67,6 +67,10 @@ import RoomChangeRequestsListPage from '@/pages/Facilities/RoomChangeRequestsLis
 import CreateRoomChangeRequestPage from '@/pages/Facilities/CreateRoomChangeRequestPage.tsx';
 import ProcessRoomChangeRequestPage from '@/pages/Facilities/ProcessRoomChangeRequestPage.tsx';
 import EditRoomRequestPage from '@/pages/Facilities/EditRoomRequestPage.tsx';
+import RoomsExplorerPage from '@/pages/Facilities/RoomsExplorerPage.tsx';
+import RoomDetailPage from '@/pages/Facilities/RoomDetailPage.tsx';
+import PublicRoomDetailPage from '@/pages/Facilities/PublicRoomDetailPage.tsx';
+import UserDetailPage from '@/pages/Users/UserDetailPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -138,6 +142,22 @@ const AppRouter = () => {
                 element={
                   <ClientLayout>
                     <AboutPage />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/rooms-explorer"
+                element={
+                  <ClientLayout>
+                    <RoomsExplorerPage />
+                  </ClientLayout>
+                }
+              />
+              <Route
+                path="/rooms-explorer/:roomId"
+                element={
+                  <ClientLayout>
+                    <PublicRoomDetailPage />
                   </ClientLayout>
                 }
               />
@@ -272,6 +292,14 @@ const AppRouter = () => {
                 }
               />
               <Route
+                path="/facilities/rooms/:roomId"
+                element={
+                  <ProtectedRoute>
+                    <RoomDetailPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/facilities/room-schedule"
                 element={
                   <ProtectedRoute>
@@ -401,7 +429,14 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-
+              <Route
+                path="/users/:userId/detail"
+                element={
+                  <ProtectedRoute>
+                    <UserDetailPage />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/users/roles"
                 element={

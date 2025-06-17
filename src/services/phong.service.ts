@@ -1,11 +1,18 @@
 // src/services/phong.service.ts
 import { LoaiPhongResponseMin } from '@/services/roomRequest.service';
-import apiHelper from './apiHelper';
+import apiHelper, { API_BASE_URL } from './apiHelper';
 import { TrangThietBiResponseMin } from '@/services/danhMuc.service';
 
 export interface TrangThaiPhongResponse {
   // Định nghĩa nếu chưa có
   trangThaiPhongID: number;
+  maTrangThai?:
+    | 'SAN_SANG'
+    | 'DANG_SU_DUNG'
+    | 'DANG_DUOC_DAT'
+    | 'DANG_BAO_TRI'
+    | 'NGUNG_SU_DUNG'
+    | 'CHO_DON_DEP';
   tenTrangThai: string;
 }
 
@@ -38,6 +45,7 @@ export interface PhongListItemResponse {
   trangThaiPhong: TrangThaiPhongResponse;
   toaNhaTang?: ToaNhaTangResponseMinForPhong | null; // Thông tin tầng và tòa nhà
   soThuTuPhong?: string | null;
+  anhMinhHoa?: string | null; // URL ảnh minh họa
   // soLuongThietBi?: number; // Tính toán từ Phong_ThietBi
 }
 
@@ -115,6 +123,23 @@ export interface GetMaPhongDetailParams {
   phongID?: number | null;
 }
 
+export interface ImportPhongRowResult {
+  rowNumber: number; // Số dòng trong file Excel (để dễ đối chiếu)
+  tenPhong?: string; // Tên phòng từ file
+  maPhong?: string | null;
+  status: 'success' | 'error';
+  message?: string; // Thông báo lỗi chi tiết nếu status là 'error'
+  phongID?: number; // ID của phòng nếu tạo thành công
+}
+
+export interface ImportPhongResponse {
+  totalRows: number;
+  successCount: number;
+  errorCount: number;
+  results: ImportPhongRowResult[];
+  overallMessage: string; // Thông báo tổng quan
+}
+
 const getPhongList = async (
   params: GetPhongParams
 ): Promise<PaginatedPhongResponse> => {
@@ -160,9 +185,12 @@ const deletePhong = async (
 const generateMaPhong = async (
   params: GetMaPhongDetailParams
 ): Promise<{ maPhongGoiY: string; isUnique: boolean; message: string }> => {
-  const response = await apiHelper.get(`/danhmuc/phong/generate-ma-phong`, {
-    ...params,
-  });
+  const response = await apiHelper.get(
+    `${API_BASE_URL}/danhmuc/phong/generate-ma-phong`,
+    {
+      ...params,
+    }
+  );
 
   return {
     maPhongGoiY: response.maPhongGoiY,
@@ -173,6 +201,26 @@ const generateMaPhong = async (
   };
 };
 
+const importPhongFromExcel = async (
+  file: File
+): Promise<ImportPhongResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/danhmuc/phong/import-excel', {
+    method: 'POST',
+    body: formData,
+    // Không cần set Content-Type, trình duyệt sẽ tự động set cho FormData
+    credentials: 'include', // Nếu API yêu cầu cookie/session
+  });
+
+  if (!response.ok) {
+    throw new Error('Lỗi khi import file Excel');
+  }
+
+  return response.json() as Promise<ImportPhongResponse>;
+};
+
 const phongService = {
   getPhongList,
   getPhongDetail,
@@ -180,6 +228,7 @@ const phongService = {
   updatePhong,
   deletePhong,
   generateMaPhong,
+  importPhongFromExcel,
 };
 
 export default phongService;

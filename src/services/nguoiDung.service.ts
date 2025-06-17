@@ -97,10 +97,17 @@ export interface ThongTinGiangVienChiTietResponse {
 }
 // Thông tin nhân viên khác (nếu cần, đơn giản hóa)
 
+export interface TaiKhoanInfoResponse {
+  tenDangNhap: string;
+  trangThaiTk: string; // 'Active', 'Locked', 'Disabled'
+  lanDangNhapCuoi?: string | null; // ISO
+  ngayTaoTk: string; // ISO
+}
+
 export interface UserProfileResponse {
   // Kế thừa từ NguoiDungResponse
   nguoiDung: NguoiDungFullResponse;
-
+  taiKhoan?: TaiKhoanInfoResponse; // Thông tin tài khoản
   // Thông tin hồ sơ chi tiết (chỉ một trong số này sẽ có giá trị, hoặc cả hai nếu kiêm nhiệm và DB cho phép)
   thongTinSinhVien?: ThongTinSinhVienChiTietResponse | null;
   thongTinGiangVien?: ThongTinGiangVienChiTietResponse | null;
@@ -122,11 +129,11 @@ export interface NguoiDungListItemFE {
   nganhHocSV?: string | null; // Ngành của SV
   cacVaiTroChucNang?: string[]; // Mảng tên các vai trò chức năng
   ngayTao?: string; // ISO Date string
+  ngaySinh?: string | null; // ISO Date string, có thể null nếu không có
+  thongTinSinhVien?: ThongTinSinhVienChiTietResponse | null;
+  thongTinGiangVien?: ThongTinGiangVienChiTietResponse | null;
 
-  _rawThongTinSinhVien?: ThongTinSinhVienChiTietResponse | null;
-  _rawThongTinGiangVien?: ThongTinGiangVienChiTietResponse | null;
-
-  _rawVaiTroChucNang?: VaiTroChucNangResponse[];
+  vaiTroChucNang?: VaiTroChucNangResponse[];
 }
 
 export interface PaginatedNguoiDungResponseFE {
@@ -169,7 +176,7 @@ export interface UpdateNguoiDungAdminPayload {
   maDinhDanh?: string | null;
   soDienThoai?: string | null;
   anhDaiDien?: string | null;
-  isActive?: boolean; // Cập nhật trạng thái hoạt động
+  isActiveNguoiDung?: boolean; // Cập nhật trạng thái hoạt động
   matKhau?: string; // Backend sẽ hash mật khẩu này
   ngaySinh?: string | null; // ISO Date string, có thể null nếu không có
   trangThaiTk?: string; // Default là Active

@@ -7,6 +7,7 @@ import danhMucService, {
   GetLoaiPhongParams,
   GetNganhHocForSelectParams,
   GetPhongForSelectParams,
+  GetToaNhaForSelectParams,
   GetToaNhaTangForSelectParams,
   GetTrangThaiPhongParams,
   GetTrangThietBiForSelectParams,
@@ -17,6 +18,7 @@ import danhMucService, {
 } from '@/services/danhMuc.service';
 import { LoaiPhongResponseMin } from '@/services/roomRequest.service';
 import { TrangThaiPhongResponse } from '@/services/phong.service';
+import { ToaNhaResponseMin } from '@/services/toaNha.service';
 
 export const DANH_MUC_QUERY_KEYS = {
   // ... (keys cũ)
@@ -36,6 +38,8 @@ export const DANH_MUC_QUERY_KEYS = {
     nganhHocId?: number,
     params?: GetChuyenNganhForSelectParams
   ) => ['chuyenNganhForSelect', 'byNganh', nganhHocId, params || {}] as const,
+  toaNhaForSelect: (params?: GetToaNhaForSelectParams) =>
+    ['toaNhaForSelect', params || {}] as const,
 };
 
 // Hook lấy danh sách Loại Phòng
@@ -83,6 +87,22 @@ export const useTrangThaiPhongList = (
   return useQuery<TrangThaiPhongResponse[], APIError>({
     queryKey: DANH_MUC_QUERY_KEYS.trangThaiPhong(params),
     queryFn: () => danhMucService.getTrangThaiPhongList(params),
+    staleTime: 60 * 60 * 1000,
+    ...options,
+  });
+};
+
+// Hook lấy danh sách Tòa Nhà để chọn
+export const useToaNhaListForSelect = (
+  params?: GetToaNhaForSelectParams,
+  options?: Omit<
+    UseQueryOptions<ToaNhaResponseMin[], APIError>,
+    'queryKey' | 'queryFn'
+  >
+) => {
+  return useQuery<ToaNhaResponseMin[], APIError>({
+    queryKey: DANH_MUC_QUERY_KEYS.toaNhaForSelect(params),
+    queryFn: () => danhMucService.getToaNhaListForSelect(params),
     staleTime: 60 * 60 * 1000,
     ...options,
   });

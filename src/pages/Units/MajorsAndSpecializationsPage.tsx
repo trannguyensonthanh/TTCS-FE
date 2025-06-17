@@ -708,7 +708,7 @@ const MajorsAndSpecializationsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dsKhoa?.map((khoa) => (
+                        {dsKhoa?.items.map((khoa) => (
                           <SelectItem
                             key={khoa.donViID}
                             value={khoa.donViID.toString()}

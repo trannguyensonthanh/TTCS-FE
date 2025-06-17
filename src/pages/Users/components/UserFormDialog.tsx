@@ -142,7 +142,7 @@ export function UserFormDialog({
         trangThaiTk: editingUser.nguoiDung.isActive ? 'Active' : 'Disabled', // Cần logic map từ TaiKhoan.TrangThaiTk thực tế
         loaiNguoiDung: loaiNguoiDung,
         ngaySinh: ngDung.ngaySinh
-          ? format(parseISO(ngDung.ngaySinh), 'yyyy-MM-dd')
+          ? format(parseISO(ngDung.ngaySinh), 'dd/MM/yyyy')
           : null,
         thongTinSinhVien: editingUser.thongTinSinhVien
           ? {
@@ -241,7 +241,8 @@ export function UserFormDialog({
         maDinhDanh: cleanValues.maDinhDanh,
         soDienThoai: cleanValues.soDienThoai,
         anhDaiDien: cleanValues.anhDaiDien,
-        isActive: cleanValues.isActive,
+        email: cleanValues.email,
+        isActiveNguoiDung: cleanValues.isActive,
         ngaySinh: cleanValues.ngaySinh,
         thongTinSinhVien: cleanValues.thongTinSinhVien,
         thongTinGiangVien: cleanValues.thongTinGiangVien,
@@ -261,7 +262,6 @@ export function UserFormDialog({
         soDienThoai: cleanValues.soDienThoai ?? undefined,
         anhDaiDien: cleanValues.anhDaiDien ?? undefined,
         ngaySinh: cleanValues.ngaySinh ?? undefined,
-        isActive: cleanValues.isActive,
         thongTinSinhVien:
           cleanValues.loaiNguoiDung === LoaiNguoiDungEnum.SINH_VIEN &&
           cleanValues.thongTinSinhVien &&
@@ -297,7 +297,7 @@ export function UserFormDialog({
 
   const isSubmitting =
     createUserMutation.isPending || updateUserMutation.isPending;
-
+  console.log('editingUsereditingUsereditingUser', editingUser);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl max-h-[95vh] flex flex-col">
@@ -358,7 +358,6 @@ export function UserFormDialog({
                               type="email"
                               placeholder="nguyenvana@ptit.edu.vn"
                               {...field}
-                              disabled={!!editingUser}
                             />
                           </FormControl>
                           <FormMessage />
@@ -406,21 +405,40 @@ export function UserFormDialog({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Ngày Sinh</FormLabel>
-                          <DatePicker
-                            date={
-                              field.value
-                                ? typeof field.value === 'string'
-                                  ? parseISO(field.value)
-                                  : field.value
-                                : undefined
-                            }
-                            setDate={(date) =>
-                              field.onChange(
-                                date ? format(date, 'yyyy-MM-dd') : null
-                              )
-                            }
-                            buttonClassName="w-full"
-                          />
+                          <FormControl>
+                            <Input
+                              type="text"
+                              value={field.value ?? ''}
+                              onChange={(e) => {
+                                // Chỉ cho phép nhập dạng dd/mm/yyyy
+                                const val = e.target.value.replace(
+                                  /[^0-9/]/g,
+                                  ''
+                                );
+                                // Tự động thêm dấu / khi nhập
+                                let formatted = val;
+                                if (
+                                  formatted.length === 2 &&
+                                  !formatted.endsWith('/')
+                                ) {
+                                  formatted += '/';
+                                }
+                                if (
+                                  formatted.length === 5 &&
+                                  formatted[4] !== '/'
+                                ) {
+                                  formatted =
+                                    formatted.slice(0, 5) +
+                                    '/' +
+                                    formatted.slice(5);
+                                }
+                                field.onChange(formatted);
+                              }}
+                              className="w-full"
+                              placeholder="dd/mm/yyyy"
+                              maxLength={10}
+                            />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -523,7 +541,6 @@ export function UserFormDialog({
                             form.setValue('thongTinGiangVien', null);
                           }}
                           value={field.value || ''}
-                          disabled={!!editingUser} // Không cho sửa loại người dùng khi đã tạo
                         >
                           <FormControl>
                             <SelectTrigger>
@@ -717,7 +734,7 @@ export function UserFormDialog({
                               <SelectContent className="max-h-60">
                                 {dsDonVi?.items
                                   .filter((dv) =>
-                                    ['KHOA', 'BO_MON', 'TRUNG_TAM'].includes(
+                                    ['KHOA', 'DOAN_THE', 'BAN'].includes(
                                       dv.loaiDonVi
                                     )
                                   )

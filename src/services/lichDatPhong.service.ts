@@ -1,7 +1,10 @@
 // src/services/lichDatPhong.service.ts
 import { PhongResponseMin } from '@/services/danhMuc.service';
 import apiHelper from './apiHelper';
-import { DonViResponseMin } from '@/services/event.service';
+import {
+  DonViResponseMin,
+  NguoiDungResponseMin,
+} from '@/services/event.service';
 export interface LichDatPhongItemResponse {
   datPhongID: number; // PK của ChiTietDatPhong
   phong: PhongResponseMin; // Thông tin phòng được đặt
@@ -10,7 +13,7 @@ export interface LichDatPhongItemResponse {
   suKienID: number;
   tenSK: string;
   donViToChuc: DonViResponseMin;
-
+  nguoiYeuCau?: NguoiDungResponseMin;
   tgNhanPhongTT: string; // ISO Date string
   tgTraPhongTT: string; // ISO Date string
 }
@@ -25,6 +28,23 @@ export interface GetLichDatPhongParams {
   donViToChucID?: number;
 }
 
+export interface GetLichDatPhongTheoPhongParams {
+  tuNgay?: string;
+  denNgay?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface PaginatedLichDatPhongResponse {
+  items: LichDatPhongItemResponse[];
+  totalPages: number;
+  currentPage: number;
+  totalItems: number;
+  pageSize: number;
+}
+
 const getLichDatPhong = async (
   params: GetLichDatPhongParams
 ): Promise<LichDatPhongItemResponse[]> => {
@@ -33,8 +53,19 @@ const getLichDatPhong = async (
   >;
 };
 
+const getLichDatPhongTheoPhong = async (
+  phongId: number | string,
+  params: GetLichDatPhongTheoPhongParams
+): Promise<PaginatedLichDatPhongResponse> => {
+  return apiHelper.get(
+    `/lichsudungphong/theo-phong/${phongId}`,
+    params
+  ) as Promise<PaginatedLichDatPhongResponse>;
+};
+
 const lichDatPhongService = {
   getLichDatPhong,
+  getLichDatPhongTheoPhong,
 };
 
 export default lichDatPhongService;

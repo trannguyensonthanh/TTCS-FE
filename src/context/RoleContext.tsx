@@ -66,7 +66,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth(); // user từ AuthContext giờ sẽ có user.vaiTroChucNang
-
+  console.log('RoleProvider user:', user);
   const hasRole = useCallback(
     (maVaiTroToCheck: string): boolean => {
       if (!user || !user.vaiTroChucNang) return false;

@@ -36,6 +36,12 @@ export interface UpdateVaiTroHeThongPayload {
   moTaVT?: string | null;
 }
 
+export interface VaiTroForSelectResponse {
+  vaiTroID: number;
+  maVaiTro: string;
+  tenVaiTro: string;
+}
+
 const vaiTroService = {
   getVaiTroList: (
     params: GetVaiTroHeThongParams
@@ -62,6 +68,13 @@ const vaiTroService = {
 
   deleteVaiTro: (vaiTroId: number | string): Promise<{ message: string }> => {
     return apiHelper.delete(`/vaitrohethong/${vaiTroId}`);
+  },
+
+  getVaiTroForSelect: async (): Promise<VaiTroForSelectResponse[]> => {
+    // Giả sử API trả về mảng trực tiếp, không phân trang
+    return apiHelper.get('/vaitrohethong/cho-chon') as Promise<
+      VaiTroForSelectResponse[]
+    >;
   },
 };
 

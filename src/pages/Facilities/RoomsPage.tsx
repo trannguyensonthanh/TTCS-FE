@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-
+import ImportRoomsExcelDialog from '@/components/rooms/ImportRoomsExcelDialog';
 import DashboardLayout from '@/components/DashboardLayout';
 import { ReusablePagination } from '@/components/ui/ReusablePagination';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { UploadCloud } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator'; // Thêm Separator
 import {
@@ -215,7 +216,7 @@ const RoomsPage = () => {
   const [filterTrangThaiPhongID, setFilterTrangThaiPhongID] = useState<
     string | undefined
   >(undefined);
-
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingPhongId, setEditingPhongId] = useState<number | null>(null); // Chỉ lưu ID
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -491,12 +492,23 @@ const RoomsPage = () => {
       pageTitle="Quản Lý Phòng Học & Hội Trường"
       headerActions={
         canManagePhong && (
-          <Button
-            onClick={openCreateModal}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all"
-          >
-            <PlusCircle className="mr-2 h-5 w-5" /> Thêm Phòng Mới
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 items-center">
+            {' '}
+            {/* Bọc bằng div để responsive */}
+            <Button
+              variant="outline"
+              onClick={() => setIsImportDialogOpen(true)}
+              className="h-10 w-full sm:w-auto"
+            >
+              <UploadCloud className="mr-2 h-4 w-4" /> Import từ Excel
+            </Button>
+            <Button
+              onClick={openCreateModal}
+              className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all h-10 w-full sm:w-auto"
+            >
+              <PlusCircle className="mr-2 h-5 w-5" /> Thêm Phòng Mới
+            </Button>
+          </div>
         )
       }
     >
@@ -741,6 +753,17 @@ const RoomsPage = () => {
                         {canManagePhong && (
                           <TableCell className="text-right py-3 px-4 align-top">
                             <div className="flex justify-end gap-1">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() =>
+                                  navigate(`/facilities/rooms/${phong.phongID}`)
+                                }
+                                title="Xem chi tiết phòng"
+                                className="h-8 text-xs"
+                              >
+                                Xem chi tiết
+                              </Button>
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -1273,29 +1296,18 @@ const RoomsPage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {canManagePhong && (
+        <ImportRoomsExcelDialog
+          open={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          onSuccess={() => {
+            refetchPhongList(); // Làm mới danh sách phòng sau khi import thành công
+            // Có thể thêm toast báo import thành công tổng thể ở đây nếu cần
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 };
-
-// Helper component cho dialog chi tiết (nếu dùng chung)
-const InfoRow: React.FC<{
-  label: React.ReactNode;
-  value: React.ReactNode;
-  className?: string;
-}> = ({ label, value, className }) => (
-  <div
-    className={cn(
-      'grid grid-cols-1 sm:grid-cols-[180px_1fr] items-start gap-x-4 gap-y-1 py-2.5 border-b border-border/40 dark:border-slate-700/40 last:border-b-0',
-      className
-    )}
-  >
-    <Label className="sm:text-right text-sm font-medium text-muted-foreground col-span-1 sm:col-auto pt-0.5">
-      {label}
-    </Label>
-    <div className="sm:col-span-2 text-sm text-foreground break-words">
-      {value}
-    </div>
-  </div>
-);
 
 export default RoomsPage;

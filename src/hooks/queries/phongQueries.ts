@@ -10,6 +10,7 @@ import {
 import phongService, {
   CreatePhongPayload,
   GetPhongParams,
+  ImportPhongResponse,
   PaginatedPhongResponse,
   PhongDetailResponse,
   UpdatePhongPayload,
@@ -164,5 +165,32 @@ export const useGenerateMaPhong = (
     enabled: options?.enabled ?? true,
     staleTime: Infinity, // Không cần tự động refetch mã gợi ý
     refetchOnWindowFocus: false,
+  });
+};
+
+export const useImportPhongExcel = (
+  options?: UseMutationOptions<ImportPhongResponse, APIError, File>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<ImportPhongResponse, APIError, File>({
+    mutationFn: phongService.importPhongFromExcel,
+    onSuccess: (data) => {
+      toast.success(data.overallMessage || 'Hoàn tất quá trình import.');
+      if (data.successCount > 0) {
+        queryClient.invalidateQueries({ queryKey: PHONG_QUERY_KEYS.lists() });
+      }
+      // FE có thể hiển thị chi tiết kết quả từ data.results
+      if (options?.onSuccess)
+        options.onSuccess(data, new File([], ''), undefined);
+    },
+    onError: (error: APIError) => {
+      toast.error(
+        error.body?.message ||
+          error.message ||
+          'Lỗi nghiêm trọng khi import file Excel.'
+      );
+      if (options?.onError) options.onError(error, new File([], ''), undefined);
+    },
+    ...options,
   });
 };

@@ -3,6 +3,10 @@
 import { LoaiPhongResponseMin } from '@/services/roomRequest.service';
 import apiHelper from './apiHelper';
 import { TrangThaiPhongResponse } from '@/services/phong.service';
+import {
+  PaginatedToaNhaResponse,
+  ToaNhaResponseMin,
+} from '@/services/toaNha.service';
 
 export interface TrangThietBiResponseMin {
   thietBiID: number;
@@ -202,6 +206,27 @@ const getChuyenNganhListForSelectByNganh = async (
   ) as Promise<ChuyenNganhResponseMin[]>;
 };
 
+export interface GetToaNhaForSelectParams {
+  coSoID?: number;
+  searchTerm?: string;
+  limit?: number;
+}
+const getToaNhaListForSelect = async (
+  params?: GetToaNhaForSelectParams
+): Promise<ToaNhaResponseMin[]> => {
+  // API này có thể là GET /v1/danhmuc/toa-nha/select-options
+  // Hoặc dùng chung GET /v1/danhmuc/toa-nha với params phù hợp
+  const response = (await apiHelper.get('/danhmuc/toa-nha', {
+    ...params,
+    limit: params?.limit || 100,
+  })) as Promise<PaginatedToaNhaResponse>;
+  return (await response).items.map((item) => ({
+    toaNhaID: item.toaNhaID,
+    tenToaNha: item.tenToaNha,
+    maToaNha: item.maToaNha,
+  }));
+};
+
 const danhMucService = {
   getLoaiPhongList, // Lấy danh sách loại phòng
   getPhongListForSelect, // Lấy danh sách phòng cho Select
@@ -210,6 +235,7 @@ const danhMucService = {
   getTrangThietBiListForSelect, // Lấy danh sách trang thiết bị cho Select
   getNganhHocListForSelect, // Lấy danh sách ngành học cho Select
   getChuyenNganhListForSelectByNganh, // Lấy danh sách chuyên ngành theo ngành học ID
+  getToaNhaListForSelect, // Lấy danh sách tòa nhà cho Select
 };
 
 export default danhMucService;

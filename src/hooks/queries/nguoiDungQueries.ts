@@ -132,7 +132,7 @@ export const useUserDetailForAdmin = (
   nguoiDungId: number | string | undefined,
   options?: Omit<
     UseQueryOptions<UserProfileResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    'queryKey' | 'queryFn'
   >
 ) => {
   return useQuery<UserProfileResponse, APIError>({

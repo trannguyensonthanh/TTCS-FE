@@ -3,7 +3,7 @@
 import { logoutUserApi, refreshToken } from './auth.service';
 import TokenService from './token.service';
 
-const API_BASE_URL: string = 'http://localhost:3000/v1';
+export const API_BASE_URL: string = 'http://localhost:3000/v1';
 
 // Định nghĩa kiểu dữ liệu cho lỗi API trả về (nếu backend có cấu trúc lỗi chuẩn)
 export class APIError extends Error {

@@ -133,7 +133,7 @@ export function AssignRoleDialog({
         : null,
       ghiChuGanVT: values.ghiChuGanVT,
     };
-
+    console.log('existingRoleAssignment', existingRoleAssignment);
     if (existingRoleAssignment?.ganVaiTroID) {
       // Chế độ sửa
       const updatePayload: UpdateAssignedFunctionalRolePayload = {

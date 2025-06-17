@@ -219,10 +219,8 @@ function UsersPage() {
       toast.error('Bạn không có quyền thực hiện hành động này.');
       return;
     }
-    // Cần fetch chi tiết user để có đầy đủ thông tin cho form
-    // Hoặc UserListItemFE đã đủ thông tin (như trong trường hợp của chúng ta)
-    // Để đơn giản, ta giả sử UserListItemFE có thể cast thành UserProfileResponse một phần
-    // Trong thực tế, nên fetch UserProfileResponse bằng ID
+
+    console.log('Opening edit modal for user:', userItem);
     const mockProfile: UserProfileResponse = {
       nguoiDung: {
         nguoiDungID: userItem.nguoiDungID,
@@ -235,9 +233,9 @@ function UsersPage() {
         ngayTao: userItem.ngayTao,
         // Thêm các trường còn thiếu của NguoiDungFullResponse
       },
-      thongTinSinhVien: userItem._rawThongTinSinhVien || null,
-      thongTinGiangVien: userItem._rawThongTinGiangVien || null,
-      vaiTroChucNang: userItem._rawVaiTroChucNang || [],
+      thongTinSinhVien: userItem.thongTinSinhVien || null,
+      thongTinGiangVien: userItem.thongTinGiangVien || null,
+      vaiTroChucNang: userItem.vaiTroChucNang || [],
     };
     setEditingUserData(mockProfile);
     setIsUserFormModalOpen(true);
@@ -334,7 +332,7 @@ function UsersPage() {
       </DashboardLayout>
     );
   }
-
+  console.log('Paginated Users:', paginatedUsers);
   const users = paginatedUsers?.items || [];
   const totalPages = paginatedUsers?.totalPages || 1;
   const currentPage = paginatedUsers?.currentPage || 1;
@@ -482,7 +480,7 @@ function UsersPage() {
         />
       )}
 
-      {canAssignRoles && userToManageRoles && (
+      {/* {canAssignRoles && userToManageRoles && (
         <AssignRoleDialog
           open={isAssignRoleModalOpen}
           onOpenChange={(open) => {
@@ -499,7 +497,7 @@ function UsersPage() {
             // Nếu đang xem chi tiết user nào đó, cũng cần làm mới chi tiết đó
           }}
         />
-      )}
+      )} */}
 
       {canCreateUsers && (
         <ImportUsersDialog

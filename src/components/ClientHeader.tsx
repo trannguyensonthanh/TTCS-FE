@@ -44,6 +44,7 @@ interface ClientNavItem {
 const clientNavLinks: ClientNavItem[] = [
   { label: 'Trang Chủ', href: '/', icon: Home, exact: true },
   { label: 'Sự Kiện', href: '/events-public', icon: CalendarDays }, // Trang lịch sự kiện công khai
+  { label: 'Danh Sách Phòng', href: '/rooms-explorer', icon: Home }, // Trang danh sách phòng
   { label: 'Giới Thiệu', href: '/about', icon: InfoIcon }, // Trang giới thiệu về trường/hệ thống
   { label: 'Hỗ Trợ', href: '/support', icon: ShieldQuestion }, // Trang FAQ, hướng dẫn
   { label: 'Liên Hệ', href: '/contact', icon: Contact }, // Trang liên hệ

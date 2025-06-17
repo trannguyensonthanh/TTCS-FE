@@ -540,12 +540,14 @@ const EventsList = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <TabsList className="bg-card border dark:border-slate-700 p-1 rounded-lg shadow-sm w-full md:w-auto">
-              <TabsTrigger
-                value="all"
-                className="px-3 py-1.5 text-sm whitespace-nowrap"
-              >
-                Tất cả Sự kiện
-              </TabsTrigger>
+              {hasRole(MaVaiTro.ADMIN_HE_THONG) && (
+                <TabsTrigger
+                  value="all"
+                  className="px-3 py-1.5 text-sm whitespace-nowrap"
+                >
+                  Tất cả Sự kiện
+                </TabsTrigger>
+              )}
               {(hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
                 hasRole(MaVaiTro.TRUONG_KHOA) ||
                 hasRole(MaVaiTro.TRUONG_CLB) ||

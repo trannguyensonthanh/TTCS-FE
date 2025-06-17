@@ -196,11 +196,11 @@ export function UserTable({
                           <Edit className="mr-2 h-4 w-4" /> Sửa Thông Tin
                         </DropdownMenuItem>
                       )}
-                      {canManageRolesForUser && (
+                      {/* {canManageRolesForUser && (
                         <DropdownMenuItem onClick={() => onManageRoles(user)}>
                           <UserCog className="mr-2 h-4 w-4" /> Quản Lý Vai Trò
                         </DropdownMenuItem>
-                      )}
+                      )} */}
                       {canManageUsers && onChangePassword && (
                         <DropdownMenuItem
                           onClick={() => onChangePassword(user)}
