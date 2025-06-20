@@ -49,6 +49,7 @@ export interface ThongTinSinhVienCoBan {
   maChuyenNganh?: string | null;
   khoaHoc?: string | null;
   tenKhoaQuanLy?: string | null;
+  maKhoaQuanLy?: string | null;
 }
 
 export interface ThongTinGiangVienCoBan {

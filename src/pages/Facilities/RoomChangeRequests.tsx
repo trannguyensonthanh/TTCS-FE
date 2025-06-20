@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/pages/Facilities/RoomChangeRequests.tsx
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -226,8 +225,7 @@ const RoomChangeRequestsPage = () => {
   const initialActiveTab = useMemo(() => {
     if (hasRole(MaVaiTro.QUAN_LY_CSVC) || hasRole(MaVaiTro.ADMIN_HE_THONG))
       return 'pending_approval';
-    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) || hasRole(MaVaiTro.TRUONG_KHOA))
-      return 'my_requests';
+    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)) return 'my_requests';
     return 'all'; // Fallback cho người dùng có thể không có vai trò cụ thể nhưng vẫn xem được
   }, [hasRole]);
   const [activeTab, setActiveTab] = useState(initialActiveTab);
@@ -746,8 +744,7 @@ const RoomChangeRequestsPage = () => {
                   Chờ Duyệt
                 </TabsTrigger>
               )}
-              {(hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
-                hasRole(MaVaiTro.TRUONG_KHOA)) &&
+              {hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
                 !canProcessChangeRequests && (
                   <TabsTrigger
                     value="my_requests"

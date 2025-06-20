@@ -97,10 +97,6 @@ const sinhVienSchema = z.object({
 } satisfies Record<keyof ThongTinSinhVienInput, any>);
 
 const giangVienSchema = z.object({
-  donViCongTacID: z.preprocess(
-    (val) => Number(val),
-    z.number().int().positive('Vui lòng chọn đơn vị công tác.')
-  ),
   hocVi: z
     .string()
     .max(100)
@@ -134,9 +130,42 @@ export const userFormSchema = z
     loaiNguoiDung: z.enum(['SINH_VIEN', 'GIANG_VIEN', 'NHAN_VIEN_KHAC'], {
       required_error: 'Vui lòng chọn loại người dùng.',
     }),
+    donViCongTacID: z
+      .preprocess(
+        (val) => (val === '' || val == null ? null : Number(val)),
+        z.number().int().positive('Vui lòng chọn đơn vị công tác.').nullable()
+      )
+      .optional(),
     thongTinSinhVien: sinhVienSchema.optional().nullable(),
-    thongTinGiangVien: giangVienSchema.optional().nullable(),
-    // Không quản lý vai trò chức năng trong form này, sẽ có dialog riêng
+    thongTinGiangVien: z
+      .object({
+        hocVi: z
+          .string()
+          .max(100)
+          .optional()
+          .nullable()
+          .transform((v) => (v === '' ? null : v)),
+        hocHam: z
+          .string()
+          .max(100)
+          .optional()
+          .nullable()
+          .transform((v) => (v === '' ? null : v)),
+        chucDanhGD: z
+          .string()
+          .max(100)
+          .optional()
+          .nullable()
+          .transform((v) => (v === '' ? null : v)),
+        chuyenMonChinh: z
+          .string()
+          .max(255)
+          .optional()
+          .nullable()
+          .transform((v) => (v === '' ? null : v)),
+      })
+      .optional()
+      .nullable(),
   })
   .superRefine((data, ctx) => {
     if (data.loaiNguoiDung === 'SINH_VIEN' && !data.thongTinSinhVien) {

@@ -56,7 +56,7 @@ import { VaiTroChucNangResponse } from '@/services/auth.service';
 const assignRoleFormSchema = z
   .object({
     vaiTroID: z.string().min(1, 'Vui lòng chọn vai trò.'),
-    donViID: z.string().optional().nullable(),
+    donViID: z.string().min(1, 'Vui lòng chọn đơn vị thực thi.'),
     ngayBatDau: z.date({ required_error: 'Ngày bắt đầu là bắt buộc.' }),
     ngayKetThuc: z.date().optional().nullable(),
     ghiChuGanVT: z
@@ -224,36 +224,39 @@ export const AssignRoleDialog: React.FC<AssignRoleDialogProps> = ({
               name="donViID"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Đơn vị thực thi (nếu có)</FormLabel>
+                  <FormLabel>
+                    Đơn vị thực thi <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormDescription className="text-xs italic">
+                    Nếu bạn là thành viên của đơn vị nào thì hãy chọn vai trò
+                    thành viên và chọn đơn vị.
+                  </FormDescription>
                   <Select
                     onValueChange={(val) => {
-                      if (val === 'none') field.onChange(undefined);
-                      else field.onChange(val);
+                      field.onChange(val === 'none' ? '' : val);
                     }}
-                    value={field.value || 'none'}
+                    value={field.value || ''}
                     disabled={isLoadingDonVi}
                   >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue
                           placeholder={
-                            isLoadingDonVi
-                              ? 'Tải...'
-                              : 'Chọn đơn vị (nếu vai trò gắn với đơn vị cụ thể)'
+                            isLoadingDonVi ? 'Tải...' : 'Chọn đơn vị (bắt buộc)'
                           }
                         />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent className="max-h-60">
-                      <SelectItem value="none">
-                        Không chọn (áp dụng toàn hệ thống/không cụ thể)
+                      <SelectItem value="none" disabled>
+                        -- Vui lòng chọn đơn vị --
                       </SelectItem>
                       {dsDonVi?.items
                         .filter(
                           (dv) =>
                             dv.donViID !== undefined &&
                             dv.donViID !== null &&
-                            dv.loaiDonVi === 'CO_SO'
+                            dv.loaiDonVi !== 'CO_SO'
                         )
                         .map((dv) => (
                           <SelectItem

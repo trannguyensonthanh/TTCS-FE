@@ -24,6 +24,7 @@ import {
   ShieldX,
   ShieldAlert,
   UserPlus,
+  Trash2,
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -51,6 +52,7 @@ import ImportUsersDialog from '@/components/users/ImportUsersDialog';
 import {
   useAdminUpdateUserAccountStatus,
   useUserManagementList,
+  useAdminDeleteUser,
 } from '@/hooks/queries/nguoiDungQueries';
 import {
   NguoiDungListItemFE,
@@ -86,6 +88,10 @@ function UsersPage() {
     isActiveNguoiDung?: boolean;
     trangThaiTaiKhoan?: string;
   } | null>(null);
+  const [userToDelete, setUserToDelete] = useState<NguoiDungListItemFE | null>(
+    null
+  );
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [filterParams, setFilterParams] = useState<{
     page: number;
@@ -167,6 +173,14 @@ function UsersPage() {
         }));
       setNewAccountStatus(null);
       // refetchUsersList(); // Query sẽ tự invalidate nếu key đúng
+    },
+  });
+  const deleteUserMutation = useAdminDeleteUser({
+    onSuccess: () => {
+      toast.success('Đã xóa người dùng thành công.');
+      setUserToDelete(null);
+      setShowDeleteConfirm(false);
+      refetchUsersList();
     },
   });
 
@@ -269,6 +283,17 @@ function UsersPage() {
       trangThaiTaiKhoan: targetIsActive ? 'Active' : 'Disabled', // Hoặc 'Locked' tùy logic
     });
     setShowAccountStatusConfirm(true);
+  };
+
+  const handleDeleteUser = (user: NguoiDungListItemFE) => {
+    setUserToDelete(user);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete.nguoiDungID);
+    }
   };
 
   const confirmToggleAccountStatus = () => {
@@ -453,8 +478,9 @@ function UsersPage() {
                 onEditUser={handleOpenEditUserModal}
                 onManageRoles={handleOpenManageRolesModal}
                 onToggleAccountStatus={handleOpenToggleAccountStatusConfirm}
-                canManageUsers={canCreateUsers} // Giả sử quyền sửa = quyền tạo
+                canManageUsers={canCreateUsers}
                 canManageRolesForUser={canAssignRoles}
+                onDeleteUser={handleDeleteUser}
               />
             )}
 
@@ -550,6 +576,42 @@ function UsersPage() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Xác nhận
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete User Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center">
+              <Trash2 className="mr-2 h-6 w-6 text-destructive" />
+              Xác nhận xóa người dùng
+            </DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn{' '}
+              <strong className="text-destructive">XÓA CỨNG</strong> người dùng
+              "{userToDelete?.hoTen}"? Hành động này không thể hoàn tác!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+              disabled={deleteUserMutation.isPending}
+            >
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteUser}
+              disabled={deleteUserMutation.isPending}
+            >
+              {deleteUserMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}{' '}
+              Xác nhận xóa
             </Button>
           </DialogFooter>
         </DialogContent>

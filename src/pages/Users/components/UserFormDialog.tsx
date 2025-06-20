@@ -161,8 +161,7 @@ export function UserFormDialog({
           : null,
         thongTinGiangVien: editingUser.thongTinGiangVien
           ? {
-              donViCongTacID:
-                editingUser.thongTinGiangVien.donViCongTac.donViID,
+              // XÓA donViCongTacID
               hocVi: editingUser.thongTinGiangVien.hocVi || null,
               hocHam: editingUser.thongTinGiangVien.hocHam || null,
               chucDanhGD: editingUser.thongTinGiangVien.chucDanhGD || null,
@@ -246,6 +245,7 @@ export function UserFormDialog({
         ngaySinh: cleanValues.ngaySinh,
         thongTinSinhVien: cleanValues.thongTinSinhVien,
         thongTinGiangVien: cleanValues.thongTinGiangVien,
+        matKhau: cleanValues.matKhau || undefined, // Nếu có nhập thì update, không thì undefined
       };
       updateUserMutation.mutate({
         id: editingUser.nguoiDung.nguoiDungID,
@@ -279,9 +279,8 @@ export function UserFormDialog({
         thongTinGiangVien:
           cleanValues.loaiNguoiDung === LoaiNguoiDungEnum.GIANG_VIEN &&
           cleanValues.thongTinGiangVien &&
-          cleanValues.thongTinGiangVien.donViCongTacID
+          cleanValues.thongTinGiangVien.hocVi
             ? {
-                donViCongTacID: cleanValues.thongTinGiangVien.donViCongTacID,
                 hocVi: cleanValues.thongTinGiangVien.hocVi ?? undefined,
                 hocHam: cleanValues.thongTinGiangVien.hocHam ?? undefined,
                 chucDanhGD:
@@ -443,32 +442,31 @@ export function UserFormDialog({
                         </FormItem>
                       )}
                     />
-                    {!editingUser && ( // Chỉ hiển thị khi tạo mới
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="matKhau"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Mật Khẩu Ban Đầu</FormLabel>
-                              <FormControl>
-                                <Input
-                                  type="password"
-                                  placeholder="Để trống sẽ tự sinh: sonthanh123"
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormDescription className="text-xs">
-                                Nếu bỏ trống, mật khẩu mặc định là
-                                "sonthanh123". Người dùng nên đổi sau khi đăng
-                                nhập.
-                              </FormDescription>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    )}
+
+                    <>
+                      <FormField
+                        control={form.control}
+                        name="matKhau"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Mật Khẩu Ban Đầu</FormLabel>
+                            <FormControl>
+                              <Input
+                                type="password"
+                                placeholder="Để trống sẽ tự sinh: sonthanh123"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormDescription className="text-xs">
+                              Nếu bỏ trống, mật khẩu mặc định là "sonthanh123".
+                              Người dùng nên đổi sau khi đăng nhập.
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </>
+
                     <FormField
                       control={form.control}
                       name="anhDaiDien"
@@ -706,54 +704,6 @@ export function UserFormDialog({
                       </h4>
                       <FormField
                         control={form.control}
-                        name="thongTinGiangVien.donViCongTacID"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              Đơn Vị Công Tác (Khoa/Bộ môn){' '}
-                              <span className="text-destructive">*</span>
-                            </FormLabel>
-                            <Select
-                              onValueChange={(val) =>
-                                field.onChange(Number(val))
-                              }
-                              value={field.value?.toString() || ''}
-                              disabled={isLoadingDonVi}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue
-                                    placeholder={
-                                      isLoadingDonVi
-                                        ? 'Đang tải đơn vị...'
-                                        : 'Chọn đơn vị'
-                                    }
-                                  />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="max-h-60">
-                                {dsDonVi?.items
-                                  .filter((dv) =>
-                                    ['KHOA', 'DOAN_THE', 'BAN'].includes(
-                                      dv.loaiDonVi
-                                    )
-                                  )
-                                  .map((dv) => (
-                                    <SelectItem
-                                      key={dv.donViID}
-                                      value={dv.donViID.toString()}
-                                    >
-                                      {dv.tenDonVi} ({dv.loaiDonVi})
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
                         name="thongTinGiangVien.hocVi"
                         render={({ field }) => (
                           <FormItem>
@@ -836,6 +786,53 @@ export function UserFormDialog({
                         Thông Tin Nhân Viên/Cán Bộ
                       </h4>
                     </motion.div>
+                  )}
+
+                  {/* Đơn vị công tác: chỉ cho GIANG_VIEN và NHAN_VIEN_KHAC */}
+                  {[
+                    LoaiNguoiDungEnum.GIANG_VIEN,
+                    LoaiNguoiDungEnum.NHAN_VIEN_KHAC,
+                  ].includes(selectedLoaiNguoiDung as LoaiNguoiDungEnum) && (
+                    <FormField
+                      control={form.control}
+                      name="donViCongTacID"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Đơn Vị Công Tác (Khoa/Phòng/Ban){' '}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
+                          <Select
+                            onValueChange={(val) => field.onChange(Number(val))}
+                            value={field.value?.toString() || ''}
+                            disabled={isLoadingDonVi}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue
+                                  placeholder={
+                                    isLoadingDonVi
+                                      ? 'Đang tải đơn vị...'
+                                      : 'Chọn đơn vị'
+                                  }
+                                />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent className="max-h-60">
+                              {dsDonVi?.items.map((dv) => (
+                                <SelectItem
+                                  key={dv.donViID}
+                                  value={dv.donViID.toString()}
+                                >
+                                  {dv.tenDonVi} ({dv.loaiDonVi})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   )}
                 </div>
               </div>

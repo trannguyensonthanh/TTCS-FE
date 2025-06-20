@@ -168,6 +168,41 @@ export interface UpdateSuKienPayload {
   ghiChuPhanHoiChoBGH?: string | null;
 }
 
+export interface SuKienCoTheMoiItem {
+  suKienID: number;
+  tenSK: string;
+  tgBatDauDK: string; // ISO
+  tgKetThucDK: string; // ISO
+  loaiSuKien?: {
+    // Join từ LoaiSuKien
+    tenLoaiSK: string;
+  } | null;
+  donViChuTri: {
+    // Join từ DonVi
+    tenDonVi: string;
+  };
+  soLuongDaMoi: number;
+  slThamDuDK?: number | null;
+}
+
+export interface PaginatedSuKienCoTheMoiResponse {
+  items: SuKienCoTheMoiItem[];
+  totalPages: number;
+  currentPage: number;
+  totalItems: number;
+  pageSize: number;
+}
+
+export interface GetSuKienCoTheMoiParams {
+  searchTerm?: string;
+  donViToChucID?: number;
+  loaiSuKienID?: number;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
 // --- API Functions ---
 const getSuKienListForManagement = async (
   params: GetSuKienParams
@@ -304,6 +339,15 @@ const updateSuKien = async (
   ) as Promise<SuKienDetailResponse>;
 };
 
+const getSuKienCoTheMoi = async (
+  params?: GetSuKienCoTheMoiParams
+): Promise<PaginatedSuKienCoTheMoiResponse> => {
+  return apiHelper.get(
+    '/sukien/co-the-moi',
+    params || {}
+  ) as Promise<PaginatedSuKienCoTheMoiResponse>;
+};
+
 const eventService = {
   getSuKienListForManagement,
   getPublicSuKienList,
@@ -316,6 +360,7 @@ const eventService = {
   rejectEventByBGH,
   getSuKienListForSelection,
   updateSuKien,
+  getSuKienCoTheMoi,
 };
 
 export default eventService;

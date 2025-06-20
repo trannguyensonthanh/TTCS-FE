@@ -71,6 +71,9 @@ import RoomsExplorerPage from '@/pages/Facilities/RoomsExplorerPage.tsx';
 import RoomDetailPage from '@/pages/Facilities/RoomDetailPage.tsx';
 import PublicRoomDetailPage from '@/pages/Facilities/PublicRoomDetailPage.tsx';
 import UserDetailPage from '@/pages/Users/UserDetailPage.tsx';
+import InviteToEventPage from '@/pages/Invitations/InviteToEventPage.tsx';
+import MyInvitationsPage from '@/pages/MyInvitations/MyInvitationsPage.tsx';
+import MyAttendedEventsPage from '@/pages/MyAttendedEvents/MyAttendedEventsPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -138,6 +141,16 @@ const AppRouter = () => {
                 }
               />
               <Route
+                path="/my-attended-events" // Hoặc /history/events, /my-activity
+                element={
+                  <ProtectedRoute>
+                    <ClientLayout>
+                      <MyAttendedEventsPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/about"
                 element={
                   <ClientLayout>
@@ -185,6 +198,17 @@ const AppRouter = () => {
                     <NotificationsPage />
                   </ProtectedRoute>
                   // </ClientLayout>
+                }
+              />
+
+              <Route
+                path="/my-invitations"
+                element={
+                  <ProtectedRoute>
+                    <ClientLayout>
+                      <MyInvitationsPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
 
@@ -248,7 +272,14 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-
+              <Route
+                path="/manage-invitations/new"
+                element={
+                  <ProtectedRoute>
+                    <InviteToEventPage />
+                  </ProtectedRoute>
+                }
+              />
               {/* Facilities Routes */}
               <Route
                 path="/facilities/room-requests"

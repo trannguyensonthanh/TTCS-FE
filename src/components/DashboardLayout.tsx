@@ -36,7 +36,8 @@ import {
   ChevronUp,
   Home, // Không thấy dùng trực tiếp
   Grip, // Không thấy dùng trực tiếp
-  Layers, // Dùng cho Quản lý Loại Tầng
+  Layers,
+  Send, // Dùng cho Quản lý Loại Tầng
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -177,9 +178,6 @@ const DashboardLayout = ({
         allowedRoles: [
           MaVaiTro.CB_TO_CHUC_SU_KIEN,
           MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.TRUONG_KHOA,
-          MaVaiTro.TRUONG_CLB,
-          MaVaiTro.BI_THU_DOAN,
           MaVaiTro.ADMIN_HE_THONG,
           MaVaiTro.QUAN_LY_CSVC,
         ],
@@ -222,6 +220,17 @@ const DashboardLayout = ({
             activePaths: ['/events/cancel-requests'],
           },
         ],
+      },
+      {
+        label: 'Mời Tham Gia Sự Kiện',
+        href: '/manage-invitations/new', // Đường dẫn đến trang mời
+        icon: Send, // Hoặc UsersGroupIcon
+        allowedRoles: [
+          MaVaiTro.CONG_TAC_SINH_VIEN,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.ADMIN_HE_THONG,
+        ], // CTSV là chính, CBTCISK cũng có thể mời cho SK của họ, Admin
+        activePaths: ['/manage-invitations'], // Để active khi ở trang con (nếu có)
       },
       {
         label: 'Quản Lý CSVC',
@@ -303,9 +312,6 @@ const DashboardLayout = ({
         label: 'Thống Kê & Báo Cáo',
         allowedRoles: [
           MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.TRUONG_KHOA,
-          MaVaiTro.TRUONG_CLB,
-          MaVaiTro.BI_THU_DOAN,
           MaVaiTro.QUAN_LY_CSVC,
           MaVaiTro.ADMIN_HE_THONG,
           MaVaiTro.CB_TO_CHUC_SU_KIEN,

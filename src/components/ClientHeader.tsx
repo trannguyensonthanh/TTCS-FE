@@ -27,6 +27,7 @@ import {
   InfoIcon,
   ShieldQuestion,
   Contact,
+  Mail,
 } from 'lucide-react';
 import { Logo } from '@/assets/logo';
 import { useAuth } from '@/context/AuthContext';
@@ -142,14 +143,29 @@ export const ClientHeader = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link to="/dashboard">
-                  <DropdownMenuItem className="cursor-pointer h-9">
-                    <DashboardIcon className="mr-2 h-4 w-4" /> Bảng điều khiển
-                  </DropdownMenuItem>
-                </Link>
+                {user.vaiTroChucNang && user.vaiTroChucNang.length > 0 && (
+                  <Link to="/dashboard">
+                    <DropdownMenuItem className="cursor-pointer h-9">
+                      <DashboardIcon className="mr-2 h-4 w-4" /> Bảng điều khiển
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <Link to="/profile">
                   <DropdownMenuItem className="cursor-pointer h-9">
                     <User className="mr-2 h-4 w-4" /> Thông tin cá nhân
+                  </DropdownMenuItem>
+                </Link>
+                <Link to="/my-invitations">
+                  <DropdownMenuItem className="cursor-pointer h-9">
+                    <Mail className="mr-2 h-4 w-4 text-orange-500" /> Lời Mời Sự
+                    Kiện
+                    {/* Có thể hiển thị badge số lượng lời mời chưa đọc ở đây nếu BE có API */}
+                  </DropdownMenuItem>
+                </Link>
+                <Link to="/my-attended-events">
+                  <DropdownMenuItem className="cursor-pointer h-9">
+                    <CalendarDays className="mr-2 h-4 w-4 text-sky-500" /> Sự
+                    Kiện Đã Tham Dự
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />

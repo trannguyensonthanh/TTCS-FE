@@ -1,3 +1,7 @@
+import {
+  NguoiDungTimKiemItem,
+  TimKiemNguoiDungDeMoiParams,
+} from './../../services/nguoiDung.service';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useAuth } from '@/context/AuthContext';
 import { APIError } from '@/services/apiHelper';
@@ -41,6 +45,13 @@ export const NGUOI_DUNG_QUERY_KEYS = {
   detail: (id: number | string | undefined) =>
     [...NGUOI_DUNG_QUERY_KEYS.details(), id] as const,
 };
+
+export const USER_SEARCH_FOR_INVITE_QUERY_KEYS = {
+  all: ['userSearchForInvite'] as const,
+  search: (params: TimKiemNguoiDungDeMoiParams) =>
+    [...USER_SEARCH_FOR_INVITE_QUERY_KEYS.all, params] as const,
+};
+
 // Hook lấy danh sách Người dùng (cho autocomplete/select)
 export const useNguoiDungListForSelect = (
   params?: GetNguoiDungParams,
@@ -399,6 +410,52 @@ export const useImportUsersBatch = (
       if (options?.onError)
         options.onError(error, {} as ImportUsersBatchPayload, undefined);
     },
+    ...options,
+  });
+};
+
+// Hook xóa cứng người dùng (chỉ Admin)
+export const useAdminDeleteUser = (
+  options?: UseMutationOptions<{ message: string }, APIError, number | string>
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<{ message: string }, APIError, number | string>({
+    mutationFn: nguoiDungService.deleteNguoiDungById,
+    onSuccess: (data, id) => {
+      toast.success(data.message || 'Đã xóa người dùng thành công.');
+      queryClient.invalidateQueries({
+        queryKey: NGUOI_DUNG_QUERY_KEYS.lists(),
+      });
+      if (options?.onSuccess) options.onSuccess(data, id, undefined);
+    },
+    onError: (error, id) => {
+      toast.error(
+        error.body?.message || error.message || 'Lỗi khi xóa người dùng.'
+      );
+      if (options?.onError) options.onError(error, id, undefined);
+    },
+    ...options,
+  });
+};
+
+export const useTimKiemNguoiDungDeMoi = (
+  params: TimKiemNguoiDungDeMoiParams,
+  options?: Omit<
+    UseQueryOptions<NguoiDungTimKiemItem[], APIError>,
+    'queryKey' | 'queryFn' // enabled sẽ được quản lý bởi component
+  >
+) => {
+  return useQuery<NguoiDungTimKiemItem[], APIError>({
+    queryKey: USER_SEARCH_FOR_INVITE_QUERY_KEYS.search(params),
+    queryFn: () => {
+      // Chỉ thực hiện query nếu có searchTerm và suKienID
+      if (!params.searchTerm || !params.suKienID) {
+        return Promise.resolve([]); // Trả về mảng rỗng nếu không có searchTerm hoặc suKienID
+      }
+      return nguoiDungService.timKiemNguoiDungDeMoi(params);
+    },
+    enabled: !!params.searchTerm && !!params.suKienID,
+    staleTime: 1 * 60 * 1000, // Cache 1 phút cho kết quả tìm kiếm
     ...options,
   });
 };

@@ -301,7 +301,7 @@ const Index = () => {
               </Carousel>
 
               <div className="text-center mt-8">
-                <Link to="/events">
+                <Link to="/events-public">
                   <Button>
                     Xem tất cả sự kiện
                     <ChevronRight className="ml-1 h-4 w-4" />
@@ -407,7 +407,7 @@ const Index = () => {
                 của chúng tôi
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/events">
+                <Link to="/events-public">
                   <Button size="lg">
                     Xem danh sách sự kiện
                     <ChevronRight className="ml-1 h-4 w-4" />
@@ -426,103 +426,6 @@ const Index = () => {
           </div>
         </section>
       </main>
-
-      {/* Footer Section */}
-      {/* <footer className="bg-gray-900 text-white">
-        <div className="container mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center mb-4">
-                <PTITLogo size={40} />
-              </div>
-              <p className="text-gray-400 mb-4">
-                Học viện Công nghệ Bưu chính Viễn thông – Cơ sở TP.HCM (PTITHCM)
-              </p>
-              <div className="flex space-x-4">
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm4.225 8.16c.004.09.006.18.006.27 0 2.73-2.078 5.87-5.876 5.87a5.83 5.83 0 01-3.158-.926 4.126 4.126 0 003.042-.85 2.054 2.054 0 01-1.918-1.425 2.056 2.056 0 00.928-.034 2.054 2.054 0 01-1.645-2.013v-.026c.277.154.594.247.93.257a2.052 2.052 0 01-.635-2.74 5.83 5.83 0 004.234 2.148 2.053 2.053 0 013.5-1.87 4.126 4.126 0 001.304-.499 2.059 2.059 0 01-.902 1.133 4.113 4.113 0 001.18-.323 4.148 4.148 0 01-1.025 1.064z" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 6.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7zm7 3.5a7 7 0 11-14 0 7 7 0 0114 0zm-4.499-3.15a.851.851 0 100-1.7.851.851 0 000 1.7z" />
-                  </svg>
-                </a>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-4.5 6.5h-3v9h-2v-9h-2v-2h2v-1c0-1.88 1.09-2.5 3.5-2.5h2v2h-1c-.55 0-1 .45-1 1v.5h2.5l-.5 2z" />
-                  </svg>
-                </a>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium mb-4">Liên kết nhanh</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Trang chủ</a></li>
-                <li><a href="#about" className="text-gray-400 hover:text-white">Giới thiệu</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Tuyển sinh</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Đào tạo</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Nghiên cứu</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium mb-4">Sự kiện</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white">Lịch sự kiện</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Sự kiện nổi bật</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Đăng ký tham gia</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white">Tổ chức sự kiện</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-medium mb-4">Liên hệ</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start">
-                  <MapPin className="h-5 w-5 mr-2 text-gray-400 mt-0.5" />
-                  <span className="text-gray-400">
-                    97 Man Thiện, P. Hiệp Phú, TP. Thủ Đức, TP.HCM
-                  </span>
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                  <a href="mailto:info@ptithcm.edu.vn" className="text-gray-400 hover:text-white">
-                    info@ptithcm.edu.vn
-                  </a>
-                </li>
-                <li className="flex items-center">
-                  <svg className="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                  <a href="tel:+842837307979" className="text-gray-400 hover:text-white">
-                    (028) 3730 7979
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm mb-4 md:mb-0">
-              © 2024 Học viện Công nghệ Bưu chính Viễn thông – Cơ sở TP.HCM. All rights reserved.
-            </p>
-            <div className="flex space-x-6">
-              <a href="#" className="text-gray-400 hover:text-white text-sm">Điều khoản sử dụng</a>
-              <a href="#" className="text-gray-400 hover:text-white text-sm">Chính sách bảo mật</a>
-            </div>
-          </div>
-        </div>
-      </footer> */}
     </div>
   );
 };

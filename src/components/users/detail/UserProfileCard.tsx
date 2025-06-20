@@ -129,12 +129,15 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
             alt={nguoiDung.hoTen}
           />
           <AvatarFallback className="text-3xl font-semibold bg-muted">
-            {nguoiDung.hoTen.split(' ').pop()?.[0]?.toUpperCase() || 'ND'}
+            {(nguoiDung.hoTen &&
+              typeof nguoiDung.hoTen === 'string' &&
+              nguoiDung.hoTen.split(' ').pop()?.[0]?.toUpperCase()) ||
+              'ND'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <CardTitle className="text-3xl font-bold text-primary dark:text-ptit-red">
-            {nguoiDung.hoTen}
+            {nguoiDung.hoTen ? nguoiDung.hoTen : 'Người dùng'}
           </CardTitle>
           <CardDescription className="text-base text-muted-foreground mt-1">
             ID:{' '}
@@ -191,16 +194,24 @@ export const UserProfileCard: React.FC<UserProfileCardProps> = ({
           <InfoRow
             icon={CalendarDays}
             label="Ngày tạo người dùng"
-            value={format(parseISO(nguoiDung.ngayTao), 'dd/MM/yyyy HH:mm', {
-              locale: vi,
-            })}
+            value={
+              nguoiDung.ngayTao
+                ? format(parseISO(nguoiDung.ngayTao), 'dd/MM/yyyy HH:mm', {
+                    locale: vi,
+                  })
+                : 'Chưa có'
+            }
           />
           <InfoRow
             icon={CalendarDays}
             label="Ngày tạo tài khoản"
-            value={format(parseISO(taiKhoan.ngayTaoTk), 'dd/MM/yyyy HH:mm', {
-              locale: vi,
-            })}
+            value={
+              taiKhoan?.ngayTaoTk
+                ? format(parseISO(taiKhoan.ngayTaoTk), 'dd/MM/yyyy HH:mm', {
+                    locale: vi,
+                  })
+                : 'Chưa có'
+            }
           />
           {taiKhoan.lanDangNhapCuoi &&
             isValid(parseISO(taiKhoan.lanDangNhapCuoi)) && (

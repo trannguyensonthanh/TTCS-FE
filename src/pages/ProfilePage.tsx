@@ -116,7 +116,7 @@ const ProfilePage = () => {
       matKhauMoi: data.matKhauMoi,
     });
   };
-
+  console.log('userProfile:', userProfile);
   // Lấy thông tin hiển thị (ưu tiên từ API, fallback về AuthContext)
   const displayUser = userProfile?.nguoiDung || authUser;
   const displayTenDangNhap = userProfile?.nguoiDung.email || '(Chưa có)';
@@ -169,7 +169,7 @@ const ProfilePage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="space-y-8 max-w-4xl mx-auto"
+        className="space-y-8 max-w-6xl mx-auto"
       >
         {/* Profile Header */}
         <Card className="shadow-xl overflow-hidden ">
@@ -372,9 +372,15 @@ const ProfilePage = () => {
                     <InfoRowProfile
                       label="Đơn vị công tác:"
                       value={`${
-                        displayThongTinGiangVien.donViCongTac.tenDonVi
+                        displayVaiTroChucNang.find(
+                          (role) =>
+                            role.donViThucThi === MaVaiTro.THANH_VIEN_DON_VI
+                        )?.donViThucThi.tenDonVi || 'PTITHCM'
                       } (${
-                        displayThongTinGiangVien.donViCongTac.maDonVi || 'N/A'
+                        displayVaiTroChucNang.find(
+                          (role) =>
+                            role.donViThucThi === MaVaiTro.THANH_VIEN_DON_VI
+                        )?.donViThucThi.maDonVi
                       })`}
                     />
                     {displayThongTinGiangVien.hocVi && (

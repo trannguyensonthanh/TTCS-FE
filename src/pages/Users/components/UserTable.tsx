@@ -40,7 +40,7 @@ interface UserTableProps {
   onManageRoles: (user: NguoiDungListItemFE) => void; // Mở dialog gán vai trò
   onChangePassword?: (user: NguoiDungListItemFE) => void; // Tùy chọn: Mở dialog đổi mật khẩu cho user (admin làm)
   onToggleAccountStatus?: (user: NguoiDungListItemFE) => void; // Tùy chọn: Mở dialog/confirm thay đổi trạng thái TK
-  // onDeleteUser: (user: NguoiDungListItemFE) => void; // Xóa người dùng thường phức tạp, có thể bỏ qua ở bước này
+  onDeleteUser?: (user: NguoiDungListItemFE) => void; // Thêm props xóa cứng
   canManageUsers: boolean; // Quyền sửa người dùng
   canManageRolesForUser: boolean; // Quyền gán vai trò
 }
@@ -51,11 +51,12 @@ export function UserTable({
   onManageRoles,
   onChangePassword,
   onToggleAccountStatus,
+  onDeleteUser,
   canManageUsers,
   canManageRolesForUser,
 }: UserTableProps) {
   const navigate = useNavigate();
-
+  console.log('UserTable rendered with users:', users);
   return (
     <div className="rounded-md border shadow-sm bg-card dark:border-slate-800 overflow-x-auto">
       <Table>
@@ -131,23 +132,26 @@ export function UserTable({
               <TableCell className="py-2.5 px-4 text-sm text-muted-foreground align-top">
                 {user.donViCongTacChinh || '-'}
                 {user.loaiNguoiDungHienThi === 'Sinh viên' &&
-                  user.nganhHocSV && (
+                  user.thongTinSinhVien && (
                     <div className="text-xs italic mt-0.5">
-                      Ngành: {user.nganhHocSV}
+                      Ngành: {user.thongTinSinhVien.nganhHoc.tenNganhHoc} -
+                      Chuyên ngành:{' '}
+                      {user.thongTinSinhVien.chuyenNganh?.tenChuyenNganh ||
+                        'Không có'}
                     </div>
                   )}
               </TableCell>
               <TableCell className="py-2.5 px-4 text-sm text-muted-foreground align-top">
-                {user.cacVaiTroChucNang && user.cacVaiTroChucNang.length > 0 ? (
+                {user.vaiTroChucNang && user.vaiTroChucNang.length > 0 ? (
                   <div className="flex flex-wrap gap-1">
-                    {user.cacVaiTroChucNang.slice(0, 2).map((vt, idx) => (
+                    {user.vaiTroChucNang.slice(0, 2).map((vt, idx) => (
                       <Badge key={idx} variant="outline" className="text-xs">
-                        {vt}
+                        {vt.tenVaiTro || vt.maVaiTro || String(vt)}
                       </Badge>
                     ))}
-                    {user.cacVaiTroChucNang.length > 2 && (
+                    {user.vaiTroChucNang.length > 2 && (
                       <Badge variant="outline" className="text-xs">
-                        +{user.cacVaiTroChucNang.length - 2} khác
+                        +{user.vaiTroChucNang.length - 2} khác
                       </Badge>
                     )}
                   </div>
@@ -223,17 +227,18 @@ export function UserTable({
                           </DropdownMenuItem>
                         </>
                       )}
-                      {/* {canManageUsers && (
+                      {canManageUsers && (
                         <>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            // onClick={() => onDeleteUser(user)} // Tạm thời chưa có delete
+                            onClick={() => onDeleteUser && onDeleteUser(user)}
                             className="text-destructive focus:text-destructive focus:bg-destructive/10"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Xóa Người Dùng
+                            <Trash2 className="mr-2 h-4 w-4" /> Xóa cứng Người
+                            Dùng
                           </DropdownMenuItem>
                         </>
-                      )} */}
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

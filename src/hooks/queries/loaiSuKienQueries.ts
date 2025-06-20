@@ -15,8 +15,6 @@ export const LOAI_SU_KIEN_QUERY_KEYS = {
     [...LOAI_SU_KIEN_QUERY_KEYS.lists(), params || {}] as const,
 };
 
-// ... (các hook cũ: useManagedEventsList, usePublicEventsList, etc.) ...
-
 // Hook để lấy danh sách Loại Sự Kiện
 export const useLoaiSuKienList = (
   params?: GetLoaiSuKienParams,

@@ -25,6 +25,8 @@ import eventService, {
   DuyetSuKienPayload,
   GetSuKienForSelectParams,
   UpdateSuKienPayload,
+  GetSuKienCoTheMoiParams,
+  PaginatedSuKienCoTheMoiResponse,
   // Import các type khác nếu cần cho create/update
 } from '@/services/event.service';
 import { APIError } from '@/services/apiHelper';
@@ -54,6 +56,13 @@ export const EVENT_QUERY_KEYS = {
     [...EVENT_QUERY_KEYS.details(), id] as const,
   suKienForSelect: (params?: GetSuKienForSelectParams) =>
     ['suKienForSelect', params || {}] as const,
+};
+
+export const EVENT_INVITABLE_QUERY_KEYS = {
+  all: ['eventsForInvitation'] as const,
+  lists: () => [...EVENT_INVITABLE_QUERY_KEYS.all, 'list'] as const,
+  list: (params: GetSuKienCoTheMoiParams) =>
+    [...EVENT_INVITABLE_QUERY_KEYS.lists(), params] as const,
 };
 
 // Hook để lấy danh sách sự kiện có phân trang
@@ -389,5 +398,20 @@ export const useUpdateEvent = (
       if (options?.onError) options.onError(error, {} as any, undefined);
     },
     // ...options,
+  });
+};
+
+export const useSuKienCoTheMoi = (
+  params: GetSuKienCoTheMoiParams,
+  options?: Omit<
+    UseQueryOptions<PaginatedSuKienCoTheMoiResponse, APIError>,
+    'queryKey' | 'queryFn'
+  >
+) => {
+  return useQuery<PaginatedSuKienCoTheMoiResponse, APIError>({
+    queryKey: EVENT_INVITABLE_QUERY_KEYS.list(params),
+    queryFn: () => eventService.getSuKienCoTheMoi(params),
+    staleTime: 5 * 60 * 1000, // 5 phút
+    ...options,
   });
 };

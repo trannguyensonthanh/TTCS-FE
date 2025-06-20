@@ -154,20 +154,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
               return true;
             if (resource === 'DashboardTongQuan' && action === 'view')
               return true; // Hoặc Dashboard CSVC
-            break;
 
-          case MaVaiTro.TRUONG_KHOA:
-          case MaVaiTro.TRUONG_CLB:
-          case MaVaiTro.BI_THU_DOAN:
-            if (resource === 'DashboardDonVi' && action === 'view') return true;
-            if (resource === 'SuKien' && action === 'view') {
-              return true;
-            }
-            // Giai đoạn 2: có thể cho 'create' SuKien cho đơn vị của họ
-            // if (resource === 'SuKien' && action === 'create' && resourceContext?.donViChuTriID === userRole.donViThucThi?.donViID) return true;
-            // Quyền mời người tham gia cho đơn vị của họ:
-            if (resource === 'SK_MoiThamGia' && action === 'create')
-              return true;
             break;
 
           // Các vai trò khác  ...
@@ -225,18 +212,6 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return hasRole(MaVaiTro.ADMIN_HE_THONG);
   }, [hasRole]);
 
-  const isTruongKhoa = useCallback((): boolean => {
-    return hasRole(MaVaiTro.TRUONG_KHOA);
-  }, [hasRole]);
-
-  const isTruongCLB = useCallback((): boolean => {
-    return hasRole(MaVaiTro.TRUONG_CLB);
-  }, [hasRole]);
-
-  const isBiThuDoan = useCallback((): boolean => {
-    return hasRole(MaVaiTro.BI_THU_DOAN);
-  }, [hasRole]);
-
   const getManagedDonViId = useCallback(
     (maVaiTroQuanLy: string): number | undefined => {
       if (!user || !user.vaiTroChucNang) return undefined;
@@ -257,9 +232,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         isFacilityManager,
         isBGH,
         isAdmin,
-        isTruongKhoa,
-        isTruongCLB,
-        isBiThuDoan,
+
         getManagedDonViId,
       }}
     >

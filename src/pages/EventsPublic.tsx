@@ -232,13 +232,20 @@ const EventsPublic = () => {
               <div className="aspect-[16/10] bg-muted relative overflow-hidden">
                 {event.imageUrl ? (
                   <img
-                    src={event.imageUrl}
+                    src={
+                      event.imageUrl ||
+                      'https://bcvt.edu.vn/wp-content/uploads/2023/03/Tai-sao-nen-chon-PTiT-de-hoc-theo-he-dao-tao-tu-xa2.jpg'
+                    }
                     alt={event.tenSK}
                     className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full bg-gradient-to-br from-ptit-blue/10 to-ptit-red/10 dark:from-slate-800 dark:to-slate-700">
-                    <CalendarDays className="h-20 w-20 text-ptit-blue/30 dark:text-ptit-red/30" />
+                    {/* <CalendarDays className="h-20 w-20 text-ptit-blue/30 dark:text-ptit-red/30" /> */}
+                    <img
+                      src="https://bcvt.edu.vn/wp-content/uploads/2023/03/Tai-sao-nen-chon-PTiT-de-hoc-theo-he-dao-tao-tu-xa2.jpg"
+                      alt={event.tenSK}
+                    />
                   </div>
                 )}
                 <div className="absolute top-3 right-3">

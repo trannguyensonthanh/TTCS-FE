@@ -297,6 +297,7 @@ const UserDetailPage = () => {
                 thongTinSinhVien={userProfileData.thongTinSinhVien}
                 thongTinGiangVien={userProfileData.thongTinGiangVien}
                 isLoading={isLoadingProfile}
+                vaiTroChucNang={userProfileData.vaiTroChucNang}
               />
             </div>
 

@@ -73,7 +73,6 @@ export interface ThongTinSinhVienChiTietResponse {
 }
 
 export interface ThongTinGiangVienInput {
-  donViCongTacID: number;
   hocVi?: string | null;
   hocHam?: string | null;
   chucDanhGD?: string | null;
@@ -83,12 +82,6 @@ export interface ThongTinGiangVienInput {
 // Thông tin chi tiết cho hồ sơ Giảng Viên
 export interface ThongTinGiangVienChiTietResponse {
   maGiangVien: string;
-  donViCongTac: {
-    donViID: number;
-    tenDonVi: string;
-    maDonVi?: string | null;
-    loaiDonVi: string;
-  }; // Khoa/Bộ môn
   hocVi?: string | null;
   hocHam?: string | null;
   chucDanhGD?: string | null;
@@ -155,7 +148,7 @@ export interface CreateNguoiDungPayload {
   // Thông tin TaiKhoan
   matKhau: string; // Backend sẽ hash mật khẩu này
   trangThaiTk?: string; // Default là Active
-
+  donViCongTacID?: number | null; // Chỉ cần nếu là GiangVien hoặc NhanVienKhac
   loaiNguoiDung: 'SINH_VIEN' | 'GIANG_VIEN' | 'NHAN_VIEN_KHAC';
   thongTinSinhVien?: ThongTinSinhVienInput | null;
   thongTinGiangVien?: ThongTinGiangVienInput | null;
@@ -249,6 +242,26 @@ export interface ImportUsersBatchResponse {
   summaryMessage: string;
 }
 
+export interface NguoiDungTimKiemItem {
+  nguoiDungID: number;
+  maDinhDanh?: string | null;
+  hoTen: string;
+  email: string;
+  loaiNguoiDungHienThi: string; // "Sinh viên" hoặc "Giảng viên" hoặc "Nhân viên khác"
+  thongTinThem: string; // VD: "Lớp D20CNTT01 - Ngành CNTT" hoặc "Khoa CNTT - Chuyên môn: AI"
+  anhDaiDien?: string | null;
+}
+
+export interface TimKiemNguoiDungDeMoiParams {
+  suKienID: number;
+  searchTerm: string;
+  loaiNguoiDung?: 'SINH_VIEN' | 'GIANG_VIEN' | 'ALL';
+  donViID?: number;
+  nganhHocID?: number;
+  lopID?: number;
+  limit?: number;
+}
+
 const getNguoiDungList = async (
   params?: GetNguoiDungParams
 ): Promise<PaginatedNguoiDungResponseFE> => {
@@ -337,6 +350,24 @@ const changeMyPassword = async (
   ) as Promise<ChangePasswordResponse>;
 };
 
+// Xóa cứng người dùng theo ID (chỉ Admin hệ thống)
+const deleteNguoiDungById = async (
+  nguoiDungId: number | string
+): Promise<{ message: string }> => {
+  console.warn(
+    `Warning: This action will permanently delete the user and cannot be undone. User ID: ${nguoiDungId}`
+  );
+  return apiHelper.delete(`/nguoidung/${nguoiDungId}`);
+};
+
+const timKiemNguoiDungDeMoi = async (
+  params: TimKiemNguoiDungDeMoiParams
+): Promise<NguoiDungTimKiemItem[]> => {
+  return apiHelper.get('/nguoidung/tim-kiem-de-moi', params) as Promise<
+    NguoiDungTimKiemItem[]
+  >;
+};
+
 export const nguoiDungService = {
   getNguoiDungList,
   getNguoiDungDetailForAdmin,
@@ -349,4 +380,6 @@ export const nguoiDungService = {
   importUsersBatch,
   getMyProfile,
   changeMyPassword,
+  deleteNguoiDungById,
+  timKiemNguoiDungDeMoi,
 };

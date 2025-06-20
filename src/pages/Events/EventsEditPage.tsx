@@ -269,7 +269,7 @@ const EventsEditPage = () => {
   const { data: dsNguoiChuTri, isLoading: isLoadingNguoiChuTri } =
     useNguoiDungListForSelect({
       searchTerm: debouncedSearchNguoiChuTri,
-      maVaiTro: `${MaVaiTro.TRUONG_KHOA},${MaVaiTro.BGH_DUYET_SK_TRUONG},GIANG_VIEN`,
+      maVaiTro: `${MaVaiTro.BGH_DUYET_SK_TRUONG},GIANG_VIEN`,
       limit: 10,
     });
   const [searchTermDonViThamGia, setSearchTermDonViThamGia] = useState('');

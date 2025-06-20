@@ -53,11 +53,17 @@ interface UserProfileAcademicInfoProps {
   thongTinSinhVien?: ThongTinSinhVienChiTietResponse | null;
   thongTinGiangVien?: ThongTinGiangVienChiTietResponse | null;
   isLoading: boolean;
+  vaiTroChucNang?: import('@/services/auth.service').VaiTroChucNangResponse[];
 }
 
 export const UserProfileAcademicInfo: React.FC<
   UserProfileAcademicInfoProps
-> = ({ thongTinSinhVien, thongTinGiangVien, isLoading }) => {
+> = ({ thongTinSinhVien, thongTinGiangVien, isLoading, vaiTroChucNang }) => {
+  // Lấy đơn vị từ vai trò chức năng có mã THANH_VIEN_DON_VI
+  const donViThanhVien = vaiTroChucNang?.find(
+    (vt) => vt.maVaiTro === 'THANH_VIEN_DON_VI'
+  )?.donViThucThi;
+
   if (isLoading) {
     return (
       <Card className="shadow-lg">
@@ -116,11 +122,16 @@ export const UserProfileAcademicInfo: React.FC<
             )}
             <InfoRow
               label="Khoa quản lý"
-              value={`${thongTinSinhVien.khoaQuanLy.tenDonVi} ${
-                thongTinSinhVien.khoaQuanLy.maDonVi
-                  ? `(${thongTinSinhVien.khoaQuanLy.maDonVi})`
-                  : ''
-              }`}
+              value={
+                thongTinSinhVien.khoaQuanLy &&
+                thongTinSinhVien.khoaQuanLy.tenDonVi
+                  ? `${thongTinSinhVien.khoaQuanLy.tenDonVi} ${
+                      thongTinSinhVien.khoaQuanLy.maDonVi
+                        ? `(${thongTinSinhVien.khoaQuanLy.maDonVi})`
+                        : ''
+                    }`
+                  : 'Chưa có'
+              }
             />
             <InfoRow label="Khóa học" value={thongTinSinhVien.khoaHoc} />
             <InfoRow label="Hệ đào tạo" value={thongTinSinhVien.heDaoTao} />
@@ -158,7 +169,11 @@ export const UserProfileAcademicInfo: React.FC<
             />
             <InfoRow
               label="Đơn vị công tác"
-              value={`${thongTinGiangVien.donViCongTac.tenDonVi} (${thongTinGiangVien.donViCongTac.loaiDonVi})`}
+              value={
+                donViThanhVien
+                  ? `${donViThanhVien.tenDonVi} (${donViThanhVien.loaiDonVi})`
+                  : 'Chưa có'
+              }
             />
             <InfoRow label="Học vị" value={thongTinGiangVien.hocVi} />
             <InfoRow label="Học hàm" value={thongTinGiangVien.hocHam} />

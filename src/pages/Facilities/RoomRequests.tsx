@@ -272,7 +272,7 @@ const RoomRequestsPage = () => {
     if (hasRole(MaVaiTro.QUAN_LY_CSVC) || hasRole(MaVaiTro.ADMIN_HE_THONG)) {
       return 'pending_csvc';
     }
-    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) || hasRole(MaVaiTro.TRUONG_KHOA)) {
+    if (hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)) {
       return 'my_requests';
     }
     return 'all';
@@ -686,8 +686,7 @@ const RoomRequestsPage = () => {
                   Chờ CSVC Xử Lý
                 </TabsTrigger>
               )}
-              {(hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) ||
-                hasRole(MaVaiTro.TRUONG_KHOA)) &&
+              {hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
                 !canProcessRequests && ( // Chỉ hiện thị tab này nếu không phải là CSVC/Admin
                   <TabsTrigger
                     value="my_requests"
