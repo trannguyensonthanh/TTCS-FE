@@ -97,13 +97,12 @@ function OrganizationalUnitsPage() {
     useLoaiDonViOptions({
       enabled: canManageUnits, // Chỉ fetch   quyền
     });
-
+  console.log('editingUnit', editingUnit);
+  // Luôn gọi hook 1 lần, chỉ truyền excludeDonViId khi sửa, tạo mới thì undefined (hook sẽ không thêm param nếu undefined)
   const { data: donViChaOptions, isLoading: isLoadingDonViCha } =
     useDonViChaOptions(
-      editingUnit ? (editingUnit as DonViDetail).donViID : undefined, // Loại trừ đơn vị đang sửa
-      {
-        enabled: canManageUnits && isFormModalOpen, // Chỉ fetch khi modal mở và có quyền
-      }
+      editingUnit ? (editingUnit as DonViDetail).donViID : undefined,
+      { enabled: canManageUnits && isFormModalOpen }
     );
 
   const deleteDonViMutation = useDeleteDonVi({

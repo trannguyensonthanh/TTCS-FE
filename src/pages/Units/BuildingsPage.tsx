@@ -309,7 +309,7 @@ const BuildingsPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả Cơ sở</SelectItem>
-                  {dsCoSo?.map((cs) => (
+                  {dsCoSo?.items.map((cs) => (
                     <SelectItem key={cs.donViID} value={cs.donViID.toString()}>
                       {cs.tenDonVi}
                     </SelectItem>
@@ -508,7 +508,7 @@ const BuildingsPage = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {dsCoSo?.map((cs) => (
+                        {dsCoSo?.items.map((cs) => (
                           <SelectItem
                             key={cs.donViID}
                             value={cs.donViID.toString()}

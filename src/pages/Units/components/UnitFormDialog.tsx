@@ -209,7 +209,7 @@ export function UnitFormDialog({
               name="donViChaID"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Đơn Vị Cha ( )</FormLabel>
+                  <FormLabel>Đơn Vị Cha</FormLabel>
                   <Select
                     onValueChange={(value) =>
                       field.onChange(value === 'null' ? null : value)

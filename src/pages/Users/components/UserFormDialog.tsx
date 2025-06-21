@@ -34,6 +34,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { DatePicker } from '@/components/ui/date-picker';
+import { DateInput } from '@/components/ui/date-input';
 import { Loader2, UserPlus, Save } from 'lucide-react';
 import { UserFormValues, userFormSchema } from './userFormTypes';
 
@@ -130,6 +131,41 @@ export function UserFormDialog({
       else if (editingUser.thongTinGiangVien)
         loaiNguoiDung = LoaiNguoiDungEnum.GIANG_VIEN;
       else loaiNguoiDung = LoaiNguoiDungEnum.NHAN_VIEN_KHAC;
+      console.log('editingUser', editingUser);
+      // Xử lý ngày sinh: parse mọi định dạng ISO hoặc yyyy-MM-dd, yyyy/MM/dd, dd/MM/yyyy
+      let ngaySinhValue: string | null = null;
+      if (ngDung.ngaySinh) {
+        let parsedDate: Date | null = null;
+        // Thử parse ISO
+        try {
+          parsedDate = parseISO(ngDung.ngaySinh);
+        } catch {
+          /* ignore parseISO error */
+        }
+        // Nếu parseISO fail, thử parse dd/MM/yyyy
+        if (!parsedDate || isNaN(parsedDate.getTime())) {
+          const [d, m, y] = ngDung.ngaySinh.split(/[-/]/);
+          if (d && m && y) {
+            parsedDate = new Date(Number(y), Number(m) - 1, Number(d));
+          }
+        }
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          ngaySinhValue = format(parsedDate, 'dd/MM/yyyy');
+        } else {
+          ngaySinhValue = null;
+        }
+      }
+
+      // Lấy đơn vị công tác từ trường donViCongTacChinh nếu có (trong editingUser)
+      let donViCongTacID: number | null = null;
+      if (
+        (loaiNguoiDung === LoaiNguoiDungEnum.GIANG_VIEN ||
+          loaiNguoiDung === LoaiNguoiDungEnum.NHAN_VIEN_KHAC) &&
+        editingUser.donViCongTacChinh &&
+        editingUser.donViCongTacChinh.donViID
+      ) {
+        donViCongTacID = editingUser.donViCongTacChinh.donViID;
+      }
 
       form.reset({
         hoTen: ngDung.hoTen,
@@ -139,11 +175,10 @@ export function UserFormDialog({
         anhDaiDien: ngDung.anhDaiDien || null,
         isActive: ngDung.isActive,
         matKhau: '', // Không hiển thị/sửa mật khẩu ở form này
-        trangThaiTk: editingUser.nguoiDung.isActive ? 'Active' : 'Disabled', // Cần logic map từ TaiKhoan.TrangThaiTk thực tế
+        trangThaiTk: editingUser.nguoiDung.isActive ? 'Active' : 'Disabled',
         loaiNguoiDung: loaiNguoiDung,
-        ngaySinh: ngDung.ngaySinh
-          ? format(parseISO(ngDung.ngaySinh), 'dd/MM/yyyy')
-          : null,
+        ngaySinh: ngaySinhValue,
+        donViCongTacID: donViCongTacID,
         thongTinSinhVien: editingUser.thongTinSinhVien
           ? {
               lopID: editingUser.thongTinSinhVien.lop.lopID,
@@ -161,7 +196,6 @@ export function UserFormDialog({
           : null,
         thongTinGiangVien: editingUser.thongTinGiangVien
           ? {
-              // XÓA donViCongTacID
               hocVi: editingUser.thongTinGiangVien.hocVi || null,
               hocHam: editingUser.thongTinGiangVien.hocHam || null,
               chucDanhGD: editingUser.thongTinGiangVien.chucDanhGD || null,
@@ -242,10 +276,12 @@ export function UserFormDialog({
         anhDaiDien: cleanValues.anhDaiDien,
         email: cleanValues.email,
         isActiveNguoiDung: cleanValues.isActive,
+        donViCongTacID: cleanValues.donViCongTacID || undefined, // Chỉ cần cho GIANG_VIEN và NHAN_VIEN_KHAC
         ngaySinh: cleanValues.ngaySinh,
         thongTinSinhVien: cleanValues.thongTinSinhVien,
         thongTinGiangVien: cleanValues.thongTinGiangVien,
         matKhau: cleanValues.matKhau || undefined, // Nếu có nhập thì update, không thì undefined
+        loaiNguoiDung: cleanValues.loaiNguoiDung, // BỔ SUNG: luôn truyền loại người dùng khi update
       };
       updateUserMutation.mutate({
         id: editingUser.nguoiDung.nguoiDungID,
@@ -406,37 +442,10 @@ export function UserFormDialog({
                         <FormItem>
                           <FormLabel>Ngày Sinh</FormLabel>
                           <FormControl>
-                            <Input
-                              type="text"
-                              value={field.value ?? ''}
-                              onChange={(e) => {
-                                // Chỉ cho phép nhập dạng dd/mm/yyyy
-                                const val = e.target.value.replace(
-                                  /[^0-9/]/g,
-                                  ''
-                                );
-                                // Tự động thêm dấu / khi nhập
-                                let formatted = val;
-                                if (
-                                  formatted.length === 2 &&
-                                  !formatted.endsWith('/')
-                                ) {
-                                  formatted += '/';
-                                }
-                                if (
-                                  formatted.length === 5 &&
-                                  formatted[4] !== '/'
-                                ) {
-                                  formatted =
-                                    formatted.slice(0, 5) +
-                                    '/' +
-                                    formatted.slice(5);
-                                }
-                                field.onChange(formatted);
-                              }}
-                              className="w-full"
-                              placeholder="dd/mm/yyyy"
-                              maxLength={10}
+                            <DateInput
+                              value={field.value}
+                              onChange={field.onChange}
+                              placeholder="dd/MM/yyyy"
                             />
                           </FormControl>
                           <FormMessage />

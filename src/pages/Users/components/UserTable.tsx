@@ -130,7 +130,7 @@ export function UserTable({
                 </Badge>
               </TableCell>
               <TableCell className="py-2.5 px-4 text-sm text-muted-foreground align-top">
-                {user.donViCongTacChinh || '-'}
+                {user?.donViCongTacChinh?.tenDonVi || '-'}
                 {user.loaiNguoiDungHienThi === 'Sinh viên' &&
                   user.thongTinSinhVien && (
                     <div className="text-xs italic mt-0.5">

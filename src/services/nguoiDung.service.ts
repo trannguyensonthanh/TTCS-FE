@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/services/nguoiDung.service.ts
 import apiHelper from '@/services/apiHelper';
 import { VaiTroChucNangResponse } from '@/services/auth.service';
-import { NguoiDungResponseMin } from '@/services/event.service';
+import {
+  DonViResponseMin,
+  NguoiDungResponseMin,
+} from '@/services/event.service';
 
 export interface GetNguoiDungParams {
   searchTerm?: string; // Tìm theo HoTen, Email, MaDinhDanh
@@ -105,6 +109,7 @@ export interface UserProfileResponse {
   thongTinSinhVien?: ThongTinSinhVienChiTietResponse | null;
   thongTinGiangVien?: ThongTinGiangVienChiTietResponse | null;
   vaiTroChucNang: VaiTroChucNangResponse[]; // Danh sách vai trò chức năng đang giữ
+  donViCongTacChinh?: DonViResponseMin | null; // Chỉ cần nếu là Giảng viên hoặc Nhân viên khác
 }
 
 export interface NguoiDungListItemFE {
@@ -118,7 +123,7 @@ export interface NguoiDungListItemFE {
   isActive?: boolean; // Từ NguoiDung.IsActive
   trangThaiTaiKhoan?: string; // Từ TaiKhoan.TrangThaiTk
   loaiNguoiDungHienThi?: string; // VD: "Sinh viên", "Giảng viên", "Nhân viên"
-  donViCongTacChinh?: string | null; // Tên Khoa của GV, hoặc tên Lớp của SV
+  donViCongTacChinh?: any | DonViResponseMin; // Tên Khoa của GV, hoặc tên Lớp của SV
   nganhHocSV?: string | null; // Ngành của SV
   cacVaiTroChucNang?: string[]; // Mảng tên các vai trò chức năng
   ngayTao?: string; // ISO Date string
@@ -173,7 +178,8 @@ export interface UpdateNguoiDungAdminPayload {
   matKhau?: string; // Backend sẽ hash mật khẩu này
   ngaySinh?: string | null; // ISO Date string, có thể null nếu không có
   trangThaiTk?: string; // Default là Active
-
+  donViCongTacID?: number | null; // Chỉ cần nếu là GiangVien hoặc NhanVienKhac
+  loaiNguoiDung?: 'SINH_VIEN' | 'GIANG_VIEN' | 'NHAN_VIEN_KHAC'; // Cập nhật loại người dùng nếu cần
   // Thông tin hồ sơ (Optional, chỉ gửi  )
   thongTinSinhVien?: Partial<ThongTinSinhVienInput> | null; // null để xóa nếu cho phép
   thongTinGiangVien?: Partial<ThongTinGiangVienInput> | null;
@@ -290,6 +296,7 @@ const updateNguoiDungByAdmin = async (
   nguoiDungId: number | string,
   payload: UpdateNguoiDungAdminPayload
 ): Promise<UserProfileResponse> => {
+  console.log(`Updating user with ID: ${nguoiDungId} with payload:`, payload);
   return apiHelper.put(`/nguoidung/${nguoiDungId}/admin-update`, payload);
 };
 

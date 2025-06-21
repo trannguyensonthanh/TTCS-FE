@@ -245,8 +245,11 @@ function UsersPage() {
         anhDaiDien: userItem.anhDaiDien,
         isActive: userItem.isActive,
         ngayTao: userItem.ngayTao,
+        ngaySinh: userItem.ngaySinh || null,
+
         // Thêm các trường còn thiếu của NguoiDungFullResponse
       },
+      donViCongTacChinh: userItem.donViCongTacChinh || null,
       thongTinSinhVien: userItem.thongTinSinhVien || null,
       thongTinGiangVien: userItem.thongTinGiangVien || null,
       vaiTroChucNang: userItem.vaiTroChucNang || [],
@@ -315,7 +318,10 @@ function UsersPage() {
         Email: u.email,
         'Mã Số': u.maDinhDanh || '',
         'Loại User': u.loaiNguoiDungHienThi,
-        'Đơn Vị': u.donViCongTacChinh || '',
+        'Đơn Vị':
+          u.loaiNguoiDungHienThi === 'Sinh viên'
+            ? u.donViCongTacChinh
+            : u.donViCongTacChinh?.tenDonVi || '',
         'Vai Trò CN': u.cacVaiTroChucNang?.join(', ') || '',
         'Trạng Thái TK':
           u.trangThaiTaiKhoan || (u.isActive ? 'Hoạt động' : 'Vô hiệu hóa'),

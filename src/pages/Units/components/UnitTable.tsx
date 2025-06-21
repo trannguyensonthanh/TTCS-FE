@@ -56,7 +56,7 @@ export function UnitTable({
         return 'outline';
     }
   };
-
+  console.log('Rendering UnitTable with units:', units);
   return (
     <div className="rounded-md border shadow-sm bg-card dark:border-slate-800 overflow-x-auto">
       <Table>

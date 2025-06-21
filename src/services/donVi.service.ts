@@ -114,6 +114,9 @@ const getLoaiDonViOptions = (): Promise<LoaiDonViOption[]> => {
 const getDonViChaOptions = (
   excludeDonViId?: number
 ): Promise<DonViSelectOption[]> => {
+  if (excludeDonViId == null) {
+    return apiHelper.get('/donvi/don-vi-cha-options');
+  }
   return apiHelper.get('/donvi/don-vi-cha-options', {
     excludeDonViId: Number(excludeDonViId),
   });
