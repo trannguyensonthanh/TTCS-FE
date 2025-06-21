@@ -237,7 +237,7 @@ const InfoRow = ({
 
 // Schema cho form xử lý (Duyệt/Từ Chối)
 const processItemSchema = z.object({
-  phongID: z.string().optional().nullable(),
+  phongIDs: z.array(z.string()).optional().nullable(),
   ghiChuCSVC: z
     .string()
     .max(500, 'Ghi chú tối đa 500 ký tự.')
@@ -296,7 +296,7 @@ const ProcessRoomRequestPage = () => {
   // --- Khởi tạo Form bằng react-hook-form ---
   const formProcess = useForm<ProcessItemFormValues>({
     resolver: zodResolver(processItemSchema),
-    defaultValues: { ghiChuCSVC: '', phongID: undefined },
+    defaultValues: { ghiChuCSVC: '', phongIDs: [] },
   });
 
   const formRevision = useForm<RevisionRequestFormValues>({
@@ -373,7 +373,7 @@ const ProcessRoomRequestPage = () => {
     // Reset form với giá trị mặc định từ item ( )
     formProcess.reset({
       ghiChuCSVC: item.ghiChuCtCSVC || '',
-      phongID: undefined,
+      phongIDs: [],
     });
     setPhongSearchTerm('');
     setIsProcessingModalOpen(true);
@@ -386,25 +386,29 @@ const ProcessRoomRequestPage = () => {
   };
 
   const onSubmitProcessItem: SubmitHandler<ProcessItemFormValues> = (data) => {
+    console.log('Xử lý hạng mục:', data);
     if (!selectedDetailItem || !processingAction || !ycMuonPhongID) return;
 
     let payload: XuLyYcChiTietPayload;
 
     if (processingAction === 'DUYET') {
-      if (!data.phongID) {
-        formProcess.setError('phongID', {
-          message: 'Vui lòng chọn một phòng để xếp.',
+      if (!data.phongIDs || data.phongIDs.length === 0) {
+        formProcess.setError('phongIDs', {
+          message: 'Vui lòng chọn ít nhất 1 phòng để xếp.',
         });
-        toast.error('Vui lòng chọn phòng để xếp.');
+        toast.error('Vui lòng chọn ít nhất 1 phòng để xếp.');
         return;
       }
       payload = {
         hanhDong: 'DUYET',
-        phongDuocCap: [{ phongID: parseInt(data.phongID, 10) }], // Giả định chỉ xếp 1 phòng/hạng mục
+        phongDuocCap: data.phongIDs.map((id) => ({
+          phongID: parseInt(id, 10),
+        })),
         ghiChuCSVC: data.ghiChuCSVC || null,
       };
     } else {
       // TU_CHOI
+      console.log('Từ chối hạng mục:', data);
       if (!data.ghiChuCSVC?.trim()) {
         formProcess.setError('ghiChuCSVC', {
           message: 'Vui lòng nhập lý do từ chối.',
@@ -693,7 +697,7 @@ const ProcessRoomRequestPage = () => {
                   {processingAction === 'DUYET' && (
                     <FormField
                       control={formProcess.control}
-                      name="phongID"
+                      name="phongIDs"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="font-semibold">
@@ -726,16 +730,31 @@ const ProcessRoomRequestPage = () => {
                                           <CommandItem
                                             key={p.phongID}
                                             value={`${p.tenPhong} ${p.maPhong}`}
-                                            onSelect={() =>
-                                              field.onChange(
-                                                p.phongID.toString()
-                                              )
-                                            }
+                                            onSelect={() => {
+                                              if (
+                                                !field.value?.includes(
+                                                  p.phongID.toString()
+                                                )
+                                              ) {
+                                                field.onChange([
+                                                  ...(field.value || []),
+                                                  p.phongID.toString(),
+                                                ]);
+                                              } else {
+                                                field.onChange(
+                                                  (field.value || []).filter(
+                                                    (id) =>
+                                                      id !==
+                                                      p.phongID.toString()
+                                                  )
+                                                );
+                                              }
+                                            }}
                                             className={cn(
                                               'flex justify-between items-center cursor-pointer',
-                                              field.value ===
-                                                p.phongID.toString() &&
-                                                'bg-accent'
+                                              field.value?.includes(
+                                                p.phongID.toString()
+                                              ) && 'bg-accent'
                                             )}
                                           >
                                             <div>
@@ -745,8 +764,9 @@ const ProcessRoomRequestPage = () => {
                                                 {p.sucChua}
                                               </span>
                                             </div>
-                                            {field.value ===
-                                              p.phongID.toString() && (
+                                            {field.value?.includes(
+                                              p.phongID.toString()
+                                            ) && (
                                               <CheckCircle className="h-4 w-4 text-green-500" />
                                             )}
                                           </CommandItem>
@@ -757,6 +777,10 @@ const ProcessRoomRequestPage = () => {
                               </CommandList>
                             </Command>
                           </FormControl>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Có thể chọn nhiều phòng (tối đa{' '}
+                            {selectedDetailItem?.slPhongNhomNay || 1} phòng)
+                          </div>
                           <FormMessage />
                         </FormItem>
                       )}

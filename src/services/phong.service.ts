@@ -14,6 +14,7 @@ export interface TrangThaiPhongResponse {
     | 'NGUNG_SU_DUNG'
     | 'CHO_DON_DEP';
   tenTrangThai: string;
+  moTa?: string | null;
 }
 
 export interface ToaNhaResponseMinForPhong {

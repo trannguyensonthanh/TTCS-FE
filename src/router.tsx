@@ -21,18 +21,18 @@ import EventsApprove from './pages/Events/EventsApprove';
 import EventParticipants from './pages/Events/EventParticipants';
 
 // Import Facility Pages
-import RoomRequests from './pages/Facilities/RoomRequests';
+// import RoomRequests from './pages/Facilities/RoomRequests';
 import Rooms from './pages/Facilities/RoomsPage';
-import RoomChangeRequests from './pages/Facilities/RoomChangeRequests';
+// import RoomChangeRequests from './pages/Facilities/RoomChangeRequests';
 
 import RoomSchedule from './pages/Facilities/RoomSchedulePage';
 
 // Import Dashboard Pages
 import Dashboard from './pages/Dashboard/Dashboard';
-import DepartmentDashboard from './pages/Dashboard/DepartmentDashboard';
+// import DepartmentDashboard from './pages/Dashboard/DepartmentDashboard';
 import EventsDashboard from './pages/Dashboard/EventsDashboard';
-import ClubsDashboard from './pages/Dashboard/ClubsDashboard';
-import UnionDashboard from './pages/Dashboard/UnionDashboard';
+// import ClubsDashboard from './pages/Dashboard/ClubsDashboard';
+// import UnionDashboard from './pages/Dashboard/UnionDashboard';
 import FacilitiesDashboard from './pages/Dashboard/FacilitiesDashboard';
 
 // Import User Management Pages
@@ -193,11 +193,11 @@ const AppRouter = () => {
               <Route
                 path="/notifications"
                 element={
-                  // <ClientLayout>
-                  <ProtectedRoute>
-                    <NotificationsPage />
-                  </ProtectedRoute>
-                  // </ClientLayout>
+                  <ClientLayout>
+                    <ProtectedRoute>
+                      <NotificationsPage />
+                    </ProtectedRoute>
+                  </ClientLayout>
                 }
               />
 
@@ -410,14 +410,14 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="/dashboard/department"
                 element={
                   <ProtectedRoute>
                     <DepartmentDashboard />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/dashboard/events"
                 element={
@@ -426,22 +426,22 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="/dashboard/clubs"
                 element={
                   <ProtectedRoute>
                     <ClubsDashboard />
                   </ProtectedRoute>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/dashboard/union"
                 element={
                   <ProtectedRoute>
                     <UnionDashboard />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/dashboard/facilities"
                 element={

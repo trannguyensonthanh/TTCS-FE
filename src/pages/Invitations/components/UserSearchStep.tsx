@@ -138,7 +138,7 @@ export const UserSearchStep: React.FC<UserSearchStepProps> = ({
   const { data: dsNganhHoc, isLoading: isLoadingNganh } =
     useNganhHocListForSelect(
       {
-        limit: 200,
+        limit: 100,
         khoaQuanLyID:
           selectedBulkKhoaIDs.length === 1 ? selectedBulkKhoaIDs[0] : undefined,
       },

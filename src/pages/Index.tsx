@@ -62,7 +62,7 @@ const upcomingEvents = [
 const testimonials = [
   {
     id: '1',
-    name: 'Nguyễn Văn A',
+    name: 'ĐInh Trí Tài',
     role: 'Sinh viên năm 3, ngành CNTT',
     quote:
       'Các sự kiện tại PTITHCM luôn được tổ chức chuyên nghiệp, mang lại nhiều kiến thức và kỹ năng hữu ích.',
@@ -71,16 +71,15 @@ const testimonials = [
   },
   {
     id: '2',
-    name: 'Trần Minh B',
+    name: 'Trần Nguyễn Sơn Thành',
     role: 'Giảng viên Khoa CNTT',
     quote:
       'Tôi rất hài lòng với hệ thống quản lý sự kiện mới, giúp việc tổ chức và điều phối trở nên dễ dàng hơn nhiều.',
-    imageUrl:
-      'https://api.dicebear.com/7.x/micah/svg?seed=Tr%E1%BA%A7n%20Minh%20B&backgroundColor=d32f2f',
+    imageUrl: 'https://i.imgur.com/d5p124y.png',
   },
   {
     id: '3',
-    name: 'Lê Thị C',
+    name: 'Đặng Thị Bích Trâm',
     role: 'Trưởng CLB Truyền thông',
     quote:
       'Nhờ sự hỗ trợ của các bộ phận quản lý, CLB chúng tôi đã tổ chức thành công nhiều sự kiện lớn trong năm học vừa qua.',

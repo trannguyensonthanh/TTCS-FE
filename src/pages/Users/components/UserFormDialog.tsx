@@ -262,6 +262,7 @@ export function UserFormDialog({
         soDienThoai: cleanValues.soDienThoai ?? undefined,
         anhDaiDien: cleanValues.anhDaiDien ?? undefined,
         ngaySinh: cleanValues.ngaySinh ?? undefined,
+        donViCongTacID: cleanValues.donViCongTacID ?? undefined, // Chỉ cần cho GIANG_VIEN và NHAN_VIEN_KHAC
         thongTinSinhVien:
           cleanValues.loaiNguoiDung === LoaiNguoiDungEnum.SINH_VIEN &&
           cleanValues.thongTinSinhVien &&

@@ -200,217 +200,194 @@ const NotificationsPage = () => {
   }
 
   return (
-    <DashboardLayout
-      pageTitle="Tất Cả Thông Báo"
-      headerActions={
-        totalUnread > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleMarkAllReadClick}
-            disabled={markAllAsReadMutation.isPending}
-          >
-            {markAllAsReadMutation.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCheck className="mr-2 h-4 w-4 text-green-500" />
-            )}
-            Đánh dấu tất cả đã đọc ({totalUnread})
-          </Button>
-        )
-      }
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 p-5"
     >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="space-y-6"
-      >
-        <Card className="shadow-xl border-border dark:border-slate-700">
-          <CardHeader className="border-b dark:border-slate-700">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <BellRing className="h-6 w-6 text-primary dark:text-ptit-red" />
-              Trung Tâm Thông Báo
-            </CardTitle>
-            <CardDescription>
-              Xem lại tất cả các thông báo và cập nhật quan trọng từ hệ thống.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 items-end">
-              <div className="lg:col-span-1">
-                <Label
-                  htmlFor="search-notification"
-                  className="text-xs font-semibold text-muted-foreground"
-                >
-                  Tìm kiếm thông báo
-                </Label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="search-notification"
-                    type="search"
-                    placeholder="Nội dung, sự kiện liên quan..."
-                    className="pl-10 h-10 rounded-md shadow-sm"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label
-                  htmlFor="filter-read-status"
-                  className="text-xs font-semibold text-muted-foreground"
-                >
-                  Trạng thái đọc
-                </Label>
-                <Select
-                  value={filterDaDoc}
-                  onValueChange={(value) =>
-                    setFilterDaDoc(value === 'all' ? undefined : value)
-                  }
-                >
-                  <SelectTrigger
-                    id="filter-read-status"
-                    className="h-10 rounded-md shadow-sm"
-                  >
-                    <SelectValue placeholder="Tất cả trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="false">Chưa đọc</SelectItem>
-                    <SelectItem value="true">Đã đọc</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label
-                  htmlFor="filter-notification-type"
-                  className="text-xs font-semibold text-muted-foreground"
-                >
-                  Loại thông báo
-                </Label>
-                <Select
-                  value={filterLoaiTB}
-                  onValueChange={(value) =>
-                    setFilterLoaiTB(value === 'all' ? undefined : value)
-                  }
-                >
-                  <SelectTrigger
-                    id="filter-notification-type"
-                    className="h-10 rounded-md shadow-sm"
-                  >
-                    <SelectValue placeholder="Tất cả loại" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả loại</SelectItem>
-                    {Object.entries(LoaiThongBao).map(([key, value]) => (
-                      <SelectItem key={key} value={value as string}>
-                        {String(value)
-                          .replace(/_/g, ' ')
-                          .toLocaleLowerCase()
-                          .replace(/\b\w/g, (l) => l.toUpperCase())}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      <Card className="shadow-xl border-border dark:border-slate-700">
+        <CardHeader className="border-b dark:border-slate-700">
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <BellRing className="h-6 w-6 text-primary dark:text-ptit-red" />
+            Trung Tâm Thông Báo
+          </CardTitle>
+          <CardDescription>
+            Xem lại tất cả các thông báo và cập nhật quan trọng từ hệ thống.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 items-end">
+            <div className="lg:col-span-1">
+              <Label
+                htmlFor="search-notification"
+                className="text-xs font-semibold text-muted-foreground"
+              >
+                Tìm kiếm thông báo
+              </Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search-notification"
+                  type="search"
+                  placeholder="Nội dung, sự kiện liên quan..."
+                  className="pl-10 h-10 rounded-md shadow-sm"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
             </div>
+            <div>
+              <Label
+                htmlFor="filter-read-status"
+                className="text-xs font-semibold text-muted-foreground"
+              >
+                Trạng thái đọc
+              </Label>
+              <Select
+                value={filterDaDoc}
+                onValueChange={(value) =>
+                  setFilterDaDoc(value === 'all' ? undefined : value)
+                }
+              >
+                <SelectTrigger
+                  id="filter-read-status"
+                  className="h-10 rounded-md shadow-sm"
+                >
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                  <SelectItem value="false">Chưa đọc</SelectItem>
+                  <SelectItem value="true">Đã đọc</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label
+                htmlFor="filter-notification-type"
+                className="text-xs font-semibold text-muted-foreground"
+              >
+                Loại thông báo
+              </Label>
+              <Select
+                value={filterLoaiTB}
+                onValueChange={(value) =>
+                  setFilterLoaiTB(value === 'all' ? undefined : value)
+                }
+              >
+                <SelectTrigger
+                  id="filter-notification-type"
+                  className="h-10 rounded-md shadow-sm"
+                >
+                  <SelectValue placeholder="Tất cả loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả loại</SelectItem>
+                  {Object.entries(LoaiThongBao).map(([key, value]) => (
+                    <SelectItem key={key} value={value as string}>
+                      {String(value)
+                        .replace(/_/g, ' ')
+                        .toLocaleLowerCase()
+                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-            {isFetching && !notifications.length ? (
-              <div className="text-center py-10">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-              </div>
-            ) : !isLoading && notifications.length === 0 ? (
-              <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg dark:border-slate-700">
-                <Inbox className="h-20 w-20 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-                <p className="text-xl font-semibold">
-                  Hộp thư thông báo trống!
-                </p>
-                <p className="mt-2 text-sm">
-                  Hiện tại không có thông báo nào phù hợp với bộ lọc của bạn.
-                </p>
-              </div>
-            ) : (
-              <ScrollArea className="h-[calc(100vh-28rem)] md:h-[calc(100vh-25rem)] border rounded-lg dark:border-slate-800">
-                {' '}
-                {/* Điều chỉnh chiều cao */}
-                <div className="divide-y dark:divide-slate-800">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.thongBaoID}
-                      className={cn(
-                        'flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50 dark:hover:bg-slate-800/60 transition-colors',
-                        !notification.daDocTB &&
-                          'bg-primary/5 dark:bg-sky-900/30 border-l-4 border-primary dark:border-sky-500'
-                      )}
-                      onClick={() => handleNotificationClick(notification)}
-                    >
-                      <div className="flex-shrink-0 mt-1 text-muted-foreground">
-                        {getNotificationIcon(
-                          notification.loaiThongBao,
-                          'h-6 w-6'
-                        )}
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <div className="flex justify-between items-start">
-                          <h4
-                            className={cn(
-                              'text-sm font-semibold leading-snug line-clamp-1',
-                              !notification.daDocTB &&
-                                'text-primary dark:text-sky-400'
-                            )}
-                          >
-                            {notification.tenSuKienLienQuan ||
-                              notification.loaiThongBao?.replace(/_/g, ' ') ||
-                              'Thông báo hệ thống'}
-                          </h4>
-                          <span
-                            className={cn(
-                              'text-xs text-muted-foreground whitespace-nowrap ml-2',
-                              !notification.daDocTB && 'font-medium'
-                            )}
-                          >
-                            {formatDistanceToNow(
-                              parseISO(notification.ngayTaoTB),
-                              { addSuffix: true, locale: vi }
-                            )}
-                          </span>
-                        </div>
-                        <p
-                          className={cn(
-                            'text-sm text-muted-foreground line-clamp-2 mt-0.5',
-                            !notification.daDocTB &&
-                              'text-foreground dark:text-slate-300'
-                          )}
-                        >
-                          {notification.noiDungTB}
-                        </p>
-                      </div>
-                      {!notification.daDocTB && (
-                        <div className="ml-auto flex-shrink-0 self-center pl-2">
-                          <div className="h-2.5 w-2.5 rounded-full bg-primary dark:bg-sky-500 animate-pulse" />
-                        </div>
+          {isFetching && !notifications.length ? (
+            <div className="text-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+            </div>
+          ) : !isLoading && notifications.length === 0 ? (
+            <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg dark:border-slate-700">
+              <Inbox className="h-20 w-20 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+              <p className="text-xl font-semibold">Hộp thư thông báo trống!</p>
+              <p className="mt-2 text-sm">
+                Hiện tại không có thông báo nào phù hợp với bộ lọc của bạn.
+              </p>
+            </div>
+          ) : (
+            <ScrollArea className="h-[calc(100vh-28rem)] md:h-[calc(100vh-25rem)] border rounded-lg dark:border-slate-800">
+              {' '}
+              {/* Điều chỉnh chiều cao */}
+              <div className="divide-y dark:divide-slate-800">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.thongBaoID}
+                    className={cn(
+                      'flex items-start gap-3 p-4 cursor-pointer hover:bg-muted/50 dark:hover:bg-slate-800/60 transition-colors',
+                      !notification.daDocTB &&
+                        'bg-primary/5 dark:bg-sky-900/30 border-l-4 border-primary dark:border-sky-500'
+                    )}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex-shrink-0 mt-1 text-muted-foreground">
+                      {getNotificationIcon(
+                        notification.loaiThongBao,
+                        'h-6 w-6'
                       )}
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            )}
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex justify-between items-start">
+                        <h4
+                          className={cn(
+                            'text-sm font-semibold leading-snug line-clamp-1',
+                            !notification.daDocTB &&
+                              'text-primary dark:text-sky-400'
+                          )}
+                        >
+                          {notification.tenSuKienLienQuan ||
+                            notification.loaiThongBao?.replace(/_/g, ' ') ||
+                            'Thông báo hệ thống'}
+                        </h4>
+                        <span
+                          className={cn(
+                            'text-xs text-muted-foreground whitespace-nowrap ml-2',
+                            !notification.daDocTB && 'font-medium'
+                          )}
+                        >
+                          {formatDistanceToNow(
+                            parseISO(notification.ngayTaoTB),
+                            { addSuffix: true, locale: vi }
+                          )}
+                        </span>
+                      </div>
+                      <p
+                        className={cn(
+                          'text-sm text-muted-foreground line-clamp-2 mt-0.5',
+                          !notification.daDocTB &&
+                            'text-foreground dark:text-slate-300'
+                        )}
+                      >
+                        {notification.noiDungTB}
+                      </p>
+                    </div>
+                    {!notification.daDocTB && (
+                      <div className="ml-auto flex-shrink-0 self-center pl-2">
+                        <div className="h-2.5 w-2.5 rounded-full bg-primary dark:bg-sky-500 animate-pulse" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </ScrollArea>
+          )}
 
-            {paginatedNotifications && totalPages > 1 && (
-              <ReusablePagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                isLoading={isLoading || isFetching}
-                className="mt-6"
-              />
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-    </DashboardLayout>
+          {paginatedNotifications && totalPages > 1 && (
+            <ReusablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isLoading={isLoading || isFetching}
+              className="mt-6"
+            />
+          )}
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 

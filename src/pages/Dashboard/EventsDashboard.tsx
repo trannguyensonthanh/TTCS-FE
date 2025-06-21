@@ -1,374 +1,568 @@
-
-import DashboardLayout from "@/components/DashboardLayout";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// src/pages/Dashboard/EventsDashboard.tsx
+import React, { useState, useMemo, Suspense } from 'react'; // Thêm Suspense nếu dùng React.lazy
+import DashboardLayout from '@/components/DashboardLayout';
 import {
   CalendarDays,
   Clock,
   Users,
-  Calendar,
-  MapPin,
-  Check,
-  X,
-  Clock8,
+  Star,
   LineChart as LineChartIcon,
-  GraduationCap,
-  Award,
-  Music2,
-  Star
-} from "lucide-react";
-import DashboardCard from "@/components/dashboard/DashboardCard";
-import ChartCard from "@/components/dashboard/ChartCard";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar
-} from "recharts";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+  BarChart3,
+  PieChart as PieChartIconLucide,
+  ListFilter,
+  CalendarRange,
+  Loader2,
+  AlertTriangle,
+  FileText,
+  Users2,
+  CalendarCheck2,
+  CheckCircle,
+  XSquare,
+  Clock8,
+} from 'lucide-react';
+import DashboardCard from '@/components/dashboard/DashboardCard';
+import ChartCard from '@/components/dashboard/ChartCard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { DateRange } from 'react-day-picker';
+import { addMonths, startOfYear, endOfYear, format } from 'date-fns';
+import {
+  useSuKienKpi,
+  useThongKeSuKienTheoThoiGian,
+  useSuKienSapDienRaDashboard,
+  useYeuCauChoXuLyCuaToi,
+  useThongKeSuKienTheoLoai,
+  useThongKeDanhGiaSuKien,
+} from '@/hooks/queries/dashboardQueries';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DonViListItem } from '@/services/donVi.service';
+import { useDonViList } from '@/hooks/queries/donViQueries';
+import { useAuth } from '@/context/AuthContext';
+import MaVaiTro from '@/enums/MaVaiTro.enum';
+import { cn } from '@/lib/utils';
+import { APIError } from '@/services/apiHelper';
+import { GetThongKeDanhGiaSuKienParams } from '@/services/dashboard.service';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react'; // Đã có Search từ UserFilters nhưng import lại cho rõ ràng
+import { useDebounce } from '@/hooks/useDebounce';
 
-// Mock data
-const eventOverviewData = [
-  { month: "T1", events: 18, attendees: 1240 },
-  { month: "T2", events: 15, attendees: 980 },
-  { month: "T3", events: 22, attendees: 1750 },
-  { month: "T4", events: 28, attendees: 2300 },
-  { month: "T5", events: 30, attendees: 2450 },
-  { month: "T6", events: 25, attendees: 1920 }
-];
+// Import các component con (giả sử chúng nằm trong ./components/)
+import EventOverviewChart from './components/EventOverviewChart';
+import UpcomingEventsTable from './components/UpcomingEventsTable';
+import PendingRequestsTable from './components/PendingRequestsTable';
+import EventCategoryPieChart from './components/EventCategoryPieChart';
+import EventCategoryBarChart from './components/EventCategoryBarChart';
+import EventSatisfactionChart from './components/EventSatisfactionChart';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePickerWithRange } from '@/components/DateRangePicker';
 
-const eventCategoryData = [
-  { name: "Học thuật", value: 125 },
-  { name: "Văn hóa", value: 87 },
-  { name: "Thể thao", value: 65 },
-  { name: "Cuộc thi", value: 43 },
-  { name: "Đào tạo", value: 38 }
-];
-
-const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
-
-const satisfactionData = [
-  { name: "5 sao", value: 65 },
-  { name: "4 sao", value: 25 },
-  { name: "3 sao", value: 7 },
-  { name: "2 sao", value: 2 },
-  { name: "1 sao", value: 1 }
-];
-
-const upcomingEvents = [
-  { 
-    id: 1, 
-    name: "Hội thảo công nghệ thông tin", 
-    date: "2025-06-15", 
-    time: "08:00 - 12:00", 
-    location: "Hội trường A",
-    organizer: "Khoa CNTT",
-    capacity: 300,
-    registered: 187,
-    category: "academic"
-  },
-  { 
-    id: 2, 
-    name: "Cuộc thi lập trình", 
-    date: "2025-06-18", 
-    time: "14:00 - 17:00", 
-    location: "Phòng máy B2",
-    organizer: "CLB IT",
-    capacity: 80,
-    registered: 76,
-    category: "competition"
-  },
-  { 
-    id: 3, 
-    name: "Triển lãm đồ án sinh viên", 
-    date: "2025-06-20", 
-    time: "08:30 - 16:00", 
-    location: "Sảnh chính",
-    organizer: "Phòng đào tạo",
-    capacity: 500,
-    registered: 312,
-    category: "exhibition"
-  },
-  { 
-    id: 4, 
-    name: "Workshop kỹ năng mềm", 
-    date: "2025-06-22", 
-    time: "13:30 - 16:30", 
-    location: "Phòng hội thảo C3",
-    organizer: "Đoàn Thanh niên",
-    capacity: 100,
-    registered: 98,
-    category: "training"
-  },
-  { 
-    id: 5, 
-    name: "Hội nghị khoa học sinh viên", 
-    date: "2025-06-28", 
-    time: "08:00 - 17:00", 
-    location: "Hội trường B",
-    organizer: "Phòng NCKH",
-    capacity: 250,
-    registered: 112,
-    category: "academic"
-  }
-];
-
-const pendingRequests = [
-  { id: 1, name: "Yêu cầu hủy sự kiện: Workshop kỹ năng mềm", requester: "Nguyễn Văn A", date: "13/06/2025" },
-  { id: 2, name: "Yêu cầu đổi phòng: Cuộc thi lập trình", requester: "Trần Thị B", date: "12/06/2025" },
-  { id: 3, name: "Yêu cầu thay đổi thời gian: Hội thảo công nghệ", requester: "Lê Văn C", date: "12/06/2025" }
-];
-
-// Event category icons
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case 'academic':
-      return <GraduationCap className="h-5 w-5 text-blue-500" />;
-    case 'competition':
-      return <Award className="h-5 w-5 text-yellow-500" />;
-    case 'training':
-      return <GraduationCap className="h-5 w-5 text-green-500" />;
-    case 'culture':
-      return <Music2 className="h-5 w-5 text-purple-500" />;
-    default:
-      return <Calendar className="h-5 w-5 text-gray-500" />;
-  }
+const defaultDateRange: DateRange = {
+  from: startOfYear(new Date()), // Mặc định từ đầu năm nay
+  to: new Date(), // Đến ngày hiện tại
 };
 
+const ITEMS_PER_PAGE_TABLES = 5; // Số item cho bảng upcoming/pending
+
 export default function EventsDashboard() {
+  const { user, hasRole } = useAuth();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(
+    defaultDateRange
+  );
+  const [selectedDonViIdKpi, setSelectedDonViIdKpi] = useState<
+    string | undefined
+  >(undefined); // Filter cho KPI và các chart
+
+  // State riêng cho filter của tab "Tổng Quan Theo Thời Gian"
+  const [overviewChartTimeUnit, setOverviewChartTimeUnit] = useState<
+    'THANG' | 'TUAN' | 'QUY'
+  >('THANG');
+
+  // State riêng cho filter của tab "Mức Độ Hài Lòng"
+  const [satisfactionChartCriteria, setSatisfactionChartCriteria] = useState<
+    'TONG_QUAT' | 'NOI_DUNG' | 'TO_CHUC' | 'DIA_DIEM'
+  >('TONG_QUAT');
+
+  const getDonViFilterForApi = (): number | undefined => {
+    if (
+      hasRole(MaVaiTro.ADMIN_HE_THONG) ||
+      hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)
+    ) {
+      return selectedDonViIdKpi ? parseInt(selectedDonViIdKpi) : undefined;
+    }
+    // CBTCISK có thể chỉ xem đơn vị của mình, hoặc chọn từ danh sách được phép
+    // Ví dụ:
+    // const cbtciSKRole = user?.vaiTroChucNang.find(vt => vt.maVaiTro === MaVaiTro.CB_TO_CHUC_SU_KIEN);
+    // if (cbtciSKRole && cbtciSKRole.donViThucThi) {
+    //   return cbtciSKRole.donViThucThi.donViID;
+    // }
+    return selectedDonViIdKpi ? parseInt(selectedDonViIdKpi) : undefined; // Tạm thời cho phép chọn
+  };
+
+  const commonApiParams = useMemo(
+    () => ({
+      tuNgay: dateRange?.from
+        ? format(dateRange.from, 'yyyy-MM-dd')
+        : undefined,
+      denNgay: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+      donViID: getDonViFilterForApi(),
+    }),
+    [dateRange, selectedDonViIdKpi, user]
+  ); // Thêm user vào dependencies
+
+  // KPI Data
+  const {
+    data: kpiData,
+    isLoading: isLoadingKpi,
+    isError: isErrorKpi,
+    error: errorKpi,
+  } = useSuKienKpi(commonApiParams);
+
+  // Overview Chart Data
+  const overviewChartApiParams = useMemo(
+    () => ({
+      ...commonApiParams,
+      donViThoiGian: overviewChartTimeUnit,
+    }),
+    [commonApiParams, overviewChartTimeUnit]
+  );
+  const {
+    data: eventOverviewData,
+    isLoading: isLoadingEventOverviewChart,
+    isError: isErrorEventOverviewChart,
+    error: errorEventOverviewChart,
+  } = useThongKeSuKienTheoThoiGian(overviewChartApiParams, {
+    enabled:
+      !!overviewChartApiParams.tuNgay && !!overviewChartApiParams.denNgay,
+  });
+
+  // Upcoming Events Data
+  const {
+    data: upcomingEventsData,
+    isLoading: isLoadingUpcomingEvents,
+    isError: isErrorUpcomingEvents,
+    error: errorUpcomingEvents,
+  } = useSuKienSapDienRaDashboard({
+    limit: ITEMS_PER_PAGE_TABLES,
+    donViID: getDonViFilterForApi(),
+  });
+
+  // Pending Requests Data
+  const {
+    data: pendingRequestsData,
+    isLoading: isLoadingPendingRequests,
+    isError: isErrorPendingRequests,
+    error: errorPendingRequests,
+  } = useYeuCauChoXuLyCuaToi({ limit: ITEMS_PER_PAGE_TABLES });
+
+  // Event Categories Data
+  const {
+    data: eventCategoryData,
+    isLoading: isLoadingEventCategory,
+    isError: isErrorEventCategory,
+    error: errorEventCategory,
+  } = useThongKeSuKienTheoLoai(commonApiParams);
+
+  // Event Satisfaction Data
+  const satisfactionChartApiParams =
+    useMemo((): GetThongKeDanhGiaSuKienParams => {
+      // Loại bỏ tuNgay, denNgay khỏi commonApiParams
+      const { tuNgay, denNgay, ...rest } = commonApiParams;
+      return {
+        ...rest,
+        tieuChiDiem: satisfactionChartCriteria,
+        tuNgaySuKienKetThuc: tuNgay, // Sử dụng chung dateRange
+        denNgaySuKienKetThuc: denNgay,
+      };
+    }, [commonApiParams, satisfactionChartCriteria]);
+  const {
+    data: eventSatisfactionData,
+    isLoading: isLoadingEventSatisfaction,
+    isError: isErrorEventSatisfaction,
+    error: errorEventSatisfaction,
+  } = useThongKeDanhGiaSuKien(satisfactionChartApiParams);
+
+  // Đơn vị cho filter (nếu là Admin/BGH)
+  const { data: dsDonVi, isLoading: isLoadingDonVi } = useDonViList(
+    {
+      limit: 100,
+      sortBy: 'TenDonVi',
+      loaiDonVi: 'KHOA,PHONG,BAN,TRUNG_TAM,CLB,DOAN_THE',
+    }, // Lấy các loại đơn vị tổ chức chính
+    {
+      enabled:
+        hasRole(MaVaiTro.ADMIN_HE_THONG) ||
+        hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG),
+    }
+  );
+
+  const handleResetFilters = () => {
+    setDateRange(defaultDateRange);
+    setSelectedDonViIdKpi(undefined);
+    // Không reset timeUnitChart và satisfactionChartCriteria để giữ lựa chọn của người dùng trong tab
+  };
+
+  const renderKpiCard = (
+    title: string,
+    value?: string | number,
+    description?: string,
+    icon?: React.ReactNode,
+    isLoadingFlag = isLoadingKpi
+  ) => {
+    if (isLoadingFlag) {
+      return (
+        <Card className="shadow-sm">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              <Skeleton className="h-4 w-3/4" />
+            </CardTitle>
+            {icon && <Skeleton className="h-5 w-5 rounded-sm" />}
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-7 w-1/2 mt-1" />
+            <Skeleton className="h-3 w-full mt-2" />
+          </CardContent>
+        </Card>
+      );
+    }
+    return (
+      <DashboardCard
+        title={title}
+        value={value ?? 'N/A'}
+        description={description}
+        icon={icon}
+        className="shadow-sm"
+      />
+    );
+  };
+
+  const getTimeUnitChartLabel = (unit: 'THANG' | 'TUAN' | 'QUY') => {
+    if (unit === 'TUAN') return 'Tuần';
+    if (unit === 'QUY') return 'Quý';
+    return 'Tháng';
+  };
+
+  const getRatingCriteriaLabel = (
+    criteria: typeof satisfactionChartCriteria
+  ): string => {
+    switch (criteria) {
+      case 'NOI_DUNG':
+        return 'Nội Dung';
+      case 'TO_CHUC':
+        return 'Tổ Chức';
+      case 'DIA_DIEM':
+        return 'Địa Điểm';
+      case 'TONG_QUAT':
+      default:
+        return 'Tổng Quát';
+    }
+  };
+
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Thống kê sự kiện</h1>
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <DashboardCard
-            title="Tổng số sự kiện"
-            value="358"
-            description="Trong năm học 2023-2024"
-            icon={<CalendarDays />}
-          />
-          <DashboardCard
-            title="Sự kiện sắp tới"
-            value="12"
-            description="Trong 7 ngày tới"
-            icon={<Clock />}
-          />
-          <DashboardCard
-            title="Tổng số người tham gia"
-            value="28,945"
-            description="Trung bình 81 người/sự kiện"
-            icon={<Users />}
-          />
-          <DashboardCard
-            title="Đánh giá trung bình"
-            value="4.5/5"
-            description="Từ 15,320 đánh giá"
-            icon={<Star />}
-          />
-        </div>
-        
-        <Tabs defaultValue="overview">
-          <TabsList>
-            <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-            <TabsTrigger value="categories">Phân loại sự kiện</TabsTrigger>
-            <TabsTrigger value="satisfaction">Đánh giá</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <ChartCard title="Thống kê sự kiện và người tham gia">
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={eventOverviewData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis yAxisId="left" />
-                    <YAxis yAxisId="right" orientation="right" />
-                    <Tooltip />
-                    <Legend />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="events"
-                      stroke="#8884d8"
-                      name="Số sự kiện"
-                      strokeWidth={2}
+    <DashboardLayout pageTitle="Dashboard Thống Kê Sự Kiện">
+      <motion.div
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Filters Section */}
+        <Card className="shadow-md border-border/60 dark:border-slate-700/60">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl font-semibold flex items-center">
+              <ListFilter className="mr-2.5 h-5 w-5 text-primary dark:text-ptit-blue" />
+              Bộ Lọc Dữ Liệu Thống Kê
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 items-end">
+            <div>
+              <Label
+                htmlFor="date-range-picker-dashboard"
+                className="text-sm font-medium text-muted-foreground"
+              >
+                Khoảng thời gian
+              </Label>
+              <DatePickerWithRange
+                date={dateRange}
+                setDate={setDateRange}
+                className="mt-1.5 [&>button]:h-10 [&>button]:text-sm"
+              />
+            </div>
+            {(hasRole(MaVaiTro.ADMIN_HE_THONG) ||
+              hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)) && (
+              <div>
+                <Label
+                  htmlFor="donvi-filter-dashboard"
+                  className="text-sm font-medium text-muted-foreground"
+                >
+                  Đơn vị tổ chức
+                </Label>
+                <Select
+                  value={selectedDonViIdKpi}
+                  onValueChange={(value) =>
+                    setSelectedDonViIdKpi(value === 'all' ? undefined : value)
+                  }
+                  disabled={isLoadingDonVi}
+                >
+                  <SelectTrigger
+                    id="donvi-filter-dashboard"
+                    className="h-10 mt-1.5 text-sm"
+                  >
+                    <SelectValue
+                      placeholder={
+                        isLoadingDonVi ? 'Đang tải...' : 'Tất cả đơn vị'
+                      }
                     />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="attendees"
-                      stroke="#82ca9d"
-                      name="Số người tham gia"
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả đơn vị</SelectItem>
+                    {dsDonVi?.items.map((dv) => (
+                      <SelectItem
+                        key={dv.donViID}
+                        value={dv.donViID.toString()}
+                      >
+                        {dv.tenDonVi} ({dv.loaiDonVi})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-            </ChartCard>
-            
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Sự kiện sắp diễn ra</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[350px]">
-                    <div className="p-4 space-y-4">
-                      {upcomingEvents.map((event) => (
-                        <div key={event.id} className="rounded-md border p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              {getCategoryIcon(event.category)}
-                              <h4 className="font-medium">{event.name}</h4>
-                            </div>
-                            <Badge variant={event.registered >= event.capacity * 0.9 ? "destructive" : "outline"}>
-                              {event.registered}/{event.capacity}
-                            </Badge>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                            <div className="flex items-center">
-                              <Calendar className="mr-1 h-3 w-3" />
-                              {new Date(event.date).toLocaleDateString('vi-VN')}
-                            </div>
-                            <div className="flex items-center">
-                              <Clock className="mr-1 h-3 w-3" />
-                              {event.time}
-                            </div>
-                            <div className="flex items-center">
-                              <MapPin className="mr-1 h-3 w-3" />
-                              {event.location}
-                            </div>
-                            <div className="flex items-center">
-                              <Users className="mr-1 h-3 w-3" />
-                              {event.organizer}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Yêu cầu chờ xử lý</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <ScrollArea className="h-[350px]">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Yêu cầu</TableHead>
-                          <TableHead>Người tạo</TableHead>
-                          <TableHead>Ngày</TableHead>
-                          <TableHead className="text-right">Hành động</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {pendingRequests.map((request) => (
-                          <TableRow key={request.id}>
-                            <TableCell className="font-medium">
-                              {request.name}
-                            </TableCell>
-                            <TableCell>{request.requester}</TableCell>
-                            <TableCell>{request.date}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <button className="text-green-500 hover:text-green-600">
-                                  <Check className="h-4 w-4" />
-                                </button>
-                                <button className="text-red-500 hover:text-red-600">
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </ScrollArea>
-                </CardContent>
-              </Card>
+            )}
+            <div
+              className={cn(
+                'flex items-end',
+                hasRole(MaVaiTro.ADMIN_HE_THONG) ||
+                  hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)
+                  ? ''
+                  : 'lg:col-start-3'
+              )}
+            >
+              <Button
+                onClick={handleResetFilters}
+                variant="outline"
+                className="h-10 w-full lg:w-auto text-sm"
+              >
+                Reset Filters
+              </Button>
             </div>
-          </TabsContent>
-          
-          <TabsContent value="categories" className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Sự kiện theo loại</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={eventCategoryData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={100}
-                          fill="#8884d8"
-                          dataKey="value"
-                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                        >
-                          {eventCategoryData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Chi tiết phân loại</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={eventCategoryData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="name" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="value" name="Số lượng" fill="#8884d8" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="satisfaction" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Thống kê đánh giá sự kiện</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={satisfactionData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="value" name="Phần trăm" fill="#82ca9d" />
-                    </BarChart>
-                  </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* KPI Cards Section */}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {renderKpiCard(
+            'Tổng Sự Kiện',
+            kpiData?.tongSuKien,
+            `Trong kỳ đã chọn`,
+            <CalendarRange className="text-blue-500" />
+          )}
+          {renderKpiCard(
+            'Sắp Tới (30 ngày)',
+            kpiData?.suKienSapToi,
+            undefined,
+            <Clock className="text-amber-500" />
+          )}
+          {renderKpiCard(
+            'Lượt Tham Dự DK',
+            kpiData?.tongLuotThamGiaDuKien?.toLocaleString(),
+            `TB: ${
+              kpiData?.trungBinhNguoiThamGiaMoiSuKien?.toFixed(1) || 'N/A'
+            } người/SK`,
+            <Users className="text-green-500" />
+          )}
+          {renderKpiCard(
+            'Đánh Giá Ø',
+            kpiData?.danhGiaTrungBinh?.diemTongQuat?.toFixed(2) + '/5' || 'N/A',
+            `${
+              kpiData?.danhGiaTrungBinh?.soLuotDanhGia.toLocaleString() || 0
+            } lượt`,
+            <Star className="text-yellow-500" />
+          )}
+        </div>
+
+        {isErrorKpi && (
+          <Alert variant="destructive" className="shadow-sm">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Lỗi Tải Dữ Liệu Tổng Quan</AlertTitle>
+            <AlertDescription>
+              {(errorKpi as APIError)?.body?.message ||
+                (errorKpi as Error)?.message ||
+                'Vui lòng thử lại.'}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <Tabs defaultValue="overview" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto rounded-lg bg-slate-100 dark:bg-slate-800 p-1.5 shadow-inner">
+            <TabsTrigger
+              value="overview"
+              className="h-10 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-ptit-blue rounded-md flex items-center gap-2"
+            >
+              <LineChartIcon className="h-4 w-4" />
+              Tổng Quan
+            </TabsTrigger>
+            <TabsTrigger
+              value="categories"
+              className="h-10 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-ptit-blue rounded-md flex items-center gap-2"
+            >
+              <PieChartIconLucide className="h-4 w-4" />
+              Phân Loại
+            </TabsTrigger>
+            <TabsTrigger
+              value="satisfaction"
+              className="h-10 text-sm data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-md dark:data-[state=active]:bg-slate-700 dark:data-[state=active]:text-ptit-blue rounded-md flex items-center gap-2"
+            >
+              <Star className="h-4 w-4" />
+              Đánh Giá
+            </TabsTrigger>
+          </TabsList>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="overview"
+              initial={{ opacity: 0.8, y: 5 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0.8, y: -5 }}
+              transition={{ duration: 0.2 }}
+            >
+              <TabsContent value="overview" className="mt-0 space-y-6">
+                <ChartCard
+                  title={`Thống kê Sự kiện & Tham dự (Theo ${getTimeUnitChartLabel(
+                    overviewChartTimeUnit
+                  )})`}
+                  action={
+                    <Select
+                      value={overviewChartTimeUnit}
+                      onValueChange={(v) => setOverviewChartTimeUnit(v as any)}
+                    >
+                      <SelectTrigger className="w-[130px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="THANG">Theo Tháng</SelectItem>
+                        <SelectItem value="TUAN">Theo Tuần</SelectItem>
+                        <SelectItem value="QUY">Theo Quý</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  }
+                >
+                  <EventOverviewChart
+                    data={eventOverviewData}
+                    isLoading={isLoadingEventOverviewChart}
+                    isError={isErrorEventOverviewChart}
+                    error={errorEventOverviewChart}
+                    timeUnitLabel={getTimeUnitChartLabel(overviewChartTimeUnit)}
+                  />
+                </ChartCard>
+
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card className="shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold flex items-center">
+                        <CalendarCheck2 className="mr-2 h-5 w-5 text-green-600" />
+                        Sự Kiện Sắp Diễn Ra (Top 5)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <UpcomingEventsTable
+                        data={upcomingEventsData}
+                        isLoading={isLoadingUpcomingEvents}
+                        isError={isErrorUpcomingEvents}
+                        error={errorUpcomingEvents}
+                      />
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-base font-semibold flex items-center">
+                        <Clock8 className="mr-2 h-5 w-5 text-amber-600" />
+                        Yêu Cầu Chờ Xử Lý (Top 5)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                      <PendingRequestsTable
+                        data={pendingRequestsData}
+                        isLoading={isLoadingPendingRequests}
+                        isError={isErrorPendingRequests}
+                        error={errorPendingRequests}
+                      />
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+              </TabsContent>
+
+              <TabsContent value="categories" className="mt-0 space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <ChartCard title="Tỷ Lệ Sự Kiện Theo Loại">
+                    <EventCategoryPieChart
+                      data={eventCategoryData}
+                      isLoading={isLoadingEventCategory}
+                      isError={isErrorEventCategory}
+                      error={errorEventCategory}
+                    />
+                  </ChartCard>
+                  <ChartCard title="Số Lượng Sự Kiện Theo Loại (Chi tiết)">
+                    <EventCategoryBarChart
+                      data={eventCategoryData}
+                      isLoading={isLoadingEventCategory}
+                      isError={isErrorEventCategory}
+                      error={errorEventCategory}
+                    />
+                  </ChartCard>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="satisfaction" className="mt-0 space-y-6">
+                <ChartCard
+                  title={`Thống Kê Đánh Giá Sự Kiện - Theo ${getRatingCriteriaLabel(
+                    satisfactionChartCriteria
+                  )}`}
+                  action={
+                    <Select
+                      value={satisfactionChartCriteria}
+                      onValueChange={(v) =>
+                        setSatisfactionChartCriteria(v as any)
+                      }
+                    >
+                      <SelectTrigger className="w-[180px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="TONG_QUAT">
+                          Đánh giá Tổng quát
+                        </SelectItem>
+                        <SelectItem value="NOI_DUNG">Điểm Nội dung</SelectItem>
+                        <SelectItem value="TO_CHUC">Điểm Tổ chức</SelectItem>
+                        <SelectItem value="DIA_DIEM">Điểm Địa điểm</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  }
+                >
+                  <EventSatisfactionChart
+                    data={eventSatisfactionData}
+                    isLoading={isLoadingEventSatisfaction}
+                    isError={isErrorEventSatisfaction}
+                    error={errorEventSatisfaction}
+                    tieuChiDiemLabel={getRatingCriteriaLabel(
+                      satisfactionChartCriteria
+                    )}
+                  />
+                </ChartCard>
+              </TabsContent>
+            </motion.div>
+          </AnimatePresence>
         </Tabs>
-      </div>
+      </motion.div>
     </DashboardLayout>
   );
 }
