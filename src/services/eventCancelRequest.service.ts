@@ -104,11 +104,21 @@ const rejectEventCancelRequest = async (
   ) as Promise<YeuCauHuySKDetailResponse>;
 };
 
+const revokeEventCancelRequest = async (
+  id: number | string
+): Promise<YeuCauHuySKDetailResponse> => {
+  return apiHelper.put(
+    `/yeucauhuysk/${id}/thu-hoi`,
+    {}
+  ) as Promise<YeuCauHuySKDetailResponse>;
+};
+
 const eventCancelRequestService = {
   getEventCancelRequests,
   getEventCancelRequestDetail,
   approveEventCancelRequest,
   rejectEventCancelRequest,
+  revokeEventCancelRequest, // Thêm mới
 };
 
 export default eventCancelRequestService;

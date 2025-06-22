@@ -10,6 +10,7 @@ import {
   useEventCancelRequestDetail, // Hook này sẽ fetch chi tiết YeuCauHuySK (bao gồm cả chi tiết SuKien nếu cần)
   useApproveEventCancelRequest,
   useRejectEventCancelRequest,
+  useRevokeEventCancelRequest, // Thêm hook thu hồi
 } from '@/hooks/queries/eventCancelRequestQueries';
 
 import { APIError } from '@/services/apiHelper';
@@ -163,9 +164,11 @@ const EventsCancelRequests = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [activeTab, setActiveTab] = useState(
-    hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) || hasRole(MaVaiTro.ADMIN_HE_THONG)
-      ? 'pending_bgh_cancel_approval'
-      : 'my_cancel_requests'
+    hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG)
+      ? 'all'
+      : hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN)
+      ? 'my_cancel_requests'
+      : ''
   );
 
   const [selectedRequestForDetail, setSelectedRequestForDetail] =
@@ -216,6 +219,12 @@ const EventsCancelRequests = () => {
       refetchCancelRequests();
     },
   });
+  const revokeCancelMutation = useRevokeEventCancelRequest({
+    onSuccess: () => {
+      toast.success('Đã thu hồi yêu cầu hủy sự kiện.');
+      refetchCancelRequests();
+    },
+  });
 
   const cancelRequests = paginatedCancelRequests?.items || [];
   const totalPages = paginatedCancelRequests?.totalPages || 1;
@@ -224,21 +233,26 @@ const EventsCancelRequests = () => {
   // --- Event Handlers ---
   useEffect(() => {
     const paramsToUpdate: GetYeuCauHuySKParams = {
-      ...filterParams,
-      searchTerm: debouncedSearchTerm || undefined,
       page: 1,
+      limit: 10,
+      sortBy: 'NgayYeuCauHuy',
+      sortOrder: 'desc',
+      searchTerm: debouncedSearchTerm || undefined,
     };
     if (activeTab === 'pending_bgh_cancel_approval') {
       paramsToUpdate.trangThaiYcHuySkMa =
         MaTrangThaiYeuCauHuySK.CHO_DUYET_HUY_BGH;
     } else if (activeTab === 'my_cancel_requests' && user?.nguoiDungID) {
       paramsToUpdate.nguoiYeuCauID = user.nguoiDungID;
-      paramsToUpdate.trangThaiYcHuySkMa = undefined; // Xem tất cả trạng thái của YC mình tạo
-    } else {
-      paramsToUpdate.trangThaiYcHuySkMa = undefined; // Tab 'all'
     }
     setFilterParams(paramsToUpdate);
-  }, [debouncedSearchTerm, activeTab, user?.nguoiDungID]); // Không nên để filterParams ở đây
+  }, [debouncedSearchTerm, activeTab, user?.nguoiDungID]);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Reset page về 1 khi đổi tab
+    // Logic cập nhật filterParams đã được chuyển vào useEffect
+  };
 
   const handlePageChange = (newPage: number) => {
     setFilterParams((prev) => ({ ...prev, page: newPage }));
@@ -288,19 +302,25 @@ const EventsCancelRequests = () => {
     });
   };
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    // Logic cập nhật filterParams đã được chuyển vào useEffect
+  const handleRevokeCancelRequest = (req: YeuCauHuySKListItemResponse) => {
+    toast.warning(
+      `Bạn có chắc chắn muốn THU HỒI yêu cầu hủy sự kiện "${req.suKien.tenSK}"?`,
+      {
+        action: {
+          label: 'Xác nhận Thu Hồi',
+          onClick: () => revokeCancelMutation.mutate({ id: req.ycHuySkID }),
+        },
+        cancel: { label: 'Không', onClick: () => {} },
+      }
+    );
   };
 
   // --- Quyền ---
-  // Quyền xem trang này: BGH, Admin, hoặc CBTC (để xem YC của mình)
+  // Chỉ BGH_DUYET_SK_TRUONG được xem tất cả và xử lý
   const canViewPage =
     hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) ||
-    hasRole(MaVaiTro.ADMIN_HE_THONG) ||
     hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN);
-  const canProcessCancelRequests =
-    hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) || hasRole(MaVaiTro.ADMIN_HE_THONG);
+  const canProcessCancelRequests = hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG);
 
   if (!isLoading && !canViewPage) {
     return (
@@ -377,7 +397,7 @@ const EventsCancelRequests = () => {
               </TableCell>
               <TableCell className="text-center py-3 px-4">
                 {getStatusBadgeForYeuCauHuySK(
-                  req.trangThaiYeuCauHuySK.maTrangThai
+                  req.trangThaiYeuCauHuySK.tenTrangThai
                 )}
               </TableCell>
               <TableCell className="text-right py-3 px-4">
@@ -435,6 +455,33 @@ const EventsCancelRequests = () => {
                           </DropdownMenuItem>
                         </>
                       )}
+                    {/* CBTC là người tạo, trạng thái chờ duyệt, tab của họ */}
+                    {hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
+                      req.nguoiYeuCau.nguoiDungID === user?.nguoiDungID &&
+                      req.trangThaiYeuCauHuySK.maTrangThai ===
+                        MaTrangThaiYeuCauHuySK.CHO_DUYET_HUY_BGH && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleRevokeCancelRequest(req)}
+                            disabled={
+                              revokeCancelMutation.isPending &&
+                              revokeCancelMutation.variables?.id ===
+                                req.ycHuySkID
+                            }
+                            className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                          >
+                            {revokeCancelMutation.isPending &&
+                            revokeCancelMutation.variables?.id ===
+                              req.ycHuySkID ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <XCircle className="mr-2 h-4 w-4" />
+                            )}
+                            Thu hồi YC Hủy
+                          </DropdownMenuItem>
+                        </>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
@@ -457,9 +504,11 @@ const EventsCancelRequests = () => {
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
             <TabsList className="bg-card border dark:border-slate-800 p-1 rounded-lg shadow-sm">
-              <TabsTrigger value="all" className="px-4 py-1.5 text-sm">
-                Tất cả YC Hủy
-              </TabsTrigger>
+              {hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) && (
+                <TabsTrigger value="all" className="px-4 py-1.5 text-sm">
+                  Tất cả YC Hủy
+                </TabsTrigger>
+              )}
               {canProcessCancelRequests && (
                 <TabsTrigger
                   value="pending_bgh_cancel_approval"
@@ -468,15 +517,14 @@ const EventsCancelRequests = () => {
                   Chờ BGH Duyệt Hủy
                 </TabsTrigger>
               )}
-              {hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
-                !canProcessCancelRequests && (
-                  <TabsTrigger
-                    value="my_cancel_requests"
-                    className="px-4 py-1.5 text-sm"
-                  >
-                    Yêu cầu Hủy Của Tôi
-                  </TabsTrigger>
-                )}
+              {hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) && (
+                <TabsTrigger
+                  value="my_cancel_requests"
+                  className="px-4 py-1.5 text-sm"
+                >
+                  Yêu cầu Hủy Của Tôi
+                </TabsTrigger>
+              )}
             </TabsList>
             <div className="relative w-full sm:w-auto sm:max-w-sm mt-2 sm:mt-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />

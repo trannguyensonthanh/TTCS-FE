@@ -145,3 +145,45 @@ export const useRejectEventCancelRequest = (
     ...options,
   });
 };
+
+export const useRevokeEventCancelRequest = (
+  options?: UseMutationOptions<
+    YeuCauHuySKDetailResponse,
+    APIError,
+    { id: number | string }
+  >
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    YeuCauHuySKDetailResponse,
+    APIError,
+    { id: number | string }
+  >({
+    mutationFn: ({ id }) =>
+      eventCancelRequestService.revokeEventCancelRequest(id),
+    onSuccess: (data, variables) => {
+      toast.success(
+        `Đã thu hồi yêu cầu hủy cho sự kiện: ${data.suKien.tenSK}.`
+      );
+      queryClient.invalidateQueries({
+        queryKey: EVENT_CANCEL_REQUEST_QUERY_KEYS.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: EVENT_CANCEL_REQUEST_QUERY_KEYS.detail(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: EVENT_QUERY_KEYS.detail(data.suKien.suKienID),
+      });
+      queryClient.invalidateQueries({ queryKey: EVENT_QUERY_KEYS.lists() });
+      if (options?.onSuccess) options.onSuccess(data, variables, undefined);
+    },
+    onError: (error: APIError) => {
+      toast.error(
+        error.body?.message ||
+          error.message ||
+          'Lỗi khi thu hồi yêu cầu hủy sự kiện.'
+      );
+      if (options?.onError) options.onError(error, {} as any, undefined);
+    },
+  });
+};

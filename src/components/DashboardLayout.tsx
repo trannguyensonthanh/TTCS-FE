@@ -216,6 +216,7 @@ const DashboardLayout = ({
             allowedRoles: [
               MaVaiTro.CB_TO_CHUC_SU_KIEN,
               MaVaiTro.ADMIN_HE_THONG,
+              MaVaiTro.BGH_DUYET_SK_TRUONG, // Thêm quyền cho BGH duyệt sự kiện
             ],
             activePaths: ['/events/cancel-requests'],
           },
@@ -225,11 +226,7 @@ const DashboardLayout = ({
         label: 'Mời Tham Gia Sự Kiện',
         href: '/manage-invitations/new', // Đường dẫn đến trang mời
         icon: Send, // Hoặc UsersGroupIcon
-        allowedRoles: [
-          MaVaiTro.CONG_TAC_SINH_VIEN,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.ADMIN_HE_THONG,
-        ], // CTSV là chính, CBTCISK cũng có thể mời cho SK của họ, Admin
+        allowedRoles: [MaVaiTro.CONG_TAC_SINH_VIEN], // Chỉ CTSV mới được phép mời
         activePaths: ['/manage-invitations'], // Để active khi ở trang con (nếu có)
       },
       {
@@ -310,22 +307,13 @@ const DashboardLayout = ({
       {
         isTitle: true,
         label: 'Thống Kê & Báo Cáo',
-        allowedRoles: [
-          MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.QUAN_LY_CSVC,
-          MaVaiTro.ADMIN_HE_THONG,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-        ],
+        allowedRoles: [MaVaiTro.BGH_DUYET_SK_TRUONG, MaVaiTro.QUAN_LY_CSVC], // Chỉ BGH và Quản lý CSVC thấy tiêu đề này
       },
       {
         label: 'Thống kê Sự kiện',
         href: '/dashboard/events',
         icon: LineChartLucideIcon,
-        allowedRoles: [
-          MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.ADMIN_HE_THONG,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-        ],
+        allowedRoles: [MaVaiTro.BGH_DUYET_SK_TRUONG], // Chỉ BGH mới được xem thống kê sự kiện
         activePaths: ['/dashboard/events'],
       },
       {

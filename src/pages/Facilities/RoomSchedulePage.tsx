@@ -210,7 +210,7 @@ const RoomSchedulePage = () => {
   } = useLichDatPhong(lichDatPhongParams, {
     staleTime: 1 * 60 * 1000,
   });
-
+  console.log('LichDatPhongParams:', lichDatPhongData);
   const { data: dsToaNha, isLoading: isLoadingToaNha } =
     useToaNhaTangListForSelect({ limit: 100 });
   const { data: dsLoaiPhong, isLoading: isLoadingLoaiPhong } = useLoaiPhongList(

@@ -196,7 +196,18 @@ const EventsList = () => {
       sortBy: currentSortBy,
       sortOrder: currentSortOrder,
       searchTerm: debouncedSearchTerm || undefined,
-      trangThaiSkMa: filterTrangThaiSkMa, // Sử dụng state riêng cho bộ lọc trạng thái
+      // Nếu là BGH và không chọn trạng thái cụ thể, gửi chuỗi tất cả trạng thái liên quan
+      trangThaiSkMa:
+        hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) && !filterTrangThaiSkMa
+          ? [
+              MaTrangThaiSK.CHO_DUYET_BGH,
+              MaTrangThaiSK.DA_DUYET_BGH,
+              MaTrangThaiSK.DA_XAC_NHAN_PHONG, // Thêm trạng thái này
+              MaTrangThaiSK.BI_TU_CHOI_BGH,
+              MaTrangThaiSK.HOAN_THANH,
+              MaTrangThaiSK.DA_HUY,
+            ].join(',')
+          : filterTrangThaiSkMa,
     };
 
     if (activeTab === 'my_events' && user?.nguoiDungID) {
@@ -204,9 +215,19 @@ const EventsList = () => {
         params.nguoiTaoID = user.nguoiDungID;
       }
     } else if (activeTab === 'pending_bgh_approval') {
-      params.trangThaiSkMa = 'CHO_DUYET_BGH'; // Luôn lọc trạng thái này cho tab BGH
-      // Nếu có filterTrangThaiSkMa từ select, nó sẽ ghi đè, cần xử lý
-      // Hoặc ẩn select trạng thái khi ở tab này
+      // Nếu user chọn trạng thái cụ thể thì ưu tiên, còn lại thì giữ logic chuỗi trạng thái cho BGH
+      if (filterTrangThaiSkMa) {
+        params.trangThaiSkMa = filterTrangThaiSkMa;
+      } else {
+        params.trangThaiSkMa = [
+          MaTrangThaiSK.CHO_DUYET_BGH,
+          MaTrangThaiSK.DA_DUYET_BGH,
+          MaTrangThaiSK.DA_XAC_NHAN_PHONG, // Thêm trạng thái này
+          MaTrangThaiSK.BI_TU_CHOI_BGH,
+          MaTrangThaiSK.HOAN_THANH,
+          MaTrangThaiSK.DA_HUY,
+        ].join(',');
+      }
     } else if (activeTab === 'upcoming') {
       params.sapDienRa = true;
       params.trangThaiSkMa =
@@ -216,8 +237,7 @@ const EventsList = () => {
         filterTrangThaiSkMa ||
         'CHO_DUYET_PHONG,DA_XAC_NHAN_PHONG,PHONG_BI_TU_CHOI,HOAN_THANH';
     }
-    // Nếu người dùng chọn một trạng thái cụ thể từ dropdown, nó sẽ ghi đè logic của tab
-    // (trừ tab pending_bgh_approval có thể muốn cố định)
+    // Nếu người dùng chọn một trạng thái cụ thể từ dropdown, nó sẽ ghi đè logic của tab (trừ tab pending_bgh_approval đã xử lý ở trên)
     if (filterTrangThaiSkMa && activeTab !== 'pending_bgh_approval') {
       params.trangThaiSkMa = filterTrangThaiSkMa;
     }
@@ -415,11 +435,14 @@ const EventsList = () => {
     const canUserEdit =
       hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
       event.nguoiTao.nguoiDungID === user?.nguoiDungID &&
-      (event.trangThaiSK.maTrangThai === MaTrangThaiSK.CHO_DUYET_BGH ||
-        event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_HUY_BOI_NGUOI_TAO ||
-        event.trangThaiSK.maTrangThai ===
-          MaTrangThaiSK.BGH_YEU_CAU_CHINH_SUA_SK ||
-        event.trangThaiSK.maTrangThai === MaTrangThaiSK.BI_TU_CHOI_BGH);
+      [
+        MaTrangThaiSK.CHO_DUYET_BGH,
+        MaTrangThaiSK.DA_HUY_BOI_NGUOI_TAO,
+        MaTrangThaiSK.BGH_YEU_CAU_CHINH_SUA_SK,
+        MaTrangThaiSK.BI_TU_CHOI_BGH,
+        MaTrangThaiSK.PHONG_BI_TU_CHOI, // thêm trạng thái bị từ chối phòng
+        MaTrangThaiSK.BGH_YEU_CAU_CHINH_SUA_PHONG, // thêm trạng thái BGH yêu cầu chỉnh sửa phòng
+      ].includes(event.trangThaiSK.maTrangThai);
 
     const canUserSelfCancel =
       hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN) &&
@@ -440,7 +463,8 @@ const EventsList = () => {
       event.trangThaiSK.maTrangThai === MaTrangThaiSK.DA_DUYET_BGH &&
       !event.daCoPhong;
 
-    const canUserInvite = true;
+    // Chỉ role CÔNG_TÁC_SINH_VIÊN mới được phép mời tham gia
+    const canUserInvite = hasRole(MaVaiTro.CONG_TAC_SINH_VIEN);
 
     return (
       <DropdownMenu>
@@ -546,7 +570,28 @@ const EventsList = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                  {hasRole(MaVaiTro.QUAN_LY_CSVC) ? (
+                  {hasRole(MaVaiTro.BGH_DUYET_SK_TRUONG) ? (
+                    <>
+                      <SelectItem value={MaTrangThaiSK.CHO_DUYET_BGH}>
+                        Chờ duyệt
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_DUYET_BGH}>
+                        Đã duyệt
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_XAC_NHAN_PHONG}>
+                        Đã xác nhận phòng
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.BI_TU_CHOI_BGH}>
+                        Bị từ chối
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.HOAN_THANH}>
+                        Đã hoàn thành
+                      </SelectItem>
+                      <SelectItem value={MaTrangThaiSK.DA_HUY}>
+                        Đã hủy
+                      </SelectItem>
+                    </>
+                  ) : hasRole(MaVaiTro.QUAN_LY_CSVC) ? (
                     <>
                       <SelectItem value={MaTrangThaiSK.CHO_DUYET_PHONG}>
                         Chờ duyệt phòng
