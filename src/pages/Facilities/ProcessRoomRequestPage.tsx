@@ -19,7 +19,7 @@ import { useSendRevisionRequest } from '@/hooks/queries/notificationQueries';
 
 import { CreateYeuCauChinhSuaThongBaoPayload } from '@/services/notification.service';
 import { APIError } from '@/services/apiHelper';
-import MaVaiTro from '@/enums/MaVaiTro.enum';
+import MaVaiTro from '@/enums/MaVaiTro.enum.js';
 import MaTrangThaiYeuCauPhong from '@/enums/MaTrangThaiYeuCauPhong.enum';
 
 import { Button } from '@/components/ui/button';
@@ -31,14 +31,7 @@ import {
   CardContent,
   CardFooter,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -278,8 +271,10 @@ const ProcessRoomRequestPage = () => {
 
   // --- Quyền hạn ---
   const isQLCSVC = hasRole(MaVaiTro.QUAN_LY_CSVC);
-  const isCBTC = hasRole(MaVaiTro.CAN_BO_TO_CHUC_SK);
+  const isCBTC = hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN);
   const canProcessRequests = isQLCSVC;
+
+  console.log('Processing Action:', isQLCSVC);
 
   // --- Lấy dữ liệu chi tiết của yêu cầu ---
   // Đây là nguồn dữ liệu chính cho toàn bộ trang

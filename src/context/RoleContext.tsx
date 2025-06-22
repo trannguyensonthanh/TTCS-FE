@@ -55,9 +55,7 @@ interface RoleContextType {
   isFacilityManager: () => boolean; // QUAN_LY_CSVC
   isBGH: () => boolean; // BGH_DUYET_SK_TRUONG
   isAdmin: () => boolean; // ADMIN_HE_THONG
-  isTruongKhoa: () => boolean;
-  isTruongCLB: () => boolean;
-  isBiThuDoan: () => boolean;
+
   // Hàm lấy DonViID mà người dùng quản lý (nếu họ là Trưởng Khoa/CLB/Đoàn)
   getManagedDonViId: (maVaiTroQuanLy: string) => number | undefined;
 }
@@ -70,6 +68,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const hasRole = useCallback(
     (maVaiTroToCheck: string): boolean => {
       if (!user || !user.vaiTroChucNang) return false;
+      console.log('Checking role:', maVaiTroToCheck, 'for user:', user);
       return user.vaiTroChucNang.some(
         (role) => role.maVaiTro === maVaiTroToCheck
       );
