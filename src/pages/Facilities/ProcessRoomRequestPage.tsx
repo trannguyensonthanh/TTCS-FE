@@ -258,7 +258,8 @@ type RevisionRequestFormValues = z.infer<typeof revisionRequestSchema>;
 // ---- Component Chính: ProcessRoomRequestPage ----
 const ProcessRoomRequestPage = () => {
   const { ycMuonPhongID } = useParams<{ ycMuonPhongID: string }>();
-  const { hasRole, can } = useRole();
+  const { hasRole } = useRole();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -276,8 +277,9 @@ const ProcessRoomRequestPage = () => {
   const debouncedPhongSearchTerm = useDebounce(phongSearchTerm, 300);
 
   // --- Quyền hạn ---
-  const canProcessRequests =
-    hasRole(MaVaiTro.QUAN_LY_CSVC) || hasRole(MaVaiTro.ADMIN_HE_THONG);
+  const isQLCSVC = hasRole(MaVaiTro.QUAN_LY_CSVC);
+  const isCBTC = hasRole(MaVaiTro.CAN_BO_TO_CHUC_SK);
+  const canProcessRequests = isQLCSVC;
 
   // --- Lấy dữ liệu chi tiết của yêu cầu ---
   // Đây là nguồn dữ liệu chính cho toàn bộ trang
@@ -288,9 +290,7 @@ const ProcessRoomRequestPage = () => {
     error: fetchError,
     refetch: refetchRequestDetail,
   } = useRoomRequestDetail(ycMuonPhongID, {
-    enabled:
-      !!ycMuonPhongID &&
-      (can('approve', 'YeuCauMuonPhong') || can('view', 'YeuCauMuonPhong')),
+    enabled: !!ycMuonPhongID, // Luôn gọi API nếu có id, quyền kiểm tra khi render
   });
 
   // --- Khởi tạo Form bằng react-hook-form ---
@@ -455,7 +455,14 @@ const ProcessRoomRequestPage = () => {
       </DashboardLayout>
     );
   // Kiểm tra quyền sau khi đã có dữ liệu
-  if (!can('approve', 'YeuCauMuonPhong') && !can('view', 'YeuCauMuonPhong')) {
+  if (
+    !isQLCSVC &&
+    !(
+      isCBTC &&
+      user &&
+      requestDetail.nguoiYeuCau.nguoiDungID === user.nguoiDungID
+    )
+  ) {
     return (
       <DashboardLayout pageTitle="Không có quyền truy cập">
         <p>Bạn không có quyền xem trang này.</p>
@@ -700,10 +707,20 @@ const ProcessRoomRequestPage = () => {
                       name="phongIDs"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="font-semibold">
-                            Chọn phòng để xếp{' '}
-                            <span className="text-destructive">*</span>
-                          </FormLabel>
+                          <div className="flex items-center justify-between">
+                            <FormLabel className="font-semibold">
+                              Chọn phòng để xếp{' '}
+                              <span className="text-destructive">*</span>
+                            </FormLabel>
+                            <Link
+                              to="/facilities/room-schedule"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-primary hover:underline ml-2"
+                            >
+                              Xem lịch phòng
+                            </Link>
+                          </div>
                           <FormControl>
                             <Command className="rounded-lg border shadow-sm bg-card">
                               <CommandInput

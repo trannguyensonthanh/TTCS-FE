@@ -160,7 +160,7 @@ const RoomSchedulePage = () => {
   const navigate = useNavigate();
   const calendarRef = useRef<FullCalendar>(null);
 
-  const [currentView, setCurrentView] = useState('timeGridWeek');
+  const [currentView, setCurrentView] = useState('resourceTimelineWeek');
   const [currentDateRange, setCurrentDateRange] = useState<{
     start: Date;
     end: Date;

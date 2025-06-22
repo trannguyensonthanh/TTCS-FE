@@ -267,7 +267,7 @@ const DashboardLayout = ({
             label: 'Lịch Phòng',
             href: '/facilities/room-schedule',
             icon: Calendar,
-            allowedRoles: ['*'],
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC], // Chỉ QLCSVC mới được xem
             activePaths: ['/facilities/room-schedule'],
           },
           {
@@ -688,113 +688,187 @@ const DashboardLayout = ({
 
   const getCurrentPageTitle = useCallback(() => {
     if (pageTitle) return pageTitle;
-    const findActiveItemLabel = (
-      items: NavItemStructure[],
-      currentPath: string
-    ): string | undefined => {
-      for (const item of items) {
-        if (
-          item.href &&
-          (item.exactMatch
-            ? currentPath === item.href
-            : currentPath.startsWith(item.href))
-        ) {
-          // Ưu tiên match chính xác hoặc match sâu nhất
-          if (item.subItems) {
-            const activeSub = findActiveItemLabel(item.subItems, currentPath);
-            if (activeSub) return activeSub; // Trả về label của subitem nếu nó active sâu hơn
-          }
-          return item.label;
-        }
-        if (item.subItems) {
-          const activeSub = findActiveItemLabel(item.subItems, currentPath);
-          if (activeSub) return activeSub;
+    // Tìm item tương ứng với đường dẫn hiện tại trong cấu trúc điều hướng
+    for (const item of sidebarNavigationStructure) {
+      if (item.href === location.pathname) return item.label;
+      // Kiểm tra trong các subItems nếu không tìm thấy ở cấp độ chính
+      if (item.subItems) {
+        for (const subItem of item.subItems) {
+          if (subItem.href === location.pathname) return subItem.label;
         }
       }
-      return undefined;
-    };
-    // Sắp xếp lại sidebarNavigationStructure để tìm match chính xác nhất trước
-    // Hoặc đơn giản là dựa vào logic isActive đã có
-    let foundTitle: string | undefined = undefined;
-    const findTitleRecursive = (items: NavItemStructure[]): boolean => {
-      for (const item of items) {
-        if (
-          item.href &&
-          isActive(item.href, item.activePaths, item.exactMatch)
-        ) {
-          foundTitle = item.label;
-          return true;
-        }
-        if (item.subItems && findTitleRecursive(item.subItems)) {
-          // Nếu subitem active, title có thể vẫn là của parent group hoặc của subitem tùy thiết kế
-          // Hiện tại, nếu subitem active, label của nó sẽ được trả về bởi đệ quy
-          return true;
-        }
-      }
-      return false;
-    };
-    findTitleRecursive(sidebarNavigationStructure);
-    return foundTitle || 'Trang Quản Trị';
-  }, [pageTitle, sidebarNavigationStructure, isActive]); // Removed location.pathname
+    }
+    return 'PTIT Events'; // Tiêu đề mặc định
+  }, [pageTitle, location.pathname, sidebarNavigationStructure]);
 
   return (
-    <div className="flex min-h-screen w-full bg-muted/30 dark:bg-background">
-      {isMobile ? (
-        <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-          <SheetContent
-            side="left"
-            className="w-[300px] p-0 flex flex-col"
-            onOpenAutoFocus={(e) => e.preventDefault()}
-          >
-            <SidebarNavContent />
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <aside className="hidden md:block fixed top-0 left-0 h-screen w-[270px] z-40">
-          {' '}
-          {/* Tăng chiều rộng sidebar desktop */}
-          <SidebarNavContent />
-        </aside>
-      )}
-
-      <div
-        className={cn(
-          'flex flex-col flex-1 overflow-x-hidden',
-          !isMobile && 'md:ml-[270px]'
-        )}
-      >
-        {' '}
-        {/* overflow-x-hidden để tránh scrollbar ngang */}
-        <header className="flex h-16 items-center gap-x-4 border-b bg-background px-4 md:px-6 sticky top-0 z-30 dark:border-slate-800 shadow-sm">
-          {isMobile && (
-            <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="shrink-0 md:hidden h-9 w-9"
-              >
-                <Menu className="h-5 w-5" />{' '}
-                <span className="sr-only">Mở menu</span>
-              </Button>
-            </SheetTrigger>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl lg:text-2xl font-semibold truncate text-foreground">
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar cho màn hình lớn */}
+      <div className="hidden lg:block w-64">
+        <SidebarNavContent />
+      </div>
+      {/* Nội dung chính */}
+      <div className="flex-1 flex flex-col overflow-auto">
+        {/* Header cho màn hình lớn */}
+        <div className="hidden lg:flex h-16 items-center border-b px-4 lg:px-6 sticky top-0 bg-card z-10 dark:bg-slate-900 dark:border-slate-800">
+          <div className="flex-1">
+            <h1 className="text-xl font-semibold text-foreground">
               {getCurrentPageTitle()}
             </h1>
           </div>
-          <div className="flex items-center gap-x-2 sm:gap-x-3 ml-auto">
-            {headerActions}
-            <NotificationBell />
-            <ThemeSwitcher />
-          </div>
-        </header>
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-muted/30 dark:bg-slate-950/50">
-          {' '}
-          {/* overflow-y-auto cho main content */}
-          {children}
-        </main>
+          <div className="flex items-center gap-4">{headerActions}</div>
+        </div>
+        <div className="flex-1 p-4 lg:p-6">{children}</div>
       </div>
+      {/* Sidebar cho màn hình di động */}
+      <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            className="absolute left-4 top-4 z-10 lg:hidden"
+          >
+            <Menu className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent
+          className="flex max-w-sm flex-col p-0"
+          side="left"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex h-16 items-center border-b px-4 lg:px-6 sticky top-0 bg-card z-10 dark:bg-slate-900 dark:border-slate-800">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-2.5 font-bold text-lg text-foreground hover:text-primary dark:hover:text-ptit-red transition-colors"
+              onClick={() => setIsMobileSidebarOpen(false)}
+            >
+              <Logo className="h-8 w-8 text-primary dark:text-ptit-red" />
+              <span className="whitespace-nowrap">PTIT Events</span>
+            </Link>
+          </div>
+          <ScrollArea className="flex-1">
+            <nav className="grid items-start px-2 text-sm font-medium lg:px-4 gap-0.5">
+              {visibleSidebarNavigation.map((item) => renderSidebarItem(item))}
+            </nav>
+          </ScrollArea>
+          <div className="p-3 border-t dark:border-slate-800">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start gap-2.5 px-2 h-auto py-2.5 hover:bg-primary/5 dark:hover:bg-ptit-red/5 rounded-md"
+                  >
+                    <Avatar className="h-9 w-9 border-2 border-primary/20 dark:border-ptit-red/20">
+                      <AvatarImage
+                        src={user.anhDaiDien || undefined}
+                        alt={user.hoTen}
+                      />
+                      <AvatarFallback className="bg-muted text-muted-foreground font-semibold">
+                        {user.hoTen.split(' ').pop()?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start text-left overflow-hidden">
+                      <span className="text-sm font-medium text-foreground truncate max-w-[150px]">
+                        {user.hoTen}
+                      </span>
+                      <span className="text-xs text-muted-foreground truncate max-w-[150px]">
+                        {user.email}
+                      </span>
+                    </div>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-60 mb-2"
+                  align="start"
+                  sideOffset={10}
+                  side={isMobile ? 'top' : 'right'}
+                >
+                  <DropdownMenuLabel className="font-normal p-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={user.anhDaiDien || undefined}
+                          alt={user.hoTen}
+                        />
+                        <AvatarFallback>
+                          {user.hoTen.split(' ').pop()?.[0]?.toUpperCase() ||
+                            'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col space-y-0.5">
+                        <p className="text-sm font-semibold leading-none">
+                          {user.hoTen}
+                        </p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {isMobile ? (
+                    <SheetClose asChild>
+                      <Link to="/">
+                        <DropdownMenuItem className="cursor-pointer h-9">
+                          <Home className="mr-2 h-4 w-4" /> Trang chủ người dùng
+                        </DropdownMenuItem>
+                      </Link>
+                    </SheetClose>
+                  ) : (
+                    <Link to="/">
+                      <DropdownMenuItem className="cursor-pointer h-9">
+                        <Home className="mr-2 h-4 w-4" /> Trang chủ người dùng
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
+                  {isMobile ? (
+                    <SheetClose asChild>
+                      <Link to="/profile">
+                        <DropdownMenuItem className="cursor-pointer h-9">
+                          <UserIconLucide className="mr-2 h-4 w-4" /> Thông tin
+                          cá nhân
+                        </DropdownMenuItem>
+                      </Link>
+                    </SheetClose>
+                  ) : (
+                    <Link to="/profile">
+                      <DropdownMenuItem className="cursor-pointer h-9">
+                        <UserIconLucide className="mr-2 h-4 w-4" /> Thông tin cá
+                        nhân
+                      </DropdownMenuItem>
+                    </Link>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      logout();
+                      if (isMobile) setIsMobileSidebarOpen(false);
+                    }}
+                    className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 h-9"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" /> Đăng xuất
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : isMobile ? (
+              <SheetClose asChild>
+                <Link to="/login" className="w-full">
+                  <Button
+                    className="w-full"
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                  >
+                    Đăng nhập
+                  </Button>
+                </Link>
+              </SheetClose>
+            ) : (
+              <Link to="/login" className="w-full">
+                <Button className="w-full">Đăng nhập</Button>
+              </Link>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
