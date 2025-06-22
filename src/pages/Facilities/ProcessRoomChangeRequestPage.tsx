@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-
+import MaVaiTro from '@/enums/MaVaiTro.enum';
 import DashboardLayout from '@/components/DashboardLayout';
 import {
   useRoomChangeRequestDetail,
@@ -188,7 +188,7 @@ type ProcessChangeFormValues = z.infer<typeof processChangeFormSchema>;
 // ---- Component Chính: Trang xử lý ----
 const ProcessRoomChangeRequestPage = () => {
   const { ycDoiPhongID } = useParams<{ ycDoiPhongID: string }>();
-  const { can } = useRole();
+  const { hasRole } = useRole();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -198,6 +198,9 @@ const ProcessRoomChangeRequestPage = () => {
   const [phongSearchTerm, setPhongSearchTerm] = useState('');
   const debouncedPhongSearchTerm = useDebounce(phongSearchTerm, 300);
 
+  const isQLCSVC = hasRole(MaVaiTro.QUAN_LY_CSVC);
+  const isCBTC = hasRole(MaVaiTro.CB_TO_CHUC_SU_KIEN);
+
   const {
     data: requestDetail,
     isLoading: isLoadingDetail,
@@ -205,9 +208,7 @@ const ProcessRoomChangeRequestPage = () => {
     error: fetchError,
     refetch,
   } = useRoomChangeRequestDetail(ycDoiPhongID, {
-    enabled:
-      !!ycDoiPhongID &&
-      (can('approve', 'YeuCauDoiPhong') || can('view', 'YeuCauDoiPhong')),
+    enabled: !!ycDoiPhongID,
   });
 
   const formProcess = useForm<ProcessChangeFormValues>({
@@ -324,14 +325,14 @@ const ProcessRoomChangeRequestPage = () => {
         <p>Không thể tải chi tiết yêu cầu: {fetchError?.message}</p>
       </DashboardLayout>
     );
-  if (!can('approve', 'YeuCauDoiPhong') && !can('view', 'YeuCauDoiPhong'))
+  if (!isQLCSVC && !isCBTC)
     return (
       <DashboardLayout pageTitle="Không có quyền">
         <p>Bạn không có quyền truy cập trang này.</p>
       </DashboardLayout>
     );
-
-  const canProcess = can('approve', 'YeuCauDoiPhong');
+  console.log('Request Detail:', requestDetail);
+  const canProcess = isQLCSVC;
   const isPendingApproval =
     requestDetail.trangThaiYeuCauDoiPhong.maTrangThai ===
     MaTrangThaiYeuCauDoiPhong.CHO_DUYET_DOI_PHONG;

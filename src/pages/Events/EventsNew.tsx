@@ -240,7 +240,8 @@ const EventsNew = () => {
     useNguoiDungListForSelect(
       {
         searchTerm: debouncedSearchNguoiChuTri,
-        maVaiTro: `${MaVaiTro.BGH_DUYET_SK_TRUONG},GIANG_VIEN`,
+        loaiNguoiDung: 'GIANG_VIEN',
+        // maVaiTro: `${MaVaiTro.BGH_DUYET_SK_TRUONG}`,
         limit: 10,
       }, // Lấy GV, TK, BGH
       {

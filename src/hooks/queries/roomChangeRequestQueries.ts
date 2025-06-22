@@ -94,9 +94,7 @@ export const useCreateRoomChangeRequest = (
       if (options?.onSuccess) options.onSuccess(data, variables, undefined);
     },
     onError: (error: APIError) => {
-      toast.error(
-        error.body?.message || error.message || 'Lỗi khi tạo yêu cầu đổi phòng.'
-      );
+      toast.error(error.message || 'Lỗi khi tạo yêu cầu đổi phòng.');
       if (options?.onError)
         options.onError(error, {} as CreateYeuCauDoiPhongPayload, undefined);
     },

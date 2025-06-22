@@ -167,7 +167,7 @@ const CreateRoomChangeRequestPage = () => {
     },
     onError: (error: APIError) => {
       toast.error('Lỗi khi tạo yêu cầu đổi phòng', {
-        description: error.body?.message || error.message,
+        description: error.message,
       });
     },
   });

@@ -68,7 +68,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const hasRole = useCallback(
     (maVaiTroToCheck: string): boolean => {
       if (!user || !user.vaiTroChucNang) return false;
-      console.log('Checking role:', maVaiTroToCheck, 'for user:', user);
+
       return user.vaiTroChucNang.some(
         (role) => role.maVaiTro === maVaiTroToCheck
       );

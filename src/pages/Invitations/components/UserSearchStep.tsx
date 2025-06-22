@@ -173,10 +173,7 @@ export const UserSearchStep: React.FC<UserSearchStepProps> = ({
     isError: isErrorSearch,
     error: errorSearch,
   } = useTimKiemNguoiDungDeMoi(queryParamsIndividual, {
-    enabled:
-      activeTab === 'individual' &&
-      !!debouncedSearchTerm &&
-      debouncedSearchTerm.length >= 2,
+    enabled: activeTab === 'individual',
   });
 
   const handleAddUserToInviteList = (user: NguoiDungTimKiemItem) => {

@@ -53,8 +53,12 @@ const RespondToInvitationDialog: React.FC<RespondToInvitationDialogProps> = ({
 
     const payload: PhanHoiLoiMoiPayload = {
       chapNhan,
-      lyDoTuChoi: chapNhan || !showLyDoInput ? null : lyDoTuChoi.trim() || null,
+      lyDoTuChoi:
+        !chapNhan && showLyDoInput ? lyDoTuChoi.trim() || null : undefined,
     };
+    if (chapNhan) {
+      delete payload.lyDoTuChoi;
+    }
 
     try {
       await respondMutation.mutateAsync({

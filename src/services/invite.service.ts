@@ -88,9 +88,9 @@ const guiLoiMoiCaNhan = async (
   suKienID: number | string,
   payload: MoiThamGiaPayloadItem[]
 ): Promise<GuiLoiMoiResponse> => {
-  // Endpoint này có thể là POST /api/v1/su-kien/{suKienID}/moi-tham-gia/ca-nhan
+  // Endpoint này có thể là POST /api/v1/sukien/{suKienID}/moi-tham-gia/ca-nhan
   return apiHelper.post(
-    `/su-kien/${suKienID}/moi-tham-gia/ca-nhan`,
+    `/sukien/${suKienID}/moi-tham-gia/ca-nhan`,
     payload
   ) as Promise<GuiLoiMoiResponse>;
 };

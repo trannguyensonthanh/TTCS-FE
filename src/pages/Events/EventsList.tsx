@@ -530,7 +530,7 @@ const EventsList = () => {
       </DropdownMenu>
     );
   };
-
+  console.log('events:', events);
   return (
     <DashboardLayout pageTitle="Quản Lý Sự Kiện">
       <motion.div
