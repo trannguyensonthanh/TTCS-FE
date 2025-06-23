@@ -624,7 +624,7 @@ const EventsCancelRequests = () => {
                     Lý do yêu cầu hủy:
                   </Label>
                   <div className="mt-1 p-3 border rounded-md bg-muted/20 dark:bg-slate-800/50 whitespace-pre-line prose-sm dark:prose-invert max-w-none">
-                    {selectedRequestForDetail.lyDoHuy}
+                    {selectedRequestForDetail.lyDoHuyNganGon}
                   </div>
                 </div>
                 {selectedRequestForDetail.trangThaiYeuCauHuySK.maTrangThai ===

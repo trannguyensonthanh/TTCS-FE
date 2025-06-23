@@ -254,7 +254,7 @@ const RoomDetailPage = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="shadow-lg">
+                {/* <Card className="shadow-lg">
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                       <CardTitle className="text-xl font-semibold">
@@ -307,7 +307,7 @@ const RoomDetailPage = () => {
                       onPageChange={handleLichDatPhongPageChange}
                     />
                   </CardContent>
-                </Card>
+                </Card> */}
               </motion.div>
             </div>
           </div>
