@@ -142,40 +142,48 @@ const createRoomRequestSchema = z
       .min(1, 'Phải có ít nhất một chi tiết yêu cầu phòng.'),
     suKien: z.any().optional(), // Thêm trường sự kiện để lấy thời gian
   })
-  .refine(
-    (data) => {
-      // Lấy thời gian sự kiện
-      const tgBatDauSK = data.suKien?.tgBatDauDK
-        ? parseISO(data.suKien.tgBatDauDK)
-        : null;
-      const tgKetThucSK = data.suKien?.tgKetThucDK
-        ? parseISO(data.suKien.tgKetThucDK)
-        : null;
-      for (const chiTiet of data.chiTietYeuCau) {
-        if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return false;
-        const [hM, mM] = chiTiet.gioMuon.split(':').map(Number);
-        const tgMuonDkFull = setMilliseconds(
-          setSeconds(setMinutes(setHours(chiTiet.ngayMuon, hM), mM), 0),
-          0
-        );
-        const [hT, mT] = chiTiet.gioTra.split(':').map(Number);
-        const tgTraDkFull = setMilliseconds(
-          setSeconds(setMinutes(setHours(chiTiet.ngayTra, hT), mT), 0),
-          0
-        );
-        if (isBefore(tgTraDkFull, tgMuonDkFull)) return false;
-        // Kiểm tra nằm trong thời gian sự kiện
-        if (tgBatDauSK && isBefore(tgMuonDkFull, tgBatDauSK)) return false;
-        if (tgKetThucSK && isBefore(tgKetThucSK, tgTraDkFull)) return false;
+  .superRefine((data, ctx) => {
+    const tgBatDauSK = data.suKien?.tgBatDauDK
+      ? parseISO(data.suKien.tgBatDauDK)
+      : null;
+    const tgKetThucSK = data.suKien?.tgKetThucDK
+      ? parseISO(data.suKien.tgKetThucDK)
+      : null;
+    data.chiTietYeuCau.forEach((chiTiet, idx) => {
+      if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return;
+      const [hM, mM] = chiTiet.gioMuon.split(':').map(Number);
+      const tgMuonDkFull = setMilliseconds(
+        setSeconds(setMinutes(setHours(chiTiet.ngayMuon, hM), mM), 0),
+        0
+      );
+      const [hT, mT] = chiTiet.gioTra.split(':').map(Number);
+      const tgTraDkFull = setMilliseconds(
+        setSeconds(setMinutes(setHours(chiTiet.ngayTra, hT), mT), 0),
+        0
+      );
+      if (isBefore(tgTraDkFull, tgMuonDkFull)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Thời gian trả phải sau thời gian mượn.',
+          path: ['chiTietYeuCau', idx, 'ngayTra'],
+        });
       }
-      return true;
-    },
-    {
-      message:
-        'Thời gian mượn/trả phải nằm trong thời gian diễn ra sự kiện và trả sau mượn.',
-      path: ['chiTietYeuCau'],
-    }
-  );
+      if (tgBatDauSK && isBefore(tgMuonDkFull, tgBatDauSK)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Thời gian mượn phải nằm trong thời gian sự kiện.',
+          path: ['chiTietYeuCau', idx, 'ngayMuon'],
+        });
+      }
+      if (tgKetThucSK && isBefore(tgKetThucSK, tgTraDkFull)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Thời gian trả phải nằm trong thời gian sự kiện.',
+          path: ['chiTietYeuCau', idx, 'ngayTra'],
+        });
+      }
+    });
+  });
 
 type CreateRoomRequestFormValues = z.infer<typeof createRoomRequestSchema>;
 
@@ -862,12 +870,12 @@ const CreateRoomRequestPage = () => {
                 <Button
                   type="submit"
                   form="createRoomRequestForm"
-                  // disabled={
-                  //   createRequestMutation.isPending ||
-                  //   !formCreate.formState.isDirty ||
-                  //   !formCreate.formState.isValid ||
-                  //   isLoadingSuKienSelect
-                  // }
+                  disabled={
+                    createRequestMutation.isPending ||
+                    !formCreate.formState.isDirty ||
+                    !formCreate.formState.isValid ||
+                    isLoadingSuKienSelect
+                  }
                   className="bg-gradient-to-r from-ptit-blue to-sky-500 hover:from-ptit-blue/90 hover:to-sky-500/90 text-white shadow-md hover:shadow-lg transition-all"
                 >
                   {createRequestMutation.isPending ? (

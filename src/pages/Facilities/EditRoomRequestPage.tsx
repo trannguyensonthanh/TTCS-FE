@@ -738,6 +738,26 @@ const EditRoomRequestPage = () => {
                             />
                             <FormField
                               control={form.control}
+                              name={`chiTietYeuCau.${index}.gioTra`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>
+                                    Giờ trả{' '}
+                                    <span className="text-destructive">*</span>
+                                  </FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      type="time"
+                                      {...field}
+                                      disabled={isProcessed}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              control={form.control}
                               name={`chiTietYeuCau.${index}.thietBiThemYc`}
                               render={({ field }) => (
                                 <FormItem className="sm:col-span-2 lg:col-span-3">

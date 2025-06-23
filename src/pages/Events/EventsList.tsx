@@ -157,7 +157,7 @@ const EventsList = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
   const [filterParamsState, setFilterParamsState] = useState<GetSuKienParams>({
     page: 1,
-    limit: 10,
+    limit: 15,
     sortOrder: 'desc',
     sortBy: 'NgayTaoSK',
   });

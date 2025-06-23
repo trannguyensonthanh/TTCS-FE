@@ -27,6 +27,13 @@ export const ReusablePagination: React.FC<ReusablePaginationProps> = ({
   siblingCount = 1,
   className,
 }) => {
+  console.log('Rendering ReusablePagination', {
+    currentPage,
+    totalPages,
+    siblingCount,
+    isLoading,
+    className,
+  });
   const paginationRange = useMemo(() => {
     const totalPageNumbers = siblingCount + 5; // siblingCount + firstPage + lastPage + currentPage + 2*DOTS
 

@@ -160,9 +160,9 @@ const InvitedUsersTable: React.FC<InvitedUsersTableProps> = ({
                 <TableHead className="font-semibold text-center">
                   Trạng Thái Phản Hồi
                 </TableHead>
-                <TableHead className="font-semibold text-center">
+                {/* <TableHead className="font-semibold text-center">
                   Thời Gian Mời
-                </TableHead>
+                </TableHead> */}
                 <TableHead className="font-semibold text-center">
                   Thời Gian Phản Hồi
                 </TableHead>
@@ -220,14 +220,14 @@ const InvitedUsersTable: React.FC<InvitedUsersTableProps> = ({
                   <TableCell className="text-center">
                     {getStatusBadge(invite.isChapNhanMoi)}
                   </TableCell>
-                  <TableCell className="text-center text-xs text-muted-foreground">
+                  {/* <TableCell className="text-center text-xs text-muted-foreground">
                     {formatDateNullable(invite.tgGuiMoi)}
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell className="text-center text-xs text-muted-foreground">
                     {formatDateNullable(invite.tgPhanHoiMoi)}
                   </TableCell>
                   <TableCell className="text-right">
-                    {invite.isChapNhanMoi === null && ( // Chỉ cho thu hồi nếu chưa phản hồi
+                    {invite.isChapNhanMoi === null ? ( // Chỉ cho thu hồi nếu chưa phản hồi
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
@@ -244,11 +244,12 @@ const InvitedUsersTable: React.FC<InvitedUsersTableProps> = ({
                           <p>Thu hồi lời mời</p>
                         </TooltipContent>
                       </Tooltip>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">
+                        Đã phản hồi
+                      </span>
                     )}
                     {/* Nút xem chi tiết người dùng nếu cần */}
-                    <span className="text-xs text-muted-foreground italic">
-                      Đã phản hồi
-                    </span>
                   </TableCell>
                 </TableRow>
               ))}
