@@ -283,7 +283,9 @@ const EditRoomRequestPage = () => {
     ) {
       const isOverallPending =
         currentRequest.trangThaiChung.maTrangThai ===
-        MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY;
+          MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY ||
+        currentRequest.trangThaiChung.maTrangThai ===
+          MaTrangThaiYeuCauPhong.YCCP_TU_CHOI_TOAN_BO;
       const hasRevisionItem = currentRequest.chiTietYeuCau.some(
         (ct) =>
           ct.trangThaiChiTiet.maTrangThai ===
@@ -308,21 +310,21 @@ const EditRoomRequestPage = () => {
         <p>Không thể tải chi tiết yêu cầu: {fetchError?.message}</p>
       </DashboardLayout>
     );
-  if (!currentRequest)
-    return (
-      <DashboardLayout pageTitle="Không tìm thấy">
-        <p>Không tìm thấy yêu cầu mượn phòng với ID này.</p>
-      </DashboardLayout>
-    );
-  if (!canEditThisRequest)
-    return (
-      <DashboardLayout pageTitle="Không có quyền">
-        <p>
-          Bạn không có quyền sửa yêu cầu này hoặc yêu cầu không còn ở trạng thái
-          cho phép chỉnh sửa.
-        </p>
-      </DashboardLayout>
-    );
+  // if (!currentRequest)
+  //   return (
+  //     <DashboardLayout pageTitle="Không tìm thấy">
+  //       <p>Không tìm thấy yêu cầu mượn phòng với ID này.</p>
+  //     </DashboardLayout>
+  //   );
+  // if (!canEditThisRequest)
+  //   return (
+  //     <DashboardLayout pageTitle="Không có quyền">
+  //       <p>
+  //         Bạn không có quyền sửa yêu cầu này hoặc yêu cầu không còn ở trạng thái
+  //         cho phép chỉnh sửa.
+  //       </p>
+  //     </DashboardLayout>
+  //   );
 
   const itemsNeedingRevision = currentRequest.chiTietYeuCau.filter(
     (ct) =>
