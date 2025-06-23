@@ -17,6 +17,7 @@ import inviteService, {
 import { APIError } from '@/services/apiHelper';
 import { toast } from '@/components/ui/sonner';
 import { EVENT_INVITABLE_QUERY_KEYS } from './eventQueries'; // Để invalidate số lượng đã mời
+import { PaginatedNguoiDuocMoiChiTietResponse } from '@/services/eventInvitationManagement.service';
 
 export const INVITE_QUERY_KEYS = {
   all: ['invitations'] as const,
@@ -141,11 +142,11 @@ export const useDanhSachMoi = (
   suKienID: number | string | undefined,
   params: GetDanhSachMoiParams,
   options?: Omit<
-    UseQueryOptions<PaginatedNguoiDuocMoiResponse, APIError>,
-    'queryKey' | 'queryFn' | 'enabled'
+    UseQueryOptions<PaginatedNguoiDuocMoiChiTietResponse, APIError>,
+    'queryKey' | 'queryFn'
   >
 ) => {
-  return useQuery<PaginatedNguoiDuocMoiResponse, APIError>({
+  return useQuery<PaginatedNguoiDuocMoiChiTietResponse, APIError>({
     queryKey: INVITE_QUERY_KEYS.list(suKienID!, params),
     queryFn: () => {
       if (!suKienID) return Promise.reject(new Error('Chưa chọn sự kiện'));

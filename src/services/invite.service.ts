@@ -1,4 +1,5 @@
 // src/services/invite.service.ts
+import { PaginatedNguoiDuocMoiChiTietResponse } from '@/services/eventInvitationManagement.service';
 import apiHelper, { APIError } from './apiHelper';
 import { NguoiDungResponseMin } from './event.service'; // Import các type cần thiết
 
@@ -108,11 +109,11 @@ const guiLoiMoiHangLoat = async (
 const getDanhSachMoi = async (
   suKienID: number | string,
   params?: GetDanhSachMoiParams
-): Promise<PaginatedNguoiDuocMoiResponse> => {
+): Promise<PaginatedNguoiDuocMoiChiTietResponse> => {
   return apiHelper.get(
     `/sukien/${suKienID}/danh-sach-moi`,
     params || {}
-  ) as Promise<PaginatedNguoiDuocMoiResponse>;
+  ) as Promise<PaginatedNguoiDuocMoiChiTietResponse>;
 };
 
 const thuHoiLoiMoi = async (

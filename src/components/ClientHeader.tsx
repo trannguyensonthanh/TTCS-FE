@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // src/components/ClientHeader.tsx
 import React, { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
@@ -144,7 +145,15 @@ export const ClientHeader = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {user.vaiTroChucNang && user.vaiTroChucNang.length > 0 && (
-                  <Link to="/dashboard">
+                  <Link
+                    to={
+                      user.vaiTroChucNang.some(
+                        (v: any) => v.maVaiTro === 'ADMIN_HE_THONG'
+                      )
+                        ? '/facilities/rooms'
+                        : '/dashboard'
+                    }
+                  >
                     <DropdownMenuItem className="cursor-pointer h-9">
                       <DashboardIcon className="mr-2 h-4 w-4" /> Bảng điều khiển
                     </DropdownMenuItem>
@@ -251,7 +260,16 @@ export const ClientHeader = () => {
                     >
                       {/* Các mục menu như desktop */}
                       <SheetClose asChild>
-                        <Link to="/dashboard">
+                        <Link
+                          to={
+                            user.vaiTroChucNang &&
+                            user.vaiTroChucNang.some(
+                              (v: any) => v.maVaiTro === 'ADMIN_HE_THONG'
+                            )
+                              ? '/facilities/rooms'
+                              : '/dashboard'
+                          }
+                        >
                           <DropdownMenuItem className="cursor-pointer h-9">
                             <DashboardIcon className="mr-2 h-4 w-4" />
                             Bảng điều khiển

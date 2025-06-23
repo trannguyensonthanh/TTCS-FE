@@ -37,7 +37,8 @@ import {
   Home, // Không thấy dùng trực tiếp
   Grip, // Không thấy dùng trực tiếp
   Layers,
-  Send, // Dùng cho Quản lý Loại Tầng
+  Send,
+  UsersRound, // Dùng cho Quản lý Loại Tầng
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -157,15 +158,30 @@ const DashboardLayout = ({
   // Sidebar navigation structure, only include routes that are part of the dashboard ("/dashboard" and admin/management pages)
   const sidebarNavigationStructure = useMemo(
     (): NavItemStructure[] => [
+      // Ẩn hoàn toàn dashboard và nghiệp vụ chính với admin hệ thống
       {
         label: 'Bảng Điều Khiển',
         href: '/dashboard',
         icon: DashboardIcon,
         exactMatch: true,
-        allowedRoles: ['*'],
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.CONG_TAC_SINH_VIEN,
+        ], // Không cho ADMIN_HE_THONG
         activePaths: ['/dashboard'],
       },
-      { isTitle: true, label: 'Nghiệp Vụ Chính', allowedRoles: ['*'] },
+      {
+        isTitle: true,
+        label: 'Nghiệp Vụ Chính',
+        allowedRoles: [
+          MaVaiTro.QUAN_LY_CSVC,
+          MaVaiTro.CB_TO_CHUC_SU_KIEN,
+          MaVaiTro.BGH_DUYET_SK_TRUONG,
+          MaVaiTro.CONG_TAC_SINH_VIEN,
+        ],
+      }, // Không cho ADMIN_HE_THONG
       {
         label: 'Quản Lý Sự Kiện',
         icon: ClipboardList,
@@ -178,9 +194,8 @@ const DashboardLayout = ({
         allowedRoles: [
           MaVaiTro.CB_TO_CHUC_SU_KIEN,
           MaVaiTro.BGH_DUYET_SK_TRUONG,
-          MaVaiTro.ADMIN_HE_THONG,
           MaVaiTro.QUAN_LY_CSVC,
-        ],
+        ], // Loại bỏ ADMIN_HE_THONG
         subItems: [
           {
             label: 'Danh sách Sự kiện',
@@ -193,20 +208,14 @@ const DashboardLayout = ({
             label: 'Tạo Sự kiện Mới',
             href: '/events/new',
             icon: CalendarPlus,
-            allowedRoles: [
-              MaVaiTro.CB_TO_CHUC_SU_KIEN,
-              MaVaiTro.ADMIN_HE_THONG,
-            ],
+            allowedRoles: [MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/events/new'],
           },
           {
             label: 'Duyệt Sự kiện (BGH)',
             href: '/events/approve',
             icon: ShieldCheck,
-            allowedRoles: [
-              MaVaiTro.BGH_DUYET_SK_TRUONG,
-              MaVaiTro.ADMIN_HE_THONG,
-            ],
+            allowedRoles: [MaVaiTro.BGH_DUYET_SK_TRUONG], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/events/approve'],
           },
           {
@@ -215,9 +224,8 @@ const DashboardLayout = ({
             icon: History,
             allowedRoles: [
               MaVaiTro.CB_TO_CHUC_SU_KIEN,
-              MaVaiTro.ADMIN_HE_THONG,
-              MaVaiTro.BGH_DUYET_SK_TRUONG, // Thêm quyền cho BGH duyệt sự kiện
-            ],
+              MaVaiTro.BGH_DUYET_SK_TRUONG,
+            ], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/events/cancel-requests'],
           },
         ],
@@ -230,6 +238,13 @@ const DashboardLayout = ({
         activePaths: ['/manage-invitations'], // Để active khi ở trang con (nếu có)
       },
       {
+        label: 'Quản Lý Lời Mời',
+        href: '/event-invitations/manage', // Đường dẫn đến EventInvitedListPage
+        icon: UsersRound,
+        allowedRoles: [MaVaiTro.CONG_TAC_SINH_VIEN],
+        activePaths: ['/event-invitations/manage'],
+      },
+      {
         label: 'Quản Lý CSVC',
         icon: Building,
         activePaths: [
@@ -239,28 +254,20 @@ const DashboardLayout = ({
           '/facilities/room-requests',
           '/facilities/room-change-requests',
         ],
-        allowedRoles: [
-          MaVaiTro.QUAN_LY_CSVC,
-          MaVaiTro.CB_TO_CHUC_SU_KIEN,
-          MaVaiTro.ADMIN_HE_THONG,
-        ],
+        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG khỏi allowedRoles
         subItems: [
           {
             label: 'Phòng Học & Hội Trường',
             href: '/facilities/rooms',
             icon: Building2,
-            allowedRoles: [
-              MaVaiTro.QUAN_LY_CSVC,
-              MaVaiTro.ADMIN_HE_THONG,
-              MaVaiTro.CB_TO_CHUC_SU_KIEN,
-            ],
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/facilities/rooms'],
           },
           {
             label: 'Trang Thiết Bị',
             href: '/facilities/equipment',
             icon: Settings,
-            allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/facilities/equipment'],
           },
           {
@@ -274,32 +281,21 @@ const DashboardLayout = ({
             label: 'Tạo YC Phòng',
             href: '/facilities/room-requests/new',
             icon: CalendarClock,
-            allowedRoles: [
-              MaVaiTro.CB_TO_CHUC_SU_KIEN,
-              MaVaiTro.ADMIN_HE_THONG,
-            ],
+            allowedRoles: [MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/facilities/room-request'],
           },
           {
             label: 'Danh Sách YC Phòng',
             href: '/facilities/room-requests',
             icon: ListChecks,
-            allowedRoles: [
-              MaVaiTro.QUAN_LY_CSVC,
-              MaVaiTro.CB_TO_CHUC_SU_KIEN,
-              MaVaiTro.ADMIN_HE_THONG,
-            ],
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/facilities/room-requests'],
           },
           {
             label: 'Danh Sách YC Đổi Phòng',
             href: '/facilities/room-change-requests',
             icon: History,
-            allowedRoles: [
-              MaVaiTro.QUAN_LY_CSVC,
-              MaVaiTro.CB_TO_CHUC_SU_KIEN,
-              MaVaiTro.ADMIN_HE_THONG,
-            ],
+            allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.CB_TO_CHUC_SU_KIEN], // Loại bỏ ADMIN_HE_THONG
             activePaths: ['/facilities/room-change-requests'],
           },
         ],
@@ -320,7 +316,7 @@ const DashboardLayout = ({
         label: 'Thống kê CSVC',
         href: '/dashboard/facilities',
         icon: LineChartLucideIcon,
-        allowedRoles: [MaVaiTro.QUAN_LY_CSVC, MaVaiTro.ADMIN_HE_THONG],
+        allowedRoles: [MaVaiTro.QUAN_LY_CSVC], // Loại bỏ ADMIN_HE_THONG
         activePaths: ['/dashboard/facilities'],
       },
       {
@@ -332,6 +328,7 @@ const DashboardLayout = ({
         label: 'Cấu Hình Hệ Thống',
         icon: Settings,
         activePaths: [
+          '/facilities/rooms',
           '/users',
           '/users/roles',
           '/units',
@@ -345,6 +342,13 @@ const DashboardLayout = ({
         ],
         allowedRoles: [MaVaiTro.ADMIN_HE_THONG],
         subItems: [
+          {
+            label: 'Phòng Học & Hội Trường',
+            href: '/facilities/rooms',
+            icon: Building2,
+            allowedRoles: [MaVaiTro.ADMIN_HE_THONG, MaVaiTro.QUAN_LY_CSVC],
+            activePaths: ['/facilities/rooms'],
+          },
           {
             label: 'Người dùng',
             href: '/users',

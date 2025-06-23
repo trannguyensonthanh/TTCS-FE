@@ -121,11 +121,19 @@ const updateRoomRequestSchema = z
       .max(500, 'Ghi chú phản hồi tối đa 500 ký tự.')
       .optional()
       .nullable(),
+    suKien: z.any().optional(), // Thêm trường sự kiện để lấy thời gian
   })
   .refine(
     (data) => {
+      // Lấy thời gian sự kiện
+      const tgBatDauSK = data.suKien?.tgBatDauDK
+        ? parseISO(data.suKien.tgBatDauDK)
+        : null;
+      const tgKetThucSK = data.suKien?.tgKetThucDK
+        ? parseISO(data.suKien.tgKetThucDK)
+        : null;
       for (const chiTiet of data.chiTietYeuCau) {
-        if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return true; // Bỏ qua nếu chưa chọn xong
+        if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return true;
         const [hM, mM] = chiTiet.gioMuon.split(':').map(Number);
         const tgMuonDkFull = setMilliseconds(
           setSeconds(setMinutes(setHours(chiTiet.ngayMuon, hM), mM), 0),
@@ -137,11 +145,15 @@ const updateRoomRequestSchema = z
           0
         );
         if (isBefore(tgTraDkFull, tgMuonDkFull)) return false;
+        // Kiểm tra nằm trong thời gian sự kiện
+        if (tgBatDauSK && isBefore(tgMuonDkFull, tgBatDauSK)) return false;
+        if (tgKetThucSK && isBefore(tgKetThucSK, tgTraDkFull)) return false;
       }
       return true;
     },
     {
-      message: 'Thời gian trả phải sau hoặc bằng thời gian mượn.',
+      message:
+        'Thời gian mượn/trả phải nằm trong thời gian diễn ra sự kiện và trả sau mượn.',
       path: ['chiTietYeuCau'],
     }
   );
@@ -200,6 +212,7 @@ const EditRoomRequestPage = () => {
           gioTra: format(parseISO(ct.tgTraDk), 'HH:mm'),
         })),
         ghiChuPhanHoiChoCSVC: '',
+        suKien: currentRequest.suKien, // Thêm dòng này
       });
     }
   }, [currentRequest, form]);
@@ -610,6 +623,22 @@ const EditRoomRequestPage = () => {
                                         mode="single"
                                         selected={field.value}
                                         onSelect={field.onChange}
+                                        disabled={(date) => {
+                                          const suKien =
+                                            form.getValues('suKien');
+                                          if (
+                                            !suKien?.tgBatDauDK ||
+                                            !suKien?.tgKetThucDK
+                                          )
+                                            return false;
+                                          const start = parseISO(
+                                            suKien.tgBatDauDK
+                                          );
+                                          const end = parseISO(
+                                            suKien.tgKetThucDK
+                                          );
+                                          return date < start || date > end;
+                                        }}
                                         initialFocus
                                       />
                                     </PopoverContent>
@@ -673,37 +702,34 @@ const EditRoomRequestPage = () => {
                                         selected={field.value}
                                         onSelect={field.onChange}
                                         disabled={(date) => {
+                                          const suKien =
+                                            form.getValues('suKien');
+                                          if (
+                                            !suKien?.tgBatDauDK ||
+                                            !suKien?.tgKetThucDK
+                                          )
+                                            return false;
+                                          const start = parseISO(
+                                            suKien.tgBatDauDK
+                                          );
+                                          const end = parseISO(
+                                            suKien.tgKetThucDK
+                                          );
+                                          // Ngày trả không được nhỏ hơn ngày mượn
                                           const ngayMuonValue = form.getValues(
                                             `chiTietYeuCau.${index}.ngayMuon`
                                           );
-                                          return ngayMuonValue
-                                            ? date < ngayMuonValue
-                                            : false;
+                                          return (
+                                            date < start ||
+                                            date > end ||
+                                            (ngayMuonValue &&
+                                              date < ngayMuonValue)
+                                          );
                                         }}
                                         initialFocus
                                       />
                                     </PopoverContent>
                                   </Popover>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            <FormField
-                              control={form.control}
-                              name={`chiTietYeuCau.${index}.gioTra`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>
-                                    Giờ trả{' '}
-                                    <span className="text-destructive">*</span>
-                                  </FormLabel>
-                                  <FormControl>
-                                    <Input
-                                      type="time"
-                                      {...field}
-                                      disabled={isProcessed}
-                                    />
-                                  </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}

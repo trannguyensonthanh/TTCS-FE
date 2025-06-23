@@ -152,19 +152,32 @@ const editEventFormSchema = z
       }
       const [hB, mB] = data.gioBatDau.split(':').map(Number);
       const [hK, mK] = data.gioKetThuc.split(':').map(Number);
-      const start = setMilliseconds(
+      const tgBatDauDK = setMilliseconds(
         setSeconds(setMinutes(setHours(data.ngayBatDau, hB), mB), 0),
         0
       );
-      const end = setMilliseconds(
+      const tgKetThucDK = setMilliseconds(
         setSeconds(setMinutes(setHours(data.ngayKetThuc, hK), mK), 0),
         0
       );
-      return isBefore(start, end);
+      // 1. Kết thúc phải sau hoặc bằng bắt đầu
+      if (isBefore(tgKetThucDK, tgBatDauDK)) return false;
+      // 2. Bắt đầu phải sau ngày hiện tại + 5 ngày
+      const now = new Date();
+      const minStart = addDays(
+        setHours(setMinutes(setSeconds(setMilliseconds(now, 0), 0), 0), 0),
+        5
+      );
+      if (isBefore(tgBatDauDK, minStart)) return false;
+      // 3. Khoảng cách không quá 5 ngày
+      const maxEnd = addDays(tgBatDauDK, 5);
+      if (isBefore(maxEnd, tgKetThucDK)) return false;
+      return true;
     },
     {
-      message: 'Thời gian bắt đầu phải trước thời gian kết thúc.',
-      path: ['ngayKetThuc'],
+      message:
+        'Thời gian không hợp lệ: Ngày bắt đầu phải sau hiện tại ít nhất 5 ngày, ngày kết thúc không vượt quá 5 ngày kể từ ngày bắt đầu, và ngày kết thúc phải sau ngày bắt đầu.',
+      path: ['ngayBatDau'],
     }
   )
   .refine((data) => !!data.nguoiChuTriID || !!data.tenChuTriNgoai, {
@@ -205,21 +218,27 @@ const EventsEditPage = () => {
         navigate('/events', { replace: true });
         return;
       }
-      // Điền dữ liệu vào form
+      // Đặt ngày mặc định là hôm nay + 5 ngày nếu không có
+      const now = new Date();
+      const todayZero = setMilliseconds(
+        setSeconds(setMinutes(setHours(now, 0), 0), 0),
+        0
+      );
+      const minStart = addDays(todayZero, 5);
       form.reset({
         tenSK: eventToEditData.tenSK,
         loaiSuKienID:
-          eventToEditData.loaiSuKien?.loaiSuKienID?.toString() || undefined, //   loaiSuKienID trong SuKienDetailResponse
+          eventToEditData.loaiSuKien?.loaiSuKienID?.toString() || undefined,
         moTaChiTiet: eventToEditData.moTaChiTiet || '',
         ngayBatDau: eventToEditData.tgBatDauDK
           ? parseISO(eventToEditData.tgBatDauDK)
-          : undefined,
+          : minStart,
         gioBatDau: eventToEditData.tgBatDauDK
           ? format(parseISO(eventToEditData.tgBatDauDK), 'HH:mm')
           : '08:00',
         ngayKetThuc: eventToEditData.tgKetThucDK
           ? parseISO(eventToEditData.tgKetThucDK)
-          : undefined,
+          : minStart,
         gioKetThuc: eventToEditData.tgKetThucDK
           ? format(parseISO(eventToEditData.tgKetThucDK), 'HH:mm')
           : '17:00',
@@ -520,34 +539,60 @@ const EventsEditPage = () => {
                   <FormField
                     control={form.control}
                     name="ngayBatDau"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Ngày bắt đầu{' '}
-                          <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            value={
-                              field.value
-                                ? formatISO(field.value, {
-                                    representation: 'date',
-                                  })
-                                : ''
-                            }
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value
-                                  ? parseISO(e.target.value)
-                                  : undefined
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const now = new Date();
+                      const todayZero = setMilliseconds(
+                        setSeconds(setMinutes(setHours(now, 0), 0), 0),
+                        0
+                      );
+                      const minStart = addDays(todayZero, 5);
+                      return (
+                        <FormItem>
+                          <FormLabel>
+                            Ngày bắt đầu{' '}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={'outline'}
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, 'dd/MM/yyyy', {
+                                      locale: vi,
+                                    })
+                                  ) : (
+                                    <span>Chọn ngày</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <CalendarShadcn
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                  date < minStart ||
+                                  date < new Date('1900-01-01')
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   <FormField
                     control={form.control}
@@ -572,34 +617,65 @@ const EventsEditPage = () => {
                   <FormField
                     control={form.control}
                     name="ngayKetThuc"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Ngày kết thúc{' '}
-                          <span className="text-destructive">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input
-                            type="date"
-                            value={
-                              field.value
-                                ? formatISO(field.value, {
-                                    representation: 'date',
-                                  })
-                                : ''
-                            }
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value
-                                  ? parseISO(e.target.value)
-                                  : undefined
-                              )
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                    render={({ field }) => {
+                      const start = form.getValues('ngayBatDau');
+                      let minEnd = undefined;
+                      let maxEnd = undefined;
+                      if (start) {
+                        minEnd = start;
+                        maxEnd = addDays(start, 5);
+                      }
+                      return (
+                        <FormItem>
+                          <FormLabel>
+                            Ngày kết thúc{' '}
+                            <span className="text-destructive">*</span>
+                          </FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={'outline'}
+                                  className={cn(
+                                    'w-full pl-3 text-left font-normal',
+                                    !field.value && 'text-muted-foreground'
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, 'dd/MM/yyyy', {
+                                      locale: vi,
+                                    })
+                                  ) : (
+                                    <span>Chọn ngày</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <CalendarShadcn
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => {
+                                  if (!minEnd || !maxEnd) return true;
+                                  return (
+                                    date < minEnd ||
+                                    date > maxEnd ||
+                                    date < new Date('1900-01-01')
+                                  );
+                                }}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      );
+                    }}
                   />
                   <FormField
                     control={form.control}

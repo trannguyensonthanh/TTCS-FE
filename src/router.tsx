@@ -12,13 +12,12 @@ import VerifyOTP from './pages/VerifyOTP';
 import ResetPassword from './pages/ResetPassword';
 import Profile from './pages/ProfilePage';
 import NotFound from './pages/NotFound';
-
+import MaVaiTro from '@/enums/MaVaiTro.enum';
 // Import Event Pages
 import EventsList from './pages/Events/EventsList';
 import EventsNew from './pages/Events/EventsNew';
 import EventsCancelRequests from './pages/Events/EventsCancelRequests';
 import EventsApprove from './pages/Events/EventsApprove';
-import EventParticipants from './pages/Events/EventParticipants';
 
 // Import Facility Pages
 // import RoomRequests from './pages/Facilities/RoomRequests';
@@ -40,9 +39,9 @@ import Users from './pages/Users/UsersPage.tsx';
 
 // Import Unit Management Pages
 import Units from './pages/Units/OrganizationalUnitsPage.tsx';
-import Departments from './pages/Units/Departments';
-import Clubs from './pages/Units/Clubs';
-import Union from './pages/Units/Union';
+// import Departments from './pages/Units/Departments';
+// import Clubs from './pages/Units/Clubs';
+// import Union from './pages/Units/Union';
 import Majors from './pages/Units/MajorsAndSpecializationsPage';
 import Classes from './pages/Units/ClassesPage';
 import BuildingsPage from './pages/Units/BuildingsPage'; // Ví dụ đường dẫn
@@ -74,6 +73,7 @@ import UserDetailPage from '@/pages/Users/UserDetailPage.tsx';
 import InviteToEventPage from '@/pages/Invitations/InviteToEventPage.tsx';
 import MyInvitationsPage from '@/pages/MyInvitations/MyInvitationsPage.tsx';
 import MyAttendedEventsPage from '@/pages/MyAttendedEvents/MyAttendedEventsPage.tsx';
+import EventInvitedListPage from '@/pages/EventInvitationManagement/EventInvitedListPage.tsx';
 
 const queryClient = new QueryClient();
 
@@ -153,41 +153,55 @@ const AppRouter = () => {
               <Route
                 path="/about"
                 element={
-                  <ClientLayout>
-                    <AboutPage />
-                  </ClientLayout>
+                  <ProtectedRoute>
+                    <ClientLayout>
+                      <AboutPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/rooms-explorer"
                 element={
-                  <ClientLayout>
-                    <RoomsExplorerPage />
-                  </ClientLayout>
+                  <ProtectedRoute>
+                    {' '}
+                    <ClientLayout>
+                      <RoomsExplorerPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/rooms-explorer/:roomId"
                 element={
-                  <ClientLayout>
-                    <PublicRoomDetailPage />
-                  </ClientLayout>
+                  <ProtectedRoute>
+                    {' '}
+                    <ClientLayout>
+                      <PublicRoomDetailPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/contact"
                 element={
-                  <ClientLayout>
-                    <ContactPage />
-                  </ClientLayout>
+                  <ProtectedRoute>
+                    {' '}
+                    <ClientLayout>
+                      <ContactPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/support"
                 element={
-                  <ClientLayout>
-                    <SupportPage />
-                  </ClientLayout>
+                  <ProtectedRoute>
+                    {' '}
+                    <ClientLayout>
+                      <SupportPage />
+                    </ClientLayout>
+                  </ProtectedRoute>
                 }
               />
               <Route
@@ -227,7 +241,13 @@ const AppRouter = () => {
               <Route
                 path="/events"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.BGH_DUYET_SK_TRUONG,
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     <EventsList />
                   </ProtectedRoute>
                 }
@@ -235,7 +255,7 @@ const AppRouter = () => {
               <Route
                 path="/events/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.CB_TO_CHUC_SU_KIEN]}>
                     <EventsNew />
                   </ProtectedRoute>
                 }
@@ -243,7 +263,12 @@ const AppRouter = () => {
               <Route
                 path="/events/cancel-requests"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.BGH_DUYET_SK_TRUONG,
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                    ]}
+                  >
                     <EventsCancelRequests />
                   </ProtectedRoute>
                 }
@@ -251,7 +276,7 @@ const AppRouter = () => {
               <Route
                 path="/events/edit/:eventId"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.CB_TO_CHUC_SU_KIEN]}>
                     <EventsEditPage />
                   </ProtectedRoute>
                 }
@@ -259,23 +284,24 @@ const AppRouter = () => {
               <Route
                 path="/events/approve"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.BGH_DUYET_SK_TRUONG]}>
                     <EventsApprove />
                   </ProtectedRoute>
                 }
               />
+
               <Route
-                path="/events/:eventId/participants"
+                path="/event-invitations/manage"
                 element={
-                  <ProtectedRoute>
-                    <EventParticipants />
+                  <ProtectedRoute allowedRoles={[MaVaiTro.CONG_TAC_SINH_VIEN]}>
+                    <EventInvitedListPage />
                   </ProtectedRoute>
                 }
               />
               <Route
                 path="/manage-invitations/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.CONG_TAC_SINH_VIEN]}>
                     <InviteToEventPage />
                   </ProtectedRoute>
                 }
@@ -284,7 +310,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-requests"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     {/* <RoomRequests /> */}
                     <RoomRequestsListPage />
                   </ProtectedRoute>
@@ -293,7 +324,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-requests/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     <CreateRoomRequestPage />
                   </ProtectedRoute>
                 }
@@ -301,7 +337,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-requests/edit/:ycMuonPhongID"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     <EditRoomRequestPage />
                   </ProtectedRoute>
                 }
@@ -309,7 +350,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-requests/process/:ycMuonPhongID"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     <ProcessRoomRequestPage />
                   </ProtectedRoute>
                 }
@@ -333,7 +379,7 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-schedule"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.QUAN_LY_CSVC]}>
                     <RoomSchedule />
                   </ProtectedRoute>
                 }
@@ -341,7 +387,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-change-requests"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     {/* <RoomChangeRequests /> */}
                     <RoomChangeRequestsListPage />
                   </ProtectedRoute>
@@ -351,7 +402,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-change-requests/new"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                      MaVaiTro.QUAN_LY_CSVC,
+                    ]}
+                  >
                     <CreateRoomChangeRequestPage />
                   </ProtectedRoute>
                 }
@@ -359,7 +415,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/room-change-requests/process/:ycDoiPhongID"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.QUAN_LY_CSVC,
+                      MaVaiTro.CB_TO_CHUC_SU_KIEN,
+                    ]}
+                  >
                     <ProcessRoomChangeRequestPage />
                   </ProtectedRoute>
                 }
@@ -367,7 +428,12 @@ const AppRouter = () => {
               <Route
                 path="/facilities/equipment"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.QUAN_LY_CSVC,
+                      MaVaiTro.ADMIN_HE_THONG,
+                    ]}
+                  >
                     <EquipmentPage />
                   </ProtectedRoute>
                 }
@@ -377,7 +443,12 @@ const AppRouter = () => {
               <Route
                 path="/units/buildings"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.QUAN_LY_CSVC,
+                      MaVaiTro.ADMIN_HE_THONG,
+                    ]}
+                  >
                     <BuildingsPage />
                   </ProtectedRoute>
                 }
@@ -386,7 +457,12 @@ const AppRouter = () => {
               <Route
                 path="/units/floor-types"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.QUAN_LY_CSVC,
+                      MaVaiTro.ADMIN_HE_THONG,
+                    ]}
+                  >
                     <FloorTypesPage />
                   </ProtectedRoute>
                 }
@@ -395,7 +471,12 @@ const AppRouter = () => {
               <Route
                 path="/units/buildings/:toaNhaId/floors"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute
+                    allowedRoles={[
+                      MaVaiTro.QUAN_LY_CSVC,
+                      MaVaiTro.ADMIN_HE_THONG,
+                    ]}
+                  >
                     <BuildingFloorsPage />
                   </ProtectedRoute>
                 }
@@ -410,42 +491,20 @@ const AppRouter = () => {
                   </ProtectedRoute>
                 }
               />
-              {/* <Route
-                path="/dashboard/department"
-                element={
-                  <ProtectedRoute>
-                    <DepartmentDashboard />
-                  </ProtectedRoute>
-                }
-              /> */}
+
               <Route
                 path="/dashboard/events"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.BGH_DUYET_SK_TRUONG]}>
                     <EventsDashboard />
                   </ProtectedRoute>
                 }
               />
-              {/* <Route
-                path="/dashboard/clubs"
-                element={
-                  <ProtectedRoute>
-                    <ClubsDashboard />
-                  </ProtectedRoute>
-                }
-              /> */}
-              {/* <Route
-                path="/dashboard/union"
-                element={
-                  <ProtectedRoute>
-                    <UnionDashboard />
-                  </ProtectedRoute>
-                }
-              /> */}
+
               <Route
                 path="/dashboard/facilities"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.QUAN_LY_CSVC]}>
                     <FacilitiesDashboard />
                   </ProtectedRoute>
                 }
@@ -455,7 +514,7 @@ const AppRouter = () => {
               <Route
                 path="/users"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.ADMIN_HE_THONG]}>
                     <Users />
                   </ProtectedRoute>
                 }
@@ -481,39 +540,39 @@ const AppRouter = () => {
               <Route
                 path="/units"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.ADMIN_HE_THONG]}>
                     <Units />
                   </ProtectedRoute>
                 }
               />
-              <Route
+              {/* <Route
                 path="/units/departments"
                 element={
                   <ProtectedRoute>
                     <Departments />
                   </ProtectedRoute>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/units/clubs"
                 element={
                   <ProtectedRoute>
                     <Clubs />
                   </ProtectedRoute>
                 }
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="/units/union"
                 element={
                   <ProtectedRoute>
                     <Union />
                   </ProtectedRoute>
                 }
-              />
+              /> */}
               <Route
                 path="/units/majors"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.ADMIN_HE_THONG]}>
                     <Majors />
                   </ProtectedRoute>
                 }
@@ -521,7 +580,7 @@ const AppRouter = () => {
               <Route
                 path="/units/classes"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute allowedRoles={[MaVaiTro.ADMIN_HE_THONG]}>
                     <Classes />
                   </ProtectedRoute>
                 }

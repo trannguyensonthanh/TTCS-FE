@@ -126,7 +126,7 @@ const ycChiTietSchema = z.object({
   ngayTra: z.date({ required_error: 'Vui lòng chọn ngày trả.' }),
   gioTra: z
     .string()
-    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Giờ trả không hợp lệ (HH:mm).'), // Sửa regex giờ trả
+    .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Giờ trả không hợp lệ (HH:mm).'),
 });
 
 const createRoomRequestSchema = z
@@ -140,11 +140,19 @@ const createRoomRequestSchema = z
     chiTietYeuCau: z
       .array(ycChiTietSchema)
       .min(1, 'Phải có ít nhất một chi tiết yêu cầu phòng.'),
+    suKien: z.any().optional(), // Thêm trường sự kiện để lấy thời gian
   })
   .refine(
     (data) => {
+      // Lấy thời gian sự kiện
+      const tgBatDauSK = data.suKien?.tgBatDauDK
+        ? parseISO(data.suKien.tgBatDauDK)
+        : null;
+      const tgKetThucSK = data.suKien?.tgKetThucDK
+        ? parseISO(data.suKien.tgKetThucDK)
+        : null;
       for (const chiTiet of data.chiTietYeuCau) {
-        if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return false; // NgayMuon/NgayTra can be undefined if not selected yet
+        if (!chiTiet.ngayMuon || !chiTiet.ngayTra) return false;
         const [hM, mM] = chiTiet.gioMuon.split(':').map(Number);
         const tgMuonDkFull = setMilliseconds(
           setSeconds(setMinutes(setHours(chiTiet.ngayMuon, hM), mM), 0),
@@ -156,12 +164,15 @@ const createRoomRequestSchema = z
           0
         );
         if (isBefore(tgTraDkFull, tgMuonDkFull)) return false;
+        // Kiểm tra nằm trong thời gian sự kiện
+        if (tgBatDauSK && isBefore(tgMuonDkFull, tgBatDauSK)) return false;
+        if (tgKetThucSK && isBefore(tgKetThucSK, tgTraDkFull)) return false;
       }
       return true;
     },
     {
       message:
-        'Thời gian trả phải sau hoặc bằng thời gian mượn cho mỗi yêu cầu chi tiết.',
+        'Thời gian mượn/trả phải nằm trong thời gian diễn ra sự kiện và trả sau mượn.',
       path: ['chiTietYeuCau'],
     }
   );
@@ -309,12 +320,15 @@ const CreateRoomRequestPage = () => {
             );
           }
         }
+        // Truyền suKien vào form để validate
+        formCreate.setValue('suKien', suKien, { shouldValidate: true });
       }
     } else if (!selectedSuKienIdForForm && !eventIdFromQuery) {
       formCreate.reset({
         suKienID: '',
         ghiChuChungYc: formCreate.getValues('ghiChuChungYc'),
         chiTietYeuCau: [defaultChiTietYeuCauValue],
+        suKien: undefined,
       });
     }
   }, [
@@ -671,6 +685,22 @@ const CreateRoomRequestPage = () => {
                                       mode="single"
                                       selected={field.value}
                                       onSelect={field.onChange}
+                                      disabled={(date) => {
+                                        const suKien =
+                                          formCreate.getValues('suKien');
+                                        if (
+                                          !suKien?.tgBatDauDK ||
+                                          !suKien?.tgKetThucDK
+                                        )
+                                          return false;
+                                        const start = parseISO(
+                                          suKien.tgBatDauDK
+                                        );
+                                        const end = parseISO(
+                                          suKien.tgKetThucDK
+                                        );
+                                        return date < start || date > end;
+                                      }}
                                       initialFocus
                                     />
                                   </PopoverContent>
@@ -735,13 +765,29 @@ const CreateRoomRequestPage = () => {
                                       selected={field.value}
                                       onSelect={field.onChange}
                                       disabled={(date) => {
+                                        const suKien =
+                                          formCreate.getValues('suKien');
+                                        if (
+                                          !suKien?.tgBatDauDK ||
+                                          !suKien?.tgKetThucDK
+                                        )
+                                          return false;
+                                        const start = parseISO(
+                                          suKien.tgBatDauDK
+                                        );
+                                        const end = parseISO(
+                                          suKien.tgKetThucDK
+                                        );
                                         const ngayMuonValue =
                                           formCreate.getValues(
                                             `chiTietYeuCau.${index}.ngayMuon`
                                           );
-                                        return ngayMuonValue
-                                          ? date < ngayMuonValue
-                                          : date < new Date(0);
+                                        return (
+                                          date < start ||
+                                          date > end ||
+                                          (ngayMuonValue &&
+                                            date < ngayMuonValue)
+                                        );
                                       }}
                                       initialFocus
                                     />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -155,13 +155,25 @@ const eventFormSchema = z
           setSeconds(setMinutes(setHours(data.ngayKetThuc, hK), mK), 0),
           0
         );
-        return !isBefore(tgKetThucDK, tgBatDauDK);
+        // 1. Kết thúc phải sau hoặc bằng bắt đầu
+        if (isBefore(tgKetThucDK, tgBatDauDK)) return false;
+        // 2. Bắt đầu phải sau ngày hiện tại + 5 ngày
+        const now = new Date();
+        const minStart = addDays(
+          setHours(setMinutes(setSeconds(setMilliseconds(now, 0), 0), 0), 0),
+          5
+        );
+        if (isBefore(tgBatDauDK, minStart)) return false;
+        // 3. Khoảng cách không quá 5 ngày
+        const maxEnd = addDays(tgBatDauDK, 5);
+        if (isBefore(maxEnd, tgKetThucDK)) return false;
       }
       return true;
     },
     {
-      message: 'Thời gian kết thúc phải sau hoặc bằng thời gian bắt đầu.',
-      path: ['ngayKetThuc'], // Hoặc path: ["gioKetThuc"]
+      message:
+        'Thời gian không hợp lệ: Ngày bắt đầu phải sau hiện tại ít nhất 5 ngày, ngày kết thúc không vượt quá 5 ngày kể từ ngày bắt đầu, và ngày kết thúc phải sau ngày bắt đầu.',
+      path: ['ngayBatDau'],
     }
   )
   .refine(
@@ -221,7 +233,7 @@ const EventsNew = () => {
   });
 
   // Tìm DonViID mặc định cho CB_TO_CHUC_SU_KIEN
-  const getDefaultDonViChuTriID = (): string | undefined => {
+  const getDefaultDonViChuTriID = useCallback((): string | undefined => {
     if (user && user.vaiTroChucNang) {
       const cbtcRoleAssignment = user.vaiTroChucNang.find(
         (roleAssignment) =>
@@ -231,7 +243,7 @@ const EventsNew = () => {
       return cbtcRoleAssignment?.donViThucThi?.donViID?.toString();
     }
     return undefined;
-  };
+  }, [user]);
   const defaultDonViChuTri = getDefaultDonViChuTriID();
   // State cho tìm kiếm người chủ trì (Giảng viên/Cán bộ)
   const [searchTermNguoiChuTri, setSearchTermNguoiChuTri] = useState('');
@@ -287,17 +299,20 @@ const EventsNew = () => {
       }
     }
 
-    // Đặt ngày bắt đầu mặc định là ngày mai
-    const tomorrow = addDays(new Date(), 1);
+    // Đặt ngày bắt đầu và kết thúc mặc định là ngày hiện tại + 5 ngày
+    const now = new Date();
+    const todayZero = setMilliseconds(
+      setSeconds(setMinutes(setHours(now, 0), 0), 0),
+      0
+    );
+    const minStart = addDays(todayZero, 5);
     if (!form.getValues('ngayBatDau')) {
-      // Chỉ đặt nếu chưa có giá trị
-      form.setValue('ngayBatDau', tomorrow);
+      form.setValue('ngayBatDau', minStart);
     }
     if (!form.getValues('ngayKetThuc')) {
-      // Chỉ đặt nếu chưa có giá trị
-      form.setValue('ngayKetThuc', tomorrow);
+      form.setValue('ngayKetThuc', minStart);
     }
-  }, [user, form, defaultDonViChuTri]); // Thêm defaultDonViChuTri vào dependency array
+  }, [user, form, defaultDonViChuTri, getDefaultDonViChuTriID]); // Thêm defaultDonViChuTri vào dependency array
 
   const onSubmit = async (data: EventFormValues) => {
     const { ngayBatDau, gioBatDau, ngayKetThuc, gioKetThuc, ...restOfData } =
@@ -522,10 +537,23 @@ const EventsNew = () => {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) =>
-                                date < new Date() ||
-                                date < new Date('1900-01-01')
-                              }
+                              disabled={(date) => {
+                                const now = new Date();
+                                const minStart = addDays(
+                                  setHours(
+                                    setMinutes(
+                                      setSeconds(setMilliseconds(now, 0), 0),
+                                      0
+                                    ),
+                                    0
+                                  ),
+                                  5
+                                );
+                                return (
+                                  date < minStart ||
+                                  date < new Date('1900-01-01')
+                                );
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -587,11 +615,16 @@ const EventsNew = () => {
                               mode="single"
                               selected={field.value}
                               onSelect={field.onChange}
-                              disabled={(date) =>
-                                date <
-                                  (form.getValues('ngayBatDau') ||
-                                    new Date()) || date < new Date('1900-01-01')
-                              }
+                              disabled={(date) => {
+                                const start = form.getValues('ngayBatDau');
+                                if (!start) return true;
+                                const maxEnd = addDays(start, 5);
+                                return (
+                                  date < start ||
+                                  date > maxEnd ||
+                                  date < new Date('1900-01-01')
+                                );
+                              }}
                               initialFocus
                             />
                           </PopoverContent>
@@ -724,7 +757,7 @@ const EventsNew = () => {
                                     (nd) =>
                                       nd?.nguoiDungID?.toString() ===
                                       field.value
-                                  )?.hoTen
+                                  )?.hoTen || ''
                                 : isLoadingNguoiChuTri
                                 ? 'Đang tải...'
                                 : 'Tìm & chọn người chủ trì...'}
@@ -893,9 +926,7 @@ const EventsNew = () => {
                               </CommandEmpty>
                               <CommandGroup>
                                 {(dsDonViThamGiaOptions || dsDonVi)?.items.map(
-                                  (
-                                    dv // Ưu tiên dsDonViThamGiaOptions   search term
-                                  ) => (
+                                  (dv) => (
                                     <CommandItem
                                       key={dv.donViID}
                                       value={dv.tenDonVi}

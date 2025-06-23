@@ -385,9 +385,12 @@ const RoomRequestsListPage = () => {
                       {canProcessRequests ? 'Xem & Xử lý' : 'Xem Chi Tiết'}
                     </DropdownMenuItem>
                     {req.nguoiYeuCau.nguoiDungID === user?.nguoiDungID &&
-                      req.trangThaiChung.maTrangThai ===
-                        MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY && (
+                      (req.trangThaiChung.maTrangThai ===
+                        MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY ||
+                        req.trangThaiChung.maTrangThai ===
+                          MaTrangThaiYeuCauPhong.CSVC_YEU_CAU_CHINH_SUA_CT) && (
                         <>
+                          {' '}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() =>
@@ -398,26 +401,29 @@ const RoomRequestsListPage = () => {
                           >
                             <Edit className="mr-2 h-4 w-4" /> Sửa Yêu Cầu
                           </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() =>
-                              handleUserCancelRequest(req.ycMuonPhongID)
-                            }
-                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                            disabled={
-                              cancelRequestMutation.isPending &&
+                          {req.trangThaiChung.maTrangThai ===
+                            MaTrangThaiYeuCauPhong.YCCP_CHO_XU_LY && (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUserCancelRequest(req.ycMuonPhongID)
+                              }
+                              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                              disabled={
+                                cancelRequestMutation.isPending &&
+                                cancelRequestMutation.variables ===
+                                  req.ycMuonPhongID
+                              }
+                            >
+                              {cancelRequestMutation.isPending &&
                               cancelRequestMutation.variables ===
-                                req.ycMuonPhongID
-                            }
-                          >
-                            {cancelRequestMutation.isPending &&
-                            cancelRequestMutation.variables ===
-                              req.ycMuonPhongID ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="mr-2 h-4 w-4" />
-                            )}
-                            Hủy Yêu Cầu
-                          </DropdownMenuItem>
+                                req.ycMuonPhongID ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="mr-2 h-4 w-4" />
+                              )}
+                              Hủy Yêu Cầu
+                            </DropdownMenuItem>
+                          )}
                         </>
                       )}
                   </DropdownMenuContent>
