@@ -318,7 +318,7 @@ const ProcessRoomRequestPage = () => {
           !!selectedDetailItem,
       }
     );
-
+  console.log('Danh sách phòng:', dsPhongTrongTruong);
   // --- Mutations (Hành động thay đổi dữ liệu) ---
 
   const processItemMutation = useProcessRoomRequestDetailItem({
@@ -724,7 +724,7 @@ const ProcessRoomRequestPage = () => {
                                 onValueChange={setPhongSearchTerm}
                               />
                               <CommandList>
-                                <ScrollArea className="max-h-[200px]">
+                                <ScrollArea className="max-h-[200px] overflow-auto">
                                   {isLoadingPhongTrongTruong && (
                                     <CommandItem disabled>
                                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />{' '}
